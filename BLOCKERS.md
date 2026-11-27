@@ -1,7 +1,7 @@
 # BLOCKERS — WALE COOKING
 
 > Các vấn đề còn tồn tại hoặc cần xác minh. Ghi rõ thay vì tự suy đoán.
-> Cập nhật: 2026-11-28 (P05).
+> Cập nhật: 2026-11-28 (P06).
 
 | # | Blocker | Mức độ | Trạng thái | Ghi chú |
 | --- | --- | --- | --- | --- |
@@ -21,6 +21,9 @@
 | B-P03-01 | **Nghiệm thu a11y/responsive/motion trên UI thật chưa thực hiện** | Trung bình | **CÒN MỞ (P05 đã có UI, chưa kiểm trên trình duyệt)** | P05 đã dựng UI thật + hiện thực a11y ở mức code/đặc tả (skip-link, focus-ring, ARIA, focus trap, reduced-motion). **Nhưng** môi trường không có trình duyệt headless → chưa chạy axe/Lighthouse, chưa test screen reader (NVDA/VoiceOver), chưa kiểm zoom 200%/320px, focus-not-obscured với header sticky, contrast có alpha/overlay. Xem [ACCESSIBILITY_REPORT.md](./docs/P05/ACCESSIBILITY_REPORT.md) §6 và [DESIGN_QA_CHECKLIST.md](./docs/P03/DESIGN_QA_CHECKLIST.md) §3 |
 | B-P04-01 | **Render pixel & tương thích runtime của asset P04 chưa xác minh** | Thấp | **CÒN MỞ (asset đã tích hợp UI ở P05, chưa xác minh render)** | P05 đã tích hợp asset P04 vào `SiteLogo`, `RecipeImage` (mascot khi thiếu ảnh), `EmptyState`, `ErrorState`, `not-found`. Môi trường build không có SVG rasterizer/trình duyệt → vẫn chưa kiểm bằng mắt: mascot trên các nền P03, logo ≥16–24px, `currentColor` trong icon trên Safari/Firefox. Xem [ASSET_QA_CHECKLIST.md](./docs/P04/ASSET_QA_CHECKLIST.md) §10 |
 | B-P05-01 | **Chưa kiểm trình duyệt thật / E2E / console runtime** | Trung bình | **Còn mở** | Môi trường P05 không có trình duyệt headless; đã kiểm `typecheck`/`lint`/`test` (60)/`build` (15 route) nhưng chưa kiểm responsive thực tế, focus thực tế, tràn ngang, console runtime. Không tuyên bố đạt WCAG 2.2 AA. Xem [TEST_REPORT.md](./docs/P05/TEST_REPORT.md) §5 |
+| B-P06-01 | **Chưa xác minh kết nối Neon PostgreSQL thật** | Trung bình | **Còn mở** | Chưa có connection string Neon → toàn bộ kiểm chứng P06 chạy trên **PostgreSQL 16.15 local** (`wale_dev`/`wale_test`). Chưa kiểm pooled/direct thật, SSL, `?pgbouncer=true`. Cấu hình đã sẵn (`DATABASE_URL` + `DIRECT_URL`). Xem [MIGRATION_GUIDE.md](./docs/P06/MIGRATION_GUIDE.md) §6 |
+| B-P06-02 | **Auth.js chưa nối → chưa kiểm luồng 401/403 end-to-end** | Trung bình | **Còn mở** | `getCurrentActor()` trả `null`; chưa có phiên đăng nhập thật. Mọi thao tác ghi trong test được kiểm ở tầng authorization (unit) nhưng **chưa** qua HTTP. Không giả lập người dùng đã đăng nhập. Xem [DATABASE_SECURITY.md](./docs/P06/DATABASE_SECURITY.md) §3 |
+| B-P06-03 | **Chưa có credentials Cloudflare R2** | Trung bình | **Chưa xử lý (thuộc P07)** | Biến `R2_*` để trống; media adapter (R2/local) triển khai ở P07. Không tuyên bố R2 đã kết nối. Xem [MEDIA_STORAGE.md](./docs/P02/MEDIA_STORAGE.md) |
 
 ## Nội dung còn chờ xác minh (không phải blocker cứng)
 

@@ -7,6 +7,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./', import.meta.url)),
+      'server-only': fileURLToPath(new URL('./tests/stubs/server-only.ts', import.meta.url)),
     },
   },
   test: {
@@ -14,6 +15,8 @@ export default defineConfig({
     globals: true,
     setupFiles: ['./vitest.setup.ts'],
     include: ['tests/**/*.test.{ts,tsx}'],
+    // Test tích hợp (cần database) chạy bằng `vitest.integration.config.ts`.
+    exclude: ['node_modules/**', 'tests/integration/**'],
     css: false,
   },
 });

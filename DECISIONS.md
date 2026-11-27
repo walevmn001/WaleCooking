@@ -1,7 +1,7 @@
 # DECISIONS — WALE COOKING
 
 > Nhật ký các quyết định đã chốt. Không tự thay đổi quyết định đã xác lập nếu chưa có căn cứ.
-> Cập nhật: 2026-11-28 (P05).
+> Cập nhật: 2026-11-28 (P06).
 
 | # | Quyết định | Nội dung | Căn cứ | Trạng thái |
 | --- | --- | --- | --- | --- |
@@ -46,11 +46,21 @@
 | D39 | Trang kiểm tra component | `/dev/components` — **dev-only**: `notFound()` khi `NODE_ENV === "production"`; dùng mock data có nhãn `[MOCK]`, không dùng production | P05 (§5) | Đã chốt |
 | D40 | Stack kiểm thử P05 | **Vitest 5** + `@testing-library/react` + `jsdom`; `tests/**/*.test.{ts,tsx}`; **không** thêm framework UI/E2E mới trong P05 (E2E để phase sau) | P05 (§9) | Đã chốt |
 | D41 | Phạm vi kết nối dữ liệu P05 | **Không** kết nối Prisma/Neon, Auth.js, Cloudflare R2 trong P05. Component **không** tự gọi API; tầng dữ liệu thuộc P06+ | P05 (§7) | Đã chốt |
+| D42 | Prisma generator & extensions | Dùng generator `prisma-client-js` + `previewFeatures = ["postgresqlExtensions"]` để khai báo `extensions = [citext, pgTrgm, unaccent]` trong `datasource`; `url` (pooled) + `directUrl` (direct cho migration) | P06 (ADR-P06-01) | Đã chốt |
+| D43 | Sửa quan hệ `RecipeIngredientSubstitute` | Giữ quan hệ đúng tới `RecipeIngredient` (Cascade) + `Ingredient` (Restrict); bỏ relation trùng lặp sai | P06 (ADR-P06-02) | Đã chốt |
+| D44 | Đổi tên model dịch thiết bị | `IngredientEquipmentTranslationPlaceholder` → `EquipmentTranslation` (giữ `@@map("equipment_translations")`) | P06 (ADR-P06-03) | Đã chốt |
+| D45 | Delete behavior `Ingredient.category` | **RESTRICT** (không `SET NULL`) — theo quy ước P02 §6: taxonomy term đang dùng phải RESTRICT; `SET NULL` chỉ giữ cho `default_unit_id` | P06 (ADR-P06-04), P02/D18 | Đã chốt |
+| D46 | Kiến trúc dữ liệu P06 | Ports & adapters: `lib/db/repositories` (interface + adapter Prisma) → `lib/services`; **UI/React không gọi Prisma trực tiếp**; DTO tách khỏi model Prisma | P06 (§7) | Đã chốt |
+| D47 | Kiểm tra biến môi trường | Zod schema phía server (`lib/config/env.ts`), lazy + memoized; lỗi **chỉ nêu tên biến**, **không in giá trị**; Prisma client không log query | P06 (§4, §8) | Đã chốt |
+| D48 | Authorization khi Auth.js chưa nối | RBAC tập trung (`lib/auth/authorization.ts`); `getCurrentActor()` trả `null` → mọi thao tác ghi nhận **401**; **không** giả lập người dùng đã đăng nhập | P06 (§8), P02/D-P02-03 | Đã chốt |
+| D49 | Seed | Idempotent bằng `upsert`; tách **seed hệ thống** (luôn chạy) vs **dữ liệu phát triển** (`SEED_DEV=1`, TLD `.invalid`); không chứa thông tin cá nhân thật | P06 (§6) | Đã chốt |
+| D50 | Kiểm thử tích hợp | Tách cấu hình: unit (`vitest.config.ts`, jsdom) và integration (`vitest.integration.config.ts`, node + PostgreSQL thử nghiệm `TEST_DATABASE_URL`) | P06 (§9) | Đã chốt |
 
 > Chi tiết bối cảnh/lý do/đánh đổi/phương án thay thế của **D-P02-01..11** xem [ARCHITECTURE_DECISIONS.md](./docs/P02/ARCHITECTURE_DECISIONS.md).
 > Chi tiết Design System của **D22–D28** xem [DESIGN_SYSTEM.md](./docs/P03/DESIGN_SYSTEM.md), [DESIGN_TOKENS.md](./docs/P03/DESIGN_TOKENS.md), [COLOR_ACCESSIBILITY_AUDIT.md](./docs/P03/COLOR_ACCESSIBILITY_AUDIT.md).
 > Chi tiết bộ nhận diện minh họa của **D29–D33** xem [BRAND_ASSET_GUIDELINES.md](./docs/P04/BRAND_ASSET_GUIDELINES.md), [MASCOT_SPECIFICATION.md](./docs/P04/MASCOT_SPECIFICATION.md), [LOGO_USAGE_GUIDELINES.md](./docs/P04/LOGO_USAGE_GUIDELINES.md), [ICON_SYSTEM.md](./docs/P04/ICON_SYSTEM.md), [ILLUSTRATION_GUIDELINES.md](./docs/P04/ILLUSTRATION_GUIDELINES.md), [ASSET_CATALOG.md](./docs/P04/ASSET_CATALOG.md).
 > Chi tiết hiện thực UI của **D34–D41** xem [docs/P05/](./docs/P05/): [IMPLEMENTATION_REPORT.md](./docs/P05/IMPLEMENTATION_REPORT.md), [COMPONENT_CATALOG.md](./docs/P05/COMPONENT_CATALOG.md), [APPLICATION_SHELL.md](./docs/P05/APPLICATION_SHELL.md), [RESPONSIVE_IMPLEMENTATION.md](./docs/P05/RESPONSIVE_IMPLEMENTATION.md), [ACCESSIBILITY_REPORT.md](./docs/P05/ACCESSIBILITY_REPORT.md), [TEST_REPORT.md](./docs/P05/TEST_REPORT.md).
+> Chi tiết nền tảng dữ liệu của **D42–D50** xem [docs/P06/](./docs/P06/): [DATABASE_IMPLEMENTATION.md](./docs/P06/DATABASE_IMPLEMENTATION.md), [PRISMA_SCHEMA_GUIDE.md](./docs/P06/PRISMA_SCHEMA_GUIDE.md), [MIGRATION_GUIDE.md](./docs/P06/MIGRATION_GUIDE.md), [SEED_GUIDE.md](./docs/P06/SEED_GUIDE.md), [REPOSITORY_ARCHITECTURE.md](./docs/P06/REPOSITORY_ARCHITECTURE.md), [DATABASE_SECURITY.md](./docs/P06/DATABASE_SECURITY.md), [TEST_REPORT.md](./docs/P06/TEST_REPORT.md).
 
 ## Quyết định còn để mở (cần xác minh trước khi áp dụng)
 

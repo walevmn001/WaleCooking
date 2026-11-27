@@ -1,10 +1,10 @@
 # CURRENT STATUS — WALE COOKING
 
-> Cập nhật: 2026-11-28 (P05).
+> Cập nhật: 2026-11-28 (P06).
 
 ## Tóm tắt
 - **Sản phẩm:** WALE COOKING — website hướng dẫn nấu ăn (tiếng Việt, sẵn sàng i18n EN).
-- **Phase hiện tại:** hoàn thành **P00**, **P00-FIX**, **P01**, **P02**, **P03**, **P04** và **P05**; **chưa bắt đầu P06.**
+- **Phase hiện tại:** hoàn thành **P00**, **P00-FIX**, **P01**, **P02**, **P03**, **P04**, **P05** và **P06**; **chưa bắt đầu P07.**
 - **Đã hoàn thiện P00:** khảo sát thực tế + tài liệu định hướng + đề xuất công nghệ.
 - **Đã hoàn thiện P00-FIX:** đồng bộ thương hiệu sang WALE COOKING, bổ sung đầy đủ 20 nhóm chức năng, chuẩn hóa 7 trục phân loại, cập nhật tài liệu trạng thái.
 - **Đã hoàn thiện P01:** bộ đặc tả sản phẩm có thể triển khai — PRD, Product Constitution, personas, user journeys, đặc tả 20 nhóm chức năng, quy tắc nghiệp vụ, NFR đo lường được, phạm vi MVP và tiêu chí nghiệm thu.
@@ -12,6 +12,7 @@
 - **Đã hoàn thiện P03:** **Design System WALE COOKING — Pastel Mint** — bộ quy chuẩn giao diện + design tokens máy đọc được, audit WCAG 2.2 AA (contrast đo thực tế), đặc tả component, layout/spacing, responsive, motion, accessibility. **Chưa viết code ứng dụng / chưa dựng UI thật** (thuộc P05).
 - **Đã hoàn thiện P04:** **Bộ nhận diện minh họa** — 60 asset SVG nguyên bản (5 logo/brand mark, 8 biến thể mascot, 38 icon, 9 illustration trạng thái) + 7 tài liệu quy chuẩn trong `docs/P04/`. Sinh/kiểm tự động bằng script; validator **0 lỗi, 0 cảnh báo**; tổng ~56.6 KB. **Chưa tích hợp vào UI** (thuộc P05); phần render pixel chưa xác minh do môi trường không có rasterizer.
 - **Đã hoàn thiện P05:** **Application Foundation & Shared UI System** — (A) nền tảng + 60 component dùng chung (ui/forms/navigation/feedback/recipe/recipe-meta/layout) theo token P03, dùng Lucide + asset P04; (B) Application Shell: Root/Public/Auth/Admin layout, Header (desktop/tablet/mobile), Navigation, MobileMenu, Footer; trang kiểm tra dev-only `/dev/components`. **Kiểm chứng:** `typecheck` 0 lỗi · `lint` 0 lỗi/0 cảnh báo · **60/60 unit test pass** (11 file) · `build` thành công **15 route**. **Chưa** kiểm trình duyệt thật / axe / screen reader / zoom 200% → **không tuyên bố đạt WCAG 2.2 AA**.
+- **Đã hoàn thiện P06:** **Database Foundation** — Prisma schema theo P02 (**22 enum / 57 model**; **58 bảng** trong DB), Prisma client singleton, kiểm tra biến môi trường, migration baseline tái lập được (`20261127175936_init`, chạy từ DB sạch), seed hệ thống **idempotent** (9 taxonomy type/83 term, 22 unit, 10 equipment, 40 ingredient, 1 content source), lớp **repository + service + validation + authorization tập trung**. **Kiểm chứng:** `prisma validate/generate` OK · migration áp thành công lên `wale_dev`+`wale_test` · seed chạy 2 lần không trùng · **78/78 unit test** (14 file) · **28/28 integration test** (5 file) · `typecheck` 0 lỗi · `lint` 0 lỗi · `build` 15 route. **Chưa kết nối Neon thật** (dùng PostgreSQL local); Auth.js **chưa nối** → `getCurrentActor()` trả `null` (không giả lập đăng nhập).
 
 ## Git
 | Mục | Giá trị |
@@ -24,9 +25,10 @@
 | Commit P02 | `ebb9acb` (nhánh agent) → merge `49213e2` vào `main` |
 | Commit P03 | `84b3618` — docs(P03): Design System WALE COOKING — Pastel Mint |
 | Commit P04 | `1eb7f2f` — feat(P04): bộ nhận diện minh họa WALE COOKING — mascot, logo, icon, illustration |
-| Commit P05 | *(commit chứa tài liệu này — xem `git log -1`)* |
-| Working tree | Sạch sau khi commit P05 |
-| `origin/main` | Cập nhật checkpoint P05 (xem báo cáo push) |
+| Commit P05 | `e44a62a` — feat(P05): nền tảng ứng dụng WALE COOKING & hệ thống UI dùng chung |
+| Commit P06 | *(commit chứa tài liệu này — xem `git log -1`)* — feat(P06): nền tảng dữ liệu (Prisma + migration + seed + repository) |
+| Working tree | Sạch sau khi commit P06 |
+| `origin/main` | Cập nhật checkpoint P06 (xem báo cáo push) |
 
 ## Kiến trúc đã chốt (không thay đổi)
 - Stack lớp rời: **Next.js + Prisma + Neon PostgreSQL + Auth.js + Cloudflare R2**.
@@ -73,6 +75,25 @@
 
 **Kiểm thử:** `tests/` (11 file, **60 test pass**).
 
+## Sản phẩm bàn giao P06 (`docs/P06/` + mã nguồn)
+**Tài liệu (`docs/P06/`):** `DATABASE_IMPLEMENTATION.md` · `PRISMA_SCHEMA_GUIDE.md` · `MIGRATION_GUIDE.md` · `SEED_GUIDE.md` · `REPOSITORY_ARCHITECTURE.md` · `DATABASE_SECURITY.md` · `TEST_REPORT.md`
+
+**Cơ sở dữ liệu & Prisma:**
+- `prisma/schema.prisma` — **22 enum + 57 model** theo P02 (UUID PK, timestamptz UTC, numeric cho định lượng, JSONB giới hạn, FK RESTRICT mặc định; preview feature `postgresqlExtensions`).
+- `prisma/migrations/20261127175936_init/migration.sql` — baseline (3 extension + 22 enum + 57 bảng); `migration_lock.toml`.
+- `prisma/seed.ts` + `prisma/seed/{data,run}.ts` — seed hệ thống idempotent (taxonomy 9 trục, 22 đơn vị, 5 quy đổi, 10 thiết bị, 40 nguyên liệu, 1 nguồn nội dung) + seed dev (`SEED_DEV=1`).
+
+**Mã nguồn (`lib/`):**
+- `config/env.ts` (kiểm tra env, không lộ secret).
+- `db/prisma.ts` (singleton), `db/prisma-errors.ts` (map lỗi Prisma an toàn).
+- `db/repositories/` — ports + adapter Prisma: Unit, Taxonomy, Ingredient (+ `index.ts` cổng `repositories`).
+- `errors/app-error.ts` (AppError + Validation/NotFound/Forbidden/Unauthorized/Conflict).
+- `validation/{common,catalog}.ts` (Zod + phân trang + `parseInput`).
+- `auth/authorization.ts` (RBAC tập trung), `auth/session.ts` (`getCurrentActor()` → `null`).
+- `services/catalog.service.ts` (nghiệp vụ dữ liệu tham chiếu).
+
+**Kiểm thử:** `tests/lib/` (3 file, 18 test) + `tests/integration/` (5 file, 28 test) + `tests/stubs/server-only.ts` + `vitest.integration.config.ts`. Tổng **78 unit + 28 integration test pass**.
+
 ## Việc còn chờ xác minh
 - **B5:** repo là shallow clone (ảnh hưởng thấp).
 - **B6:** chưa có tài khoản/môi trường triển khai (Neon, R2, Vercel/Cloudflare…).
@@ -87,8 +108,8 @@
 - Hạn mức gói miễn phí đã ghi theo thời điểm **11/2026** — cần kiểm tra lại trước khi deploy.
 
 ## Phase tiếp theo
-- **P06** — *(chưa xác định phạm vi)*: dự kiến xây module Recipe thật (data layer + Prisma) và thay `PlaceholderPage` bằng trang có dữ liệu thật, dùng lại `components/recipe/*`. Không tự triển khai; chờ yêu cầu tiếp theo.
+- **P07 — Recipe Module**: xây module công thức thật trên nền dữ liệu P06 — domain (Recipe/Translation/Ingredient/Step), CRUD (draft → submit → publish → archive), API theo contract P02, media adapter (R2/local), frontend listing/detail/create-edit tái sử dụng component P05, transaction bảo toàn thứ tự, authorization tập trung. **Chỉ bắt đầu sau khi checkpoint P06 đạt.** Không tự chuyển sang P08.
 
 ## Tham chiếu
 - [PHASE_PROGRESS.md](./PHASE_PROGRESS.md) · [DECISIONS.md](./DECISIONS.md) · [BLOCKERS.md](./BLOCKERS.md)
-- Tài liệu P00: [docs/P00](./docs/P00/) · P01: [docs/P01](./docs/P01/) · P02: [docs/P02](./docs/P02/) · P03: [docs/P03](./docs/P03/) · P04: [docs/P04](./docs/P04/) · P05: [docs/P05](./docs/P05/)
+- Tài liệu P00: [docs/P00](./docs/P00/) · P01: [docs/P01](./docs/P01/) · P02: [docs/P02](./docs/P02/) · P03: [docs/P03](./docs/P03/) · P04: [docs/P04](./docs/P04/) · P05: [docs/P05](./docs/P05/) · P06: [docs/P06](./docs/P06/)

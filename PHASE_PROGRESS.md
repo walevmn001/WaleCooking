@@ -1,7 +1,7 @@
 # PHASE PROGRESS — WALE COOKING
 
 > Theo dõi tiến độ theo phase. Mỗi phase chỉ triển khai đúng phạm vi của nó.
-> Cập nhật: 2026-11-28 (P05).
+> Cập nhật: 2026-11-28 (P06).
 
 | Phase | Tên | Phạm vi | Trạng thái |
 | --- | --- | --- | --- |
@@ -12,6 +12,7 @@
 | P03 | Design System & đặc tả giao diện | Bộ quy chuẩn giao diện Pastel Mint: design tokens máy đọc được, audit WCAG 2.2 AA (contrast đo thực tế), typography & layout, đặc tả component, responsive, motion, accessibility, QA checklist | ✅ Hoàn thành |
 | P04 | Mascot & Illustration Assets | Bộ nhận diện minh họa: mascot đầu bếp (8 biến thể), logo/brand mark (5), bộ icon (38), illustration trạng thái (9), quy chuẩn sử dụng & quản lý tài sản, QA checklist | ✅ Hoàn thành |
 | P05 | Application Foundation & Shared UI System | (A) Nền tảng + Shared UI Components (tokens/global styles, basic, form, navigation/feedback, cooking-specific); (B) Application Shell (Root/Public/Auth/Admin layout, Header, Navigation, MobileMenu, Footer); trang kiểm tra dev-only; 6 tài liệu `docs/P05/`; 60 unit test | ✅ Hoàn thành |
+| P06 | Database Foundation | Prisma schema theo P02 (22 enum/57 model, 58 bảng), Prisma client singleton, kiểm tra env, migration baseline tái lập (`20261127175936_init`), seed idempotent (taxonomy/unit/equipment/ingredient), repository + service + validation + authorization; 7 tài liệu `docs/P06/`; 78 unit + 28 integration test | ✅ Hoàn thành |
 
 ## Sản phẩm bàn giao theo phase
 
@@ -95,9 +96,23 @@
 - Tạo `docs/P05/`: `IMPLEMENTATION_REPORT.md`, `COMPONENT_CATALOG.md`, `APPLICATION_SHELL.md`, `RESPONSIVE_IMPLEMENTATION.md`, `ACCESSIBILITY_REPORT.md`, `TEST_REPORT.md`
 - Cập nhật `CURRENT_STATUS.md`, `PHASE_PROGRESS.md`, `DECISIONS.md`, `BLOCKERS.md`
 
+### P06
+- Tạo `prisma/schema.prisma` (22 enum + 57 model theo P02) + `generator/datasource` (preview `postgresqlExtensions`, `directUrl`)
+- Tạo `prisma/migrations/20261127175936_init/migration.sql` (baseline: 3 extension + 22 enum + 57 bảng) + `migration_lock.toml`
+- Tạo `prisma/seed.ts` + `prisma/seed/data.ts` + `prisma/seed/run.ts` (seed hệ thống idempotent + seed dev)
+- Tạo `lib/config/env.ts`, `lib/db/prisma.ts`, `lib/db/prisma-errors.ts`
+- Tạo `lib/db/repositories/` (ports + adapter Prisma: Unit, Taxonomy, Ingredient) + `index.ts`
+- Tạo `lib/errors/app-error.ts`, `lib/validation/{common,catalog}.ts`
+- Tạo `lib/auth/authorization.ts`, `lib/auth/session.ts`; `lib/services/catalog.service.ts` + `index.ts`
+- Tạo `.env.example`; cập nhật `package.json` (scripts db:*, test:integration, `prisma.seed`) + `vitest.config.ts` + `vitest.integration.config.ts`
+- Tạo test: `tests/lib/` (3 file, 18 test), `tests/integration/` (5 file, 28 test), `tests/stubs/server-only.ts`
+- Tạo `docs/P06/`: `DATABASE_IMPLEMENTATION.md`, `PRISMA_SCHEMA_GUIDE.md`, `MIGRATION_GUIDE.md`, `SEED_GUIDE.md`, `REPOSITORY_ARCHITECTURE.md`, `DATABASE_SECURITY.md`, `TEST_REPORT.md`
+- Cập nhật `CURRENT_STATUS.md`, `PHASE_PROGRESS.md`, `DECISIONS.md`, `BLOCKERS.md`
+
 ## Ràng buộc xuyên suốt
 - Chỉ dùng 1 agent, không tạo sub-agent.
 - Không code website / không tạo database / không triển khai backend trong P00, P00-FIX & P01; P02 thiết kế kiến trúc/schema/API nhưng **không viết code ứng dụng**; P03 chỉ xây **Design System + đặc tả giao diện**, P04 chỉ tạo **tài nguyên nhận diện (SVG) + quy chuẩn**, cả hai **không dựng UI/không triển khai website**. **P05 mới dựng UI thật** (Shared UI Components + Application Shell) nhưng **không** kết nối database/Auth/R2, **không** triển khai chức năng module (route chức năng là placeholder).
 - Tài nguyên P04 phải nhất quán với palette/typography/phong cách đã khóa ở P03; không tự đổi thương hiệu; không dùng asset có bản quyền không rõ nguồn. P05 **tái sử dụng** token P03 (không tạo hệ thống token thứ hai) và asset P04.
 - Giữ nguyên kiến trúc đã chốt (stack lớp rời, gói miễn phí, phi thương mại, Pastel Mint).
+- **P06** chỉ triển khai **nền tảng dữ liệu** (Prisma/migration/seed/repository/service/validation/authorization); **không** triển khai đăng nhập thật (Auth.js) và **không** kết nối Neon/R2 thật khi chưa có credentials; **không** giả lập người dùng đã đăng nhập (`getCurrentActor()` trả `null`); **không** tạo công thức giả như nội dung đã xuất bản.
 - Chỉ commit file thuộc phạm vi phase. P00/P00-FIX/P01 chỉ commit local; P02 trở đi được phép đưa checkpoint lên `origin/main` một cách an toàn (không force-push, không rewrite lịch sử).

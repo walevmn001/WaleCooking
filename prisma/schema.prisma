@@ -1,0 +1,1243 @@
+// =============================================================================
+// WALE COOKING — Prisma schema
+// Nguồn thiết kế: docs/P02/DATABASE_SCHEMA.md + ENTITY_RELATIONSHIP_DIAGRAM.md
+//   - UUID PK (gen_random_uuid), timestamptz UTC, snake_case (@@map/@map)
+//   - FK RESTRICT mặc định; CASCADE chỉ cho dữ liệu con thuộc sở hữu
+//   - Numeric cho định lượng; JSONB chỉ cho audit/snapshot/settings
+//   - Extensions: citext (email), pg_trgm + unaccent (tìm kiếm không dấu)
+// Không tự ý đổi cấu trúc P02. Sai lệch (nếu có) ghi ở docs/P06/DATABASE_IMPLEMENTATION.md §ADR.
+// =============================================================================
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  directUrl  = env("DIRECT_URL")
+  extensions = [citext, pgTrgm(map: "pg_trgm"), unaccent]
+}
+
+// =============================================================================
+// ENUMS
+// =============================================================================
+
+enum AppRole {
+  user
+  editor
+  admin
+
+  @@map("app_role")
+}
+
+enum RecipeStatus {
+  draft
+  in_review
+  published
+  archived
+
+  @@map("recipe_status")
+}
+
+enum Difficulty {
+  easy
+  medium
+  hard
+
+  @@map("difficulty")
+}
+
+enum VerificationStatus {
+  untested
+  tested
+  verified
+
+  @@map("verification")
+}
+
+enum MeasurementSystem {
+  metric
+  imperial
+
+  @@map("measurement_system")
+}
+
+enum UnitDimension {
+  mass
+  volume
+  count
+  custom
+
+  @@map("unit_dimension")
+}
+
+enum QuantityType {
+  decimal
+  fraction
+  range
+  text
+
+  @@map("quantity_type")
+}
+
+enum IngredientAliasKind {
+  synonym
+  local
+  search
+
+  @@map("ingredient_alias_kind")
+}
+
+enum SubstitutionQuality {
+  exact
+  good
+  approximate
+
+  @@map("substitution_quality")
+}
+
+enum AllergenPresence {
+  contains
+  may_contain
+  free
+
+  @@map("allergen_presence")
+}
+
+enum DensityConfidence {
+  high
+  medium
+  low
+
+  @@map("density_confidence")
+}
+
+enum CookingSessionStatus {
+  active
+  paused
+  completed
+  abandoned
+
+  @@map("cooking_session_status")
+}
+
+enum MealType {
+  breakfast
+  lunch
+  dinner
+  snack
+
+  @@map("meal_type")
+}
+
+enum ShoppingListStatus {
+  active
+  completed
+
+  @@map("shopping_list_status")
+}
+
+enum NutritionBasis {
+  per_serving
+  per_100g
+  total
+
+  @@map("nutrition_basis")
+}
+
+enum NutritionDataSourceType {
+  measured
+  calculated
+  estimated
+  unknown
+
+  @@map("nutrition_data_source_type")
+}
+
+enum AllergenSource {
+  derived
+  declared
+
+  @@map("allergen_source")
+}
+
+enum SourceVerifiedStatus {
+  unverified
+  verified
+  rejected
+
+  @@map("source_verified_status")
+}
+
+enum ReviewDecision {
+  approved
+  rejected
+  changes_requested
+
+  @@map("review_decision")
+}
+
+enum ContentReviewAction {
+  submit
+  approve
+  request_changes
+  publish
+  archive
+
+  @@map("content_review_action")
+}
+
+enum MediaStatus {
+  active
+  archived
+
+  @@map("media_status")
+}
+
+enum RecipeImageRole {
+  hero
+  step
+  gallery
+
+  @@map("recipe_image_role")
+}
+
+// =============================================================================
+// 5.1 IDENTITY & USER (tương thích Auth.js Prisma Adapter)
+// =============================================================================
+
+model User {
+  id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name            String?
+  email           String?   @unique @db.Citext
+  emailVerified   DateTime? @map("email_verified") @db.Timestamptz(6)
+  image           String?
+  role            AppRole   @default(user)
+  preferredLocale String    @default("vi") @map("preferred_locale")
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  accounts           Account[]
+  sessions           Session[]
+  profile            UserProfile?
+  preferences        UserPreference?
+  dietaryPreferences UserDietaryPreference[]
+  allergens          UserAllergen[]
+  authoredRecipes    Recipe[]                @relation("RecipeAuthor")
+  editedRecipes      Recipe[]                @relation("RecipeEditor")
+  recipeVersions     RecipeVersion[]
+  collections        Collection[]
+  collectionRecipes  CollectionRecipe[]      @relation("CollectionRecipeAddedBy")
+  notes              RecipeNote[]
+  cookedHistory      CookedHistory[]
+  cookingSessions    CookingSession[]
+  favorites          Favorite[]
+  mealPlans          MealPlan[]
+  shoppingLists      ShoppingList[]
+  uploadedMedia      MediaAsset[]            @relation("MediaCreatedBy")
+  verifiedSources    ContentSource[]         @relation("SourceVerifiedBy")
+  reviewRecords      ContentReviewRecord[]
+  contentReviews     ContentReview[]
+  auditLogs          AuditLog[]
+
+  @@map("users")
+}
+
+model Account {
+  id                String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId            String  @map("user_id") @db.Uuid
+  type              String
+  provider          String
+  providerAccountId String  @map("provider_account_id")
+  refreshToken      String? @map("refresh_token")
+  accessToken       String? @map("access_token")
+  expiresAt         Int?    @map("expires_at")
+  tokenType         String? @map("token_type")
+  scope             String?
+  idToken           String? @map("id_token")
+  sessionState      String? @map("session_state")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  sessionToken String   @unique @map("session_token")
+  userId       String   @map("user_id") @db.Uuid
+  expires      DateTime @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime @db.Timestamptz(6)
+
+  @@id([identifier, token])
+  @@map("verification_tokens")
+}
+
+// =============================================================================
+// 5.1b USER PROFILE & PREFERENCES
+// =============================================================================
+
+model UserProfile {
+  userId        String   @id @map("user_id") @db.Uuid
+  displayName   String?  @map("display_name")
+  bio           String?
+  avatarMediaId String?  @map("avatar_media_id") @db.Uuid
+  locale        String   @default("vi")
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  avatarMedia MediaAsset? @relation("ProfileAvatar", fields: [avatarMediaId], references: [id], onDelete: SetNull)
+
+  @@map("user_profiles")
+}
+
+model UserPreference {
+  userId            String            @id @map("user_id") @db.Uuid
+  preferredLocale   String            @default("vi") @map("preferred_locale")
+  measurementSystem MeasurementSystem @default(metric) @map("measurement_system")
+  defaultServings   Int?              @map("default_servings")
+  reducedMotion     Boolean           @default(false) @map("reduced_motion")
+  settings          Json?             @db.JsonB
+  updatedAt         DateTime          @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_preferences")
+}
+
+model UserDietaryPreference {
+  userId         String @map("user_id") @db.Uuid
+  taxonomyTermId String @map("taxonomy_term_id") @db.Uuid
+
+  user User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  term TaxonomyTerm @relation("DietaryPreferenceTerm", fields: [taxonomyTermId], references: [id], onDelete: Restrict)
+
+  @@id([userId, taxonomyTermId])
+  @@index([taxonomyTermId])
+  @@map("user_dietary_preferences")
+}
+
+model UserAllergen {
+  userId          String @map("user_id") @db.Uuid
+  allergenTermId  String @map("allergen_term_id") @db.Uuid
+
+  user User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  term TaxonomyTerm @relation("UserAllergenTerm", fields: [allergenTermId], references: [id], onDelete: Restrict)
+
+  @@id([userId, allergenTermId])
+  @@index([allergenTermId])
+  @@map("user_allergens")
+}
+
+// =============================================================================
+// 5.4 TAXONOMY
+// =============================================================================
+
+model TaxonomyType {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code          String   @unique
+  isHierarchical Boolean @default(false) @map("is_hierarchical")
+  isMultiSelect Boolean  @default(false) @map("is_multi_select")
+  isRequired    Boolean  @default(false) @map("is_required")
+  isActive      Boolean  @default(true) @map("is_active")
+  sortOrder     Int      @default(0) @map("sort_order")
+
+  terms TaxonomyTerm[]
+
+  @@map("taxonomy_types")
+}
+
+model TaxonomyTerm {
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  taxonomyTypeId String   @map("taxonomy_type_id") @db.Uuid
+  parentId       String?  @map("parent_id") @db.Uuid
+  slug           String
+  icon           String?
+  isActive       Boolean  @default(true) @map("is_active")
+  sortOrder      Int      @default(0) @map("sort_order")
+
+  type         TaxonomyType             @relation(fields: [taxonomyTypeId], references: [id], onDelete: Restrict)
+  parent       TaxonomyTerm?            @relation("TaxonomyParent", fields: [parentId], references: [id], onDelete: SetNull)
+  children     TaxonomyTerm[]           @relation("TaxonomyParent")
+  translations TaxonomyTermTranslation[]
+  aliases      TaxonomyTermAlias[]
+
+  ingredients        Ingredient[]             @relation("IngredientCategory")
+  recipesFoodType    Recipe[]                 @relation("RecipeFoodType")
+  recipesCuisine     Recipe[]                 @relation("RecipeCuisine")
+  recipeTaxonomy     RecipeTaxonomyTerm[]
+  recipeAllergens    RecipeAllergen[]
+  ingredientAllergens IngredientAllergen[]     @relation("IngredientAllergenTerm")
+  userDietaryPrefs   UserDietaryPreference[]  @relation("DietaryPreferenceTerm")
+  userAllergens      UserAllergen[]           @relation("UserAllergenTerm")
+
+  @@unique([taxonomyTypeId, slug])
+  @@index([taxonomyTypeId])
+  @@index([parentId])
+  @@map("taxonomy_terms")
+}
+
+model TaxonomyTermTranslation {
+  id          String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  termId      String  @map("term_id") @db.Uuid
+  locale      String
+  name        String
+  description String?
+
+  term TaxonomyTerm @relation(fields: [termId], references: [id], onDelete: Cascade)
+
+  @@unique([termId, locale])
+  @@map("taxonomy_term_translations")
+}
+
+model TaxonomyTermAlias {
+  id     String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  termId String  @map("term_id") @db.Uuid
+  alias  String
+  locale String?
+
+  term TaxonomyTerm @relation(fields: [termId], references: [id], onDelete: Cascade)
+
+  @@unique([termId, alias, locale])
+  @@map("taxonomy_term_aliases")
+}
+
+// =============================================================================
+// 7.1 UNITS
+// =============================================================================
+
+model Unit {
+  id        String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code      String        @unique
+  dimension UnitDimension
+  isBase    Boolean       @default(false) @map("is_base")
+  sortOrder Int           @default(0) @map("sort_order")
+
+  translations      UnitTranslation[]
+  conversionsFrom   UnitConversion[]    @relation("UnitConversionFrom")
+  conversionsTo     UnitConversion[]    @relation("UnitConversionTo")
+  ingredientDefaults Ingredient[]       @relation("IngredientDefaultUnit")
+  ingredientDensities IngredientDensity[] @relation("DensityVolumeUnit")
+  ingredientUnits   IngredientUnit[]
+  recipeIngredients RecipeIngredient[]
+  shoppingListItems ShoppingListItem[]
+
+  @@map("units")
+}
+
+model UnitTranslation {
+  id     String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  unitId String @map("unit_id") @db.Uuid
+  locale String
+  name   String
+  symbol String?
+
+  unit Unit @relation(fields: [unitId], references: [id], onDelete: Cascade)
+
+  @@unique([unitId, locale])
+  @@map("unit_translations")
+}
+
+model UnitConversion {
+  fromUnitId String  @map("from_unit_id") @db.Uuid
+  toUnitId   String  @map("to_unit_id") @db.Uuid
+  factor     Decimal @db.Decimal(18, 10)
+
+  fromUnit Unit @relation("UnitConversionFrom", fields: [fromUnitId], references: [id], onDelete: Restrict)
+  toUnit   Unit @relation("UnitConversionTo", fields: [toUnitId], references: [id], onDelete: Restrict)
+
+  @@id([fromUnitId, toUnitId])
+  @@index([toUnitId])
+  @@map("unit_conversions")
+}
+
+// =============================================================================
+// 5.3 INGREDIENT
+// =============================================================================
+
+model Ingredient {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  slug            String   @unique
+  originalName    String?  @map("original_name")
+  categoryTermId  String?  @map("category_term_id") @db.Uuid
+  defaultUnitId   String?  @map("default_unit_id") @db.Uuid
+  isCommon        Boolean  @default(false) @map("is_common")
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  category    TaxonomyTerm? @relation("IngredientCategory", fields: [categoryTermId], references: [id], onDelete: Restrict)
+  defaultUnit Unit?         @relation("IngredientDefaultUnit", fields: [defaultUnitId], references: [id], onDelete: SetNull)
+
+  translations    IngredientTranslation[]
+  aliases         IngredientAlias[]
+  substitutionsAs IngredientSubstitution[] @relation("SubstitutionIngredient")
+  substitutionsTo IngredientSubstitution[] @relation("SubstitutionSubstitute")
+  allergens       IngredientAllergen[]
+  densities       IngredientDensity[]
+  units           IngredientUnit[]
+  recipeIngredients RecipeIngredient[]
+  recipeIngredientSubstitutes RecipeIngredientSubstitute[] @relation("IngredientSubstituteOption")
+  shoppingListItems ShoppingListItem[]
+
+  @@index([categoryTermId])
+  @@index([defaultUnitId])
+  @@map("ingredients")
+}
+
+model IngredientTranslation {
+  id           String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  ingredientId String @map("ingredient_id") @db.Uuid
+  locale       String
+  name         String
+  notes        String?
+
+  ingredient Ingredient @relation(fields: [ingredientId], references: [id], onDelete: Cascade)
+
+  @@unique([ingredientId, locale])
+  @@map("ingredient_translations")
+}
+
+model IngredientAlias {
+  id           String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  ingredientId String              @map("ingredient_id") @db.Uuid
+  alias        String
+  locale       String?
+  kind         IngredientAliasKind
+
+  ingredient Ingredient @relation(fields: [ingredientId], references: [id], onDelete: Cascade)
+
+  @@unique([ingredientId, alias, locale])
+  @@map("ingredient_aliases")
+}
+
+model IngredientSubstitution {
+  id            String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  ingredientId  String              @map("ingredient_id") @db.Uuid
+  substituteId  String              @map("substitute_id") @db.Uuid
+  quality       SubstitutionQuality
+  ratioNumeric  Decimal?            @map("ratio_numeric") @db.Decimal(8, 4)
+  ratioNote     String?             @map("ratio_note")
+  note          String?
+
+  ingredient Ingredient @relation("SubstitutionIngredient", fields: [ingredientId], references: [id], onDelete: Restrict)
+  substitute Ingredient @relation("SubstitutionSubstitute", fields: [substituteId], references: [id], onDelete: Restrict)
+
+  @@unique([ingredientId, substituteId])
+  @@index([substituteId])
+  @@map("ingredient_substitutions")
+}
+
+model IngredientAllergen {
+  ingredientId   String           @map("ingredient_id") @db.Uuid
+  allergenTermId String           @map("allergen_term_id") @db.Uuid
+  presence       AllergenPresence
+
+  ingredient Ingredient     @relation(fields: [ingredientId], references: [id], onDelete: Restrict)
+  term       TaxonomyTerm   @relation("IngredientAllergenTerm", fields: [allergenTermId], references: [id], onDelete: Restrict)
+
+  @@id([ingredientId, allergenTermId])
+  @@index([allergenTermId])
+  @@map("ingredient_allergens")
+}
+
+model IngredientDensity {
+  id            String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  ingredientId  String            @map("ingredient_id") @db.Uuid
+  volumeUnitId  String            @map("volume_unit_id") @db.Uuid
+  gramsPerUnit  Decimal           @map("grams_per_unit") @db.Decimal(10, 4)
+  source        String?
+  confidence    DensityConfidence
+
+  ingredient Ingredient @relation(fields: [ingredientId], references: [id], onDelete: Cascade)
+  volumeUnit Unit       @relation("DensityVolumeUnit", fields: [volumeUnitId], references: [id], onDelete: Restrict)
+
+  @@unique([ingredientId, volumeUnitId])
+  @@index([volumeUnitId])
+  @@map("ingredient_densities")
+}
+
+model IngredientUnit {
+  id           String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  ingredientId String  @map("ingredient_id") @db.Uuid
+  unitId       String  @map("unit_id") @db.Uuid
+  gramsPerUnit Decimal? @map("grams_per_unit") @db.Decimal(10, 4)
+  isDefault    Boolean @default(false) @map("is_default")
+
+  ingredient Ingredient @relation(fields: [ingredientId], references: [id], onDelete: Cascade)
+  unit       Unit       @relation(fields: [unitId], references: [id], onDelete: Restrict)
+
+  @@unique([ingredientId, unitId])
+  @@index([unitId])
+  @@map("ingredient_units")
+}
+
+// =============================================================================
+// 5.9 MEDIA (thực thể độc lập, file không nằm trong Postgres)
+// =============================================================================
+
+model MediaAsset {
+  id              String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  storageKey      String      @unique @map("storage_key")
+  publicUrl       String?     @map("public_url")
+  mimeType        String      @map("mime_type")
+  sizeBytes       Int         @map("size_bytes")
+  width           Int?
+  height          Int?
+  checksum        String?
+  altTextDefault  String?     @map("alt_text_default")
+  status          MediaStatus @default(active)
+  createdById     String?     @map("created_by") @db.Uuid
+  createdAt       DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  createdBy        User?         @relation("MediaCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  recipeImages     RecipeImage[]
+  primaryImageOf   Recipe[]      @relation("RecipePrimaryImage")
+  profileAvatars   UserProfile[] @relation("ProfileAvatar")
+
+  @@index([createdById])
+  @@map("media_assets")
+}
+
+// =============================================================================
+// 5.2 RECIPE
+// =============================================================================
+
+model Recipe {
+  id                 String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  slug               String             @unique
+  status             RecipeStatus       @default(draft)
+  authorId           String             @map("author_id") @db.Uuid
+  editorId           String?            @map("editor_id") @db.Uuid
+  foodTypeTermId     String?            @map("food_type_term_id") @db.Uuid
+  cuisineTermId      String?            @map("cuisine_term_id") @db.Uuid
+  difficulty         Difficulty         @default(easy)
+  prepMinutes        Int?               @map("prep_minutes")
+  cookMinutes        Int?               @map("cook_minutes")
+  totalMinutes       Int?               @map("total_minutes")
+  baseServings       Decimal            @map("base_servings") @db.Decimal(6, 2)
+  verificationStatus VerificationStatus @default(untested) @map("verification_status")
+  defaultLocale      String             @default("vi") @map("default_locale")
+  primaryImageId     String?            @map("primary_image_id") @db.Uuid
+  publishedAt        DateTime?          @map("published_at") @db.Timestamptz(6)
+  archivedAt         DateTime?          @map("archived_at") @db.Timestamptz(6)
+  deletedAt          DateTime?          @map("deleted_at") @db.Timestamptz(6)
+  createdAt          DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime           @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  author       User         @relation("RecipeAuthor", fields: [authorId], references: [id], onDelete: Restrict)
+  editor       User?        @relation("RecipeEditor", fields: [editorId], references: [id], onDelete: SetNull)
+  foodTypeTerm TaxonomyTerm? @relation("RecipeFoodType", fields: [foodTypeTermId], references: [id], onDelete: Restrict)
+  cuisineTerm  TaxonomyTerm? @relation("RecipeCuisine", fields: [cuisineTermId], references: [id], onDelete: Restrict)
+  primaryImage MediaAsset?  @relation("RecipePrimaryImage", fields: [primaryImageId], references: [id], onDelete: SetNull)
+
+  translations      RecipeTranslation[]
+  steps             RecipeStep[]
+  images            RecipeImage[]
+  ingredients       RecipeIngredient[]
+  equipmentLinks    RecipeEquipment[]
+  taxonomyTerms     RecipeTaxonomyTerm[]
+  sources           RecipeSource[]
+  versions          RecipeVersion[]
+  slugRedirects     RecipeSlugRedirect[]
+  nutrition         RecipeNutrition[]
+  allergens         RecipeAllergen[]
+  favorites         Favorite[]
+  collectionRecipes CollectionRecipe[]
+  notes             RecipeNote[]
+  cookedHistory     CookedHistory[]
+  cookingSessions   CookingSession[]
+  mealPlanItems     MealPlanItem[]
+  contentReviews    ContentReview[]
+  attributions      SourceAttribution[]
+
+  @@index([status])
+  @@index([cuisineTermId])
+  @@index([foodTypeTermId])
+  @@index([status, publishedAt(sort: Desc)])
+  @@index([totalMinutes])
+  @@index([difficulty])
+  @@index([authorId])
+  @@index([editorId])
+  @@index([primaryImageId])
+  @@map("recipes")
+}
+
+model RecipeTranslation {
+  id             String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  recipeId       String  @map("recipe_id") @db.Uuid
+  locale         String
+  title          String
+  summary        String?
+  description    String?
+  seoTitle       String? @map("seo_title")
+  seoDescription String? @map("seo_description")
+
+  recipe Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+
+  @@unique([recipeId, locale])
+  @@map("recipe_translations")
+}
+
+model RecipeStep {
+  id       String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  recipeId String @map("recipe_id") @db.Uuid
+  stepNo   Int    @map("step_no")
+  sortOrder Int   @default(0) @map("sort_order")
+
+  recipe       Recipe                   @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  translations RecipeStepTranslation[]
+  timers       RecipeStepTimer[]
+  images       RecipeImage[]            @relation("StepImage")
+  progress     CookingProgress[]
+
+  @@unique([recipeId, stepNo])
+  @@index([recipeId, sortOrder])
+  @@map("recipe_steps")
+}
+
+model RecipeStepTranslation {
+  id          String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  stepId      String @map("step_id") @db.Uuid
+  locale      String
+  instruction String
+  tip         String?
+
+  step RecipeStep @relation(fields: [stepId], references: [id], onDelete: Cascade)
+
+  @@unique([stepId, locale])
+  @@map("recipe_step_translations")
+}
+
+model RecipeStepTimer {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  stepId          String   @map("step_id") @db.Uuid
+  label           String
+  durationSeconds Int      @map("duration_seconds")
+  temperatureC    Decimal? @map("temperature_c") @db.Decimal(5, 1)
+  temperatureNote String?  @map("temperature_note")
+
+  step RecipeStep @relation(fields: [stepId], references: [id], onDelete: Cascade)
+
+  @@index([stepId])
+  @@map("recipe_step_timers")
+}
+
+model RecipeImage {
+  id           String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  recipeId     String          @map("recipe_id") @db.Uuid
+  mediaAssetId String          @map("media_asset_id") @db.Uuid
+  stepId       String?         @map("step_id") @db.Uuid
+  role         RecipeImageRole @default(gallery)
+  altText      String?         @map("alt_text")
+  sortOrder    Int             @default(0) @map("sort_order")
+
+  recipe     Recipe      @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  mediaAsset MediaAsset  @relation(fields: [mediaAssetId], references: [id], onDelete: Restrict)
+  step       RecipeStep? @relation("StepImage", fields: [stepId], references: [id], onDelete: SetNull)
+
+  @@index([recipeId])
+  @@index([mediaAssetId])
+  @@index([stepId])
+  @@map("recipe_images")
+}
+
+model RecipeEquipment {
+  id          String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  recipeId    String  @map("recipe_id") @db.Uuid
+  equipmentId String  @map("equipment_id") @db.Uuid
+  isOptional  Boolean @default(false) @map("is_optional")
+  note        String?
+
+  recipe    Recipe    @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  equipment Equipment @relation(fields: [equipmentId], references: [id], onDelete: Restrict)
+
+  @@unique([recipeId, equipmentId])
+  @@index([equipmentId])
+  @@map("recipe_equipment")
+}
+
+model Equipment {
+  id       String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  slug     String  @unique
+  name     String
+  icon     String?
+  isActive Boolean @default(true) @map("is_active")
+
+  translations EquipmentTranslation[]
+  recipes      RecipeEquipment[]
+
+  @@map("equipment")
+}
+
+// Bảng dịch cho equipment (equipment_translations).
+model EquipmentTranslation {
+  id          String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  equipmentId String @map("equipment_id") @db.Uuid
+  locale      String
+  name        String
+
+  equipment Equipment @relation(fields: [equipmentId], references: [id], onDelete: Cascade)
+
+  @@unique([equipmentId, locale])
+  @@map("equipment_translations")
+}
+
+model RecipeTaxonomyTerm {
+  recipeId       String @map("recipe_id") @db.Uuid
+  taxonomyTermId String @map("taxonomy_term_id") @db.Uuid
+
+  recipe Recipe       @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  term   TaxonomyTerm @relation(fields: [taxonomyTermId], references: [id], onDelete: Restrict)
+
+  @@id([recipeId, taxonomyTermId])
+  @@index([taxonomyTermId])
+  @@map("recipe_taxonomy_terms")
+}
+
+model RecipeSource {
+  id        String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  recipeId  String  @map("recipe_id") @db.Uuid
+  sourceId  String  @map("source_id") @db.Uuid
+  isPrimary Boolean @default(false) @map("is_primary")
+  note      String?
+
+  recipe Recipe        @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  source ContentSource @relation(fields: [sourceId], references: [id], onDelete: Restrict)
+
+  @@unique([recipeId, sourceId])
+  @@index([sourceId])
+  @@map("recipe_sources")
+}
+
+model RecipeVersion {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  recipeId      String   @map("recipe_id") @db.Uuid
+  versionNo     Int      @map("version_no")
+  snapshot      Json     @db.JsonB
+  editorId      String?  @map("editor_id") @db.Uuid
+  changeSummary String?  @map("change_summary")
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  recipe Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  editor User?  @relation(fields: [editorId], references: [id], onDelete: SetNull)
+
+  @@unique([recipeId, versionNo])
+  @@index([editorId])
+  @@map("recipe_versions")
+}
+
+model RecipeSlugRedirect {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  recipeId  String   @map("recipe_id") @db.Uuid
+  oldSlug   String   @unique @map("old_slug")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  recipe Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+
+  @@index([recipeId])
+  @@map("recipe_slug_redirects")
+}
+
+// =============================================================================
+// 7.2 RECIPE INGREDIENTS
+// =============================================================================
+
+model RecipeIngredient {
+  id                  String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  recipeId            String       @map("recipe_id") @db.Uuid
+  ingredientId        String?      @map("ingredient_id") @db.Uuid
+  displayName         String       @map("display_name")
+  quantityType        QuantityType @default(decimal) @map("quantity_type")
+  quantityNumeric     Decimal?     @map("quantity_numeric") @db.Decimal(10, 3)
+  quantityNumericMax  Decimal?     @map("quantity_numeric_max") @db.Decimal(10, 3)
+  quantityText        String?      @map("quantity_text")
+  unitId              String?      @map("unit_id") @db.Uuid
+  isRequired          Boolean      @default(true) @map("is_required")
+  isScalable          Boolean      @default(true) @map("is_scalable")
+  preparationNote     String?      @map("preparation_note")
+  groupLabel          String?      @map("group_label")
+  sortOrder           Int          @default(0) @map("sort_order")
+
+  recipe     Recipe              @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  ingredient Ingredient?         @relation(fields: [ingredientId], references: [id], onDelete: Restrict)
+  unit       Unit?               @relation(fields: [unitId], references: [id], onDelete: SetNull)
+  substitutes RecipeIngredientSubstitute[]
+
+  @@index([recipeId, sortOrder])
+  @@index([ingredientId])
+  @@index([unitId])
+  @@map("recipe_ingredients")
+}
+
+model RecipeIngredientSubstitute {
+  recipeIngredientId       String  @map("recipe_ingredient_id") @db.Uuid
+  substituteIngredientId   String  @map("substitute_ingredient_id") @db.Uuid
+  note                     String?
+  ratioNumeric             Decimal? @map("ratio_numeric") @db.Decimal(8, 4)
+
+  recipeIngredient RecipeIngredient @relation(fields: [recipeIngredientId], references: [id], onDelete: Cascade)
+  substitute       Ingredient       @relation("IngredientSubstituteOption", fields: [substituteIngredientId], references: [id], onDelete: Restrict)
+
+  @@id([recipeIngredientId, substituteIngredientId])
+  @@index([substituteIngredientId])
+  @@map("recipe_ingredient_substitutes")
+}
+
+// =============================================================================
+// 5.7 NUTRITION & ALLERGEN
+// =============================================================================
+
+model RecipeNutrition {
+  id             String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  recipeId       String                 @map("recipe_id") @db.Uuid
+  basis          NutritionBasis
+  calories       Decimal?               @db.Decimal(8, 2)
+  proteinG       Decimal?               @map("protein_g") @db.Decimal(8, 2)
+  carbsG         Decimal?               @map("carbs_g") @db.Decimal(8, 2)
+  fatG           Decimal?               @map("fat_g") @db.Decimal(8, 2)
+  fiberG         Decimal?               @map("fiber_g") @db.Decimal(8, 2)
+  sugarG         Decimal?               @map("sugar_g") @db.Decimal(8, 2)
+  sodiumMg       Decimal?               @map("sodium_mg") @db.Decimal(8, 2)
+  dataSourceType NutritionDataSourceType @map("data_source_type") @default(unknown)
+  sourceNote     String?                @map("source_note")
+  createdAt      DateTime               @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  recipe Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+
+  @@unique([recipeId, basis])
+  @@map("recipe_nutrition")
+}
+
+model RecipeAllergen {
+  recipeId       String         @map("recipe_id") @db.Uuid
+  allergenTermId String         @map("allergen_term_id") @db.Uuid
+  source         AllergenSource
+  computedAt     DateTime?      @map("computed_at") @db.Timestamptz(6)
+
+  recipe Recipe       @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  term   TaxonomyTerm @relation(fields: [allergenTermId], references: [id], onDelete: Restrict)
+
+  @@id([recipeId, allergenTermId])
+  @@index([allergenTermId])
+  @@map("recipe_allergens")
+}
+
+// =============================================================================
+// 5.5 USER COOKBOOK
+// =============================================================================
+
+model Favorite {
+  userId    String   @map("user_id") @db.Uuid
+  recipeId  String   @map("recipe_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  recipe Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+
+  @@id([userId, recipeId])
+  @@index([recipeId])
+  @@map("favorites")
+}
+
+model Collection {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId      String    @map("user_id") @db.Uuid
+  title       String
+  description String?
+  isPublic    Boolean   @default(false) @map("is_public")
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt   DateTime? @map("deleted_at") @db.Timestamptz(6)
+
+  user    User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  recipes CollectionRecipe[]
+
+  @@index([userId])
+  @@map("collections")
+}
+
+model CollectionRecipe {
+  collectionId String   @map("collection_id") @db.Uuid
+  recipeId     String   @map("recipe_id") @db.Uuid
+  sortOrder    Int      @default(0) @map("sort_order")
+  addedAt      DateTime @default(now()) @map("added_at") @db.Timestamptz(6)
+  addedById    String?  @map("added_by_id") @db.Uuid
+
+  collection Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  recipe     Recipe     @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  addedBy    User?      @relation("CollectionRecipeAddedBy", fields: [addedById], references: [id], onDelete: SetNull)
+
+  @@id([collectionId, recipeId])
+  @@index([recipeId])
+  @@index([addedById])
+  @@map("collection_recipes")
+}
+
+model RecipeNote {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  recipeId  String   @map("recipe_id") @db.Uuid
+  content   String
+  rating    Int?     @db.SmallInt
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  recipe Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, recipeId])
+  @@index([recipeId])
+  @@map("recipe_notes")
+}
+
+model CookedHistory {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId          String   @map("user_id") @db.Uuid
+  recipeId        String   @map("recipe_id") @db.Uuid
+  servingsMade    Decimal? @map("servings_made") @db.Decimal(6, 2)
+  note            String?
+  cookedAt        DateTime @default(now()) @map("cooked_at") @db.Timestamptz(6)
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  recipe Recipe @relation(fields: [recipeId], references: [id], onDelete: Restrict)
+
+  @@index([userId])
+  @@index([recipeId])
+  @@map("cooked_history")
+}
+
+model CookingSession {
+  id         String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId     String               @map("user_id") @db.Uuid
+  recipeId   String               @map("recipe_id") @db.Uuid
+  status     CookingSessionStatus @default(active)
+  servings   Decimal?             @db.Decimal(6, 2)
+  startedAt  DateTime             @default(now()) @map("started_at") @db.Timestamptz(6)
+  finishedAt DateTime?            @map("finished_at") @db.Timestamptz(6)
+
+  user     User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  recipe   Recipe           @relation(fields: [recipeId], references: [id], onDelete: Restrict)
+  progress CookingProgress[]
+
+  @@index([userId])
+  @@index([recipeId])
+  @@map("cooking_sessions")
+}
+
+model CookingProgress {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  sessionId   String    @map("session_id") @db.Uuid
+  stepId      String    @map("step_id") @db.Uuid
+  isCompleted Boolean   @default(false) @map("is_completed")
+  completedAt DateTime? @map("completed_at") @db.Timestamptz(6)
+
+  session CookingSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  step    RecipeStep     @relation(fields: [stepId], references: [id], onDelete: Restrict)
+
+  @@unique([sessionId, stepId])
+  @@index([stepId])
+  @@map("cooking_progress")
+}
+
+// =============================================================================
+// 5.6 MEAL PLANNER & SHOPPING LIST
+// =============================================================================
+
+model MealPlan {
+  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String    @map("user_id") @db.Uuid
+  title     String
+  startDate DateTime  @map("start_date") @db.Date
+  endDate   DateTime? @map("end_date") @db.Date
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  days          MealPlanDay[]
+  shoppingLists ShoppingList[]
+
+  @@index([userId])
+  @@map("meal_plans")
+}
+
+model MealPlanDay {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  mealPlanId String   @map("meal_plan_id") @db.Uuid
+  date       DateTime @db.Date
+
+  mealPlan MealPlan       @relation(fields: [mealPlanId], references: [id], onDelete: Cascade)
+  items    MealPlanItem[]
+
+  @@unique([mealPlanId, date])
+  @@map("meal_plan_days")
+}
+
+model MealPlanItem {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  dayId     String   @map("day_id") @db.Uuid
+  mealType  MealType @map("meal_type")
+  recipeId  String   @map("recipe_id") @db.Uuid
+  servings  Decimal  @db.Decimal(6, 2)
+  sortOrder Int      @default(0) @map("sort_order")
+  note      String?
+
+  day    MealPlanDay @relation(fields: [dayId], references: [id], onDelete: Cascade)
+  recipe Recipe      @relation(fields: [recipeId], references: [id], onDelete: Restrict)
+
+  @@index([dayId])
+  @@index([recipeId])
+  @@map("meal_plan_items")
+}
+
+model ShoppingList {
+  id               String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId           String             @map("user_id") @db.Uuid
+  title            String
+  sourceMealPlanId String?            @map("source_meal_plan_id") @db.Uuid
+  status           ShoppingListStatus @default(active)
+  createdAt        DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime           @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user           User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sourceMealPlan MealPlan?          @relation(fields: [sourceMealPlanId], references: [id], onDelete: SetNull)
+  items          ShoppingListItem[]
+
+  @@index([userId])
+  @@index([sourceMealPlanId])
+  @@map("shopping_lists")
+}
+
+model ShoppingListItem {
+  id              String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  listId          String  @map("list_id") @db.Uuid
+  ingredientId    String? @map("ingredient_id") @db.Uuid
+  displayName     String  @map("display_name")
+  quantityNumeric Decimal? @map("quantity_numeric") @db.Decimal(10, 3)
+  unitId          String? @map("unit_id") @db.Uuid
+  groupLabel      String? @map("group_label")
+  isChecked       Boolean @default(false) @map("is_checked")
+  isManual        Boolean @default(false) @map("is_manual")
+  note            String?
+  sortOrder       Int     @default(0) @map("sort_order")
+
+  list       ShoppingList @relation(fields: [listId], references: [id], onDelete: Cascade)
+  ingredient Ingredient?  @relation(fields: [ingredientId], references: [id], onDelete: SetNull)
+  unit       Unit?        @relation(fields: [unitId], references: [id], onDelete: SetNull)
+
+  @@index([listId])
+  @@index([ingredientId])
+  @@index([unitId])
+  @@map("shopping_list_items")
+}
+
+// =============================================================================
+// 5.8 CONTENT SOURCE & COPYRIGHT
+// =============================================================================
+
+model ContentSource {
+  id              String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name            String
+  authorOrOrg     String?              @map("author_or_org")
+  url             String?
+  accessedAt      DateTime?            @map("accessed_at") @db.Date
+  usageConditions String?              @map("usage_conditions")
+  license         String?
+  verifiedStatus  SourceVerifiedStatus @default(unverified) @map("verified_status")
+  verifiedById    String?              @map("verified_by") @db.Uuid
+  verifiedAt      DateTime?            @map("verified_at") @db.Timestamptz(6)
+  copyrightNote   String?              @map("copyright_note")
+  createdAt       DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime             @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  verifiedBy   User?              @relation("SourceVerifiedBy", fields: [verifiedById], references: [id], onDelete: SetNull)
+  recipeLinks  RecipeSource[]
+  attributions SourceAttribution[]
+
+  @@index([verifiedById])
+  @@map("content_sources")
+}
+
+model SourceAttribution {
+  id              String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  sourceId        String  @map("source_id") @db.Uuid
+  recipeId        String? @map("recipe_id") @db.Uuid
+  attributionText String  @map("attribution_text")
+  licenseSnapshot String? @map("license_snapshot")
+
+  source ContentSource @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+  recipe Recipe?       @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+
+  @@unique([sourceId, recipeId])
+  @@index([recipeId])
+  @@map("source_attributions")
+}
+
+model ContentReviewRecord {
+  id          String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  entityType  String         @map("entity_type")
+  entityId    String         @map("entity_id") @db.Uuid
+  reviewerId  String?        @map("reviewer_id") @db.Uuid
+  decision    ReviewDecision
+  notes       String?
+  createdAt   DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  reviewer User? @relation(fields: [reviewerId], references: [id], onDelete: SetNull)
+
+  @@index([entityType, entityId])
+  @@index([reviewerId])
+  @@map("content_review_records")
+}
+
+// =============================================================================
+// 5.9 CMS & AUDIT
+// =============================================================================
+
+model ContentReview {
+  id         String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  recipeId   String              @map("recipe_id") @db.Uuid
+  reviewerId String?             @map("reviewer_id") @db.Uuid
+  action     ContentReviewAction
+  comment    String?
+  createdAt  DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  recipe   Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  reviewer User?  @relation(fields: [reviewerId], references: [id], onDelete: SetNull)
+
+  @@index([recipeId])
+  @@index([reviewerId])
+  @@map("content_reviews")
+}
+
+model AuditLog {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  actorId    String?  @map("actor_id") @db.Uuid
+  action     String
+  entityType String   @map("entity_type")
+  entityId   String?  @map("entity_id") @db.Uuid
+  before     Json?    @db.JsonB
+  after      Json?    @db.JsonB
+  ip         String?
+  userAgent  String?  @map("user_agent")
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  actor User? @relation(fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([entityType, entityId])
+  @@index([actorId, createdAt(sort: Desc)])
+  @@map("audit_logs")
+}
