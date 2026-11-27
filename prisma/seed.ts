@@ -1,3 +1,5 @@
+import "dotenv/config";
+
 import { PrismaClient } from "@prisma/client";
 
 import { runDevSeed, runSystemSeed } from "./seed/run";
