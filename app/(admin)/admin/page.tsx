@@ -1,20 +1,39 @@
 import type { Metadata } from "next";
+
 import { Badge } from "@/components/ui/badge";
+import { Card, CardBody, CardTitle } from "@/components/ui/card";
+import { Link } from "@/components/ui/link";
 
 export const metadata: Metadata = {
   title: "Quản trị",
   robots: { index: false, follow: false },
 };
 
-export default function AdminPage() {
+/** Bảng điều khiển quản trị (P07) — điểm vào cho module công thức. */
+export default function AdminDashboardPage() {
   return (
-    <div className="flex max-w-2xl flex-col items-start gap-3">
-      <Badge variant="warning">Chưa triển khai</Badge>
-      <h1 className="text-h2 text-ink">Bảng điều khiển quản trị</h1>
-      <p className="text-body text-ink-muted">
-        P05 chỉ dựng nền tảng layout quản trị. Nội dung dashboard, quản lý công thức và phân quyền
-        sẽ được triển khai ở phase sau.
-      </p>
+    <div className="mx-auto flex max-w-3xl flex-col gap-6">
+      <header className="flex flex-col gap-2">
+        <Badge variant="brand">P07</Badge>
+        <h1 className="text-h2 text-ink">Bảng điều khiển quản trị</h1>
+        <p className="text-body text-ink-muted">
+          Quản lý nội dung công thức của WALE COOKING.
+        </p>
+      </header>
+
+      <Card>
+        <CardBody className="flex flex-col items-start gap-3">
+          <CardTitle as="h2" className="text-h3">
+            Công thức
+          </CardTitle>
+          <p className="text-body-sm text-ink-muted">
+            Tạo bản nháp, chỉnh sửa, gửi duyệt, xuất bản, lưu trữ và xóa công thức.
+          </p>
+          <Link href="/admin/cong-thuc" appearance="button" variant="primary">
+            Quản lý công thức
+          </Link>
+        </CardBody>
+      </Card>
     </div>
   );
 }

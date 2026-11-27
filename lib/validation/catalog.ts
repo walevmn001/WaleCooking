@@ -1,11 +1,11 @@
 import { z } from "zod";
 
-import { localeSchema, slugSchema, uuidSchema } from "./common";
+import { localeSchema, termSlugSchema, uuidSchema } from "./common";
 
-/** Input tạo taxonomy term (trục phân loại). */
+/** Input tạo taxonomy term (trục phân loại). Slug định danh từ vựng (cho phép `_`). */
 export const createTaxonomyTermSchema = z.object({
   typeCode: z.string().min(1).max(60),
-  slug: slugSchema,
+  slug: termSlugSchema,
   name: z.string().min(1).max(200),
   locale: localeSchema,
   icon: z.string().max(200).nullable().optional(),
@@ -17,7 +17,7 @@ export type CreateTaxonomyTermInput = z.infer<typeof createTaxonomyTermSchema>;
 
 /** Input tạo nguyên liệu nền. */
 export const createIngredientSchema = z.object({
-  slug: slugSchema,
+  slug: termSlugSchema,
   name: z.string().min(1).max(200),
   locale: localeSchema,
   categorySlug: z.string().min(1).max(200).nullable().optional(),

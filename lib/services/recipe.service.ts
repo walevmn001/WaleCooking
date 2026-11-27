@@ -35,7 +35,7 @@ export class RecipeService {
 
   // ---------------------------------------------------------------- Đọc công khai
 
-  listPublic(query: RawQuery = {}): Promise<Paginated<RecipeSummaryDto>> {
+  async listPublic(query: RawQuery = {}): Promise<Paginated<RecipeSummaryDto>> {
     const parsed = parseInput(listRecipesQuerySchema, query);
     return this.deps.recipe.listPublic({
       locale: "vi",
@@ -59,7 +59,7 @@ export class RecipeService {
 
   // ---------------------------------------------------------------- Đọc quản trị
 
-  listAdmin(actor: Actor | null, query: RawQuery = {}): Promise<Paginated<RecipeAdminSummaryDto>> {
+  async listAdmin(actor: Actor | null, query: RawQuery = {}): Promise<Paginated<RecipeAdminSummaryDto>> {
     requirePermission(actor, "recipe:read:draft");
     const parsed = parseInput(listRecipesQuerySchema, query);
     return this.deps.recipe.listAdmin({

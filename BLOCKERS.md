@@ -1,7 +1,7 @@
 # BLOCKERS — WALE COOKING
 
 > Các vấn đề còn tồn tại hoặc cần xác minh. Ghi rõ thay vì tự suy đoán.
-> Cập nhật: 2026-11-28 (P06).
+> Cập nhật: 2026-11-28 (P07).
 
 | # | Blocker | Mức độ | Trạng thái | Ghi chú |
 | --- | --- | --- | --- | --- |
@@ -23,7 +23,12 @@
 | B-P05-01 | **Chưa kiểm trình duyệt thật / E2E / console runtime** | Trung bình | **Còn mở** | Môi trường P05 không có trình duyệt headless; đã kiểm `typecheck`/`lint`/`test` (60)/`build` (15 route) nhưng chưa kiểm responsive thực tế, focus thực tế, tràn ngang, console runtime. Không tuyên bố đạt WCAG 2.2 AA. Xem [TEST_REPORT.md](./docs/P05/TEST_REPORT.md) §5 |
 | B-P06-01 | **Chưa xác minh kết nối Neon PostgreSQL thật** | Trung bình | **Còn mở** | Chưa có connection string Neon → toàn bộ kiểm chứng P06 chạy trên **PostgreSQL 16.15 local** (`wale_dev`/`wale_test`). Chưa kiểm pooled/direct thật, SSL, `?pgbouncer=true`. Cấu hình đã sẵn (`DATABASE_URL` + `DIRECT_URL`). Xem [MIGRATION_GUIDE.md](./docs/P06/MIGRATION_GUIDE.md) §6 |
 | B-P06-02 | **Auth.js chưa nối → chưa kiểm luồng 401/403 end-to-end** | Trung bình | **Còn mở** | `getCurrentActor()` trả `null`; chưa có phiên đăng nhập thật. Mọi thao tác ghi trong test được kiểm ở tầng authorization (unit) nhưng **chưa** qua HTTP. Không giả lập người dùng đã đăng nhập. Xem [DATABASE_SECURITY.md](./docs/P06/DATABASE_SECURITY.md) §3 |
-| B-P06-03 | **Chưa có credentials Cloudflare R2** | Trung bình | **Chưa xử lý (thuộc P07)** | Biến `R2_*` để trống; media adapter (R2/local) triển khai ở P07. Không tuyên bố R2 đã kết nối. Xem [MEDIA_STORAGE.md](./docs/P02/MEDIA_STORAGE.md) |
+| B-P06-03 | **Chưa có credentials Cloudflare R2** | Trung bình | **Một phần — chuyển sang B-P07-01** | Media adapter (R2/local) **đã triển khai ở P07**; R2 adapter hoàn thiện về code nhưng **chưa** kết nối bucket/endpoint thật; media kiểm trên **local provider**. Xem [RECIPE_MEDIA.md](./docs/P07/RECIPE_MEDIA.md) §9 |
+| B-P07-01 | **Chưa xác minh media trên Cloudflare R2 thật** | Trung bình | **Còn mở** | Chưa có credentials → luồng upload/đọc chạy trên **LocalStorageAdapter** (dev/test). Chưa kiểm endpoint R2, SSL, CORS, CDN/public URL, presigned URL. Xem [RECIPE_MEDIA.md](./docs/P07/RECIPE_MEDIA.md) §9 |
+| B-P07-02 | **Chưa có test HTTP end-to-end cho authorization** | Trung bình | **Còn mở** | Auth.js chưa nối → 401/403 mới kiểm ở **tầng service** (actor giả trong bộ nhớ), chưa qua route handler HTTP/phiên đăng nhập thật. Xem [RECIPE_AUTHORIZATION.md](./docs/P07/RECIPE_AUTHORIZATION.md) §8, [TEST_REPORT.md](./docs/P07/TEST_REPORT.md) §6 |
+| B-P07-03 | **Chưa nối luồng upload ảnh trong form quản trị** | Thấp | **Còn mở** | `RecipeForm` hiện gửi JSON (metadata ảnh); chưa tích hợp `POST /api/v1/media`. Media adapter đã sẵn sàng. Xem [RECIPE_FRONTEND.md](./docs/P07/RECIPE_FRONTEND.md) §10 |
+| B-P07-04 | **Chưa kiểm UI trên trình duyệt thật (a11y/responsive)** | Trung bình | **Còn mở** | Không có trình duyệt headless → chưa chạy E2E/axe/Lighthouse; UI kiểm ở mức render/typecheck/build. Kế thừa B-P05-01. Xem [TEST_REPORT.md](./docs/P07/TEST_REPORT.md) §6 |
+| B-P07-05 | **Chưa siết BR-03 "nội dung tự biên soạn" & chưa có quy trình reviewer nhiều bước** | Thấp | **Còn mở** | Hiện chỉ buộc "≥1 nguồn"; chưa ràng buộc cứng nguồn gốc phải có ghi chú/attribution; `submit-review` là chuyển trạng thái cơ bản, chưa có luồng duyệt editor→admin đầy đủ (liên quan B-P01-01/B-P02-03). Xem [RECIPE_CONTENT_POLICY.md](./docs/P07/RECIPE_CONTENT_POLICY.md) §7 |
 
 ## Nội dung còn chờ xác minh (không phải blocker cứng)
 

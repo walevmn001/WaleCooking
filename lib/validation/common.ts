@@ -28,11 +28,28 @@ export function parseInput<T>(schema: z.ZodType<T>, data: unknown): T {
 
 export const uuidSchema = z.string().uuid();
 
+/** Slug nội dung (SEO) — dùng cho slug công thức/URL: chữ thường, số, gạch ngang. */
 export const slugSchema = z
   .string()
   .min(1)
   .max(200)
   .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Slug chỉ gồm chữ thường, số và dấu gạch ngang.");
+
+/**
+ * Slug định danh từ vựng/nguyên liệu (taxonomy term, ingredient, equipment).
+ *
+ * Cho phép thêm dấu gạch dưới vì dữ liệu chuẩn (P06 seed) dùng dạng `main_dish`,
+ * `gluten_free`, `frying_pan`; P02 chỉ ràng buộc `text` + UNIQUE, không quy định
+ * định dạng. Tách khỏi `slugSchema` để giữ slug URL công thức ở dạng gạch ngang.
+ */
+export const termSlugSchema = z
+  .string()
+  .min(1)
+  .max(200)
+  .regex(
+    /^[a-z0-9]+(?:[_-][a-z0-9]+)*$/,
+    "Slug chỉ gồm chữ thường, số, dấu gạch ngang hoặc gạch dưới.",
+  );
 
 export const localeSchema = z.string().min(2).max(10).default("vi");
 

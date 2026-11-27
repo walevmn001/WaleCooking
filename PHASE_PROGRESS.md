@@ -1,7 +1,7 @@
 # PHASE PROGRESS — WALE COOKING
 
 > Theo dõi tiến độ theo phase. Mỗi phase chỉ triển khai đúng phạm vi của nó.
-> Cập nhật: 2026-11-28 (P06).
+> Cập nhật: 2026-11-28 (P07).
 
 | Phase | Tên | Phạm vi | Trạng thái |
 | --- | --- | --- | --- |
@@ -13,6 +13,7 @@
 | P04 | Mascot & Illustration Assets | Bộ nhận diện minh họa: mascot đầu bếp (8 biến thể), logo/brand mark (5), bộ icon (38), illustration trạng thái (9), quy chuẩn sử dụng & quản lý tài sản, QA checklist | ✅ Hoàn thành |
 | P05 | Application Foundation & Shared UI System | (A) Nền tảng + Shared UI Components (tokens/global styles, basic, form, navigation/feedback, cooking-specific); (B) Application Shell (Root/Public/Auth/Admin layout, Header, Navigation, MobileMenu, Footer); trang kiểm tra dev-only; 6 tài liệu `docs/P05/`; 60 unit test | ✅ Hoàn thành |
 | P06 | Database Foundation | Prisma schema theo P02 (22 enum/57 model, 58 bảng), Prisma client singleton, kiểm tra env, migration baseline tái lập (`20261127175936_init`), seed idempotent (taxonomy/unit/equipment/ingredient), repository + service + validation + authorization; 7 tài liệu `docs/P06/`; 78 unit + 28 integration test | ✅ Hoàn thành |
+| P07 | Recipe Module | Domain công thức + CRUD/workflow (draft→in_review→published→archived, xóa mềm), API `/api/v1/recipes*` + `/api/v1/admin/recipes` + `/api/v1/media*` theo contract P02, media adapter (R2 mục tiêu/local dev), frontend listing/detail + quản trị create/edit tái sử dụng component P05, authorization tập trung, transaction; 8 tài liệu `docs/P07/`; 124 unit + 50 integration test | ✅ Hoàn thành |
 
 ## Sản phẩm bàn giao theo phase
 
@@ -109,10 +110,25 @@
 - Tạo `docs/P06/`: `DATABASE_IMPLEMENTATION.md`, `PRISMA_SCHEMA_GUIDE.md`, `MIGRATION_GUIDE.md`, `SEED_GUIDE.md`, `REPOSITORY_ARCHITECTURE.md`, `DATABASE_SECURITY.md`, `TEST_REPORT.md`
 - Cập nhật `CURRENT_STATUS.md`, `PHASE_PROGRESS.md`, `DECISIONS.md`, `BLOCKERS.md`
 
+### P07
+- Tạo domain + repository: `lib/db/repositories/recipe.repository.ts` (interface + DTO), `prisma-recipe.repository.ts` (adapter Prisma, transaction, resolve term/unit), `media.repository.ts` + `prisma-media.repository.ts`
+- Tạo service: `lib/services/recipe.service.ts`, `media.service.ts` (+ cập nhật `lib/services/index.ts`)
+- Tạo validation: `lib/validation/recipe.ts`; tách `termSlugSchema` (cho phép `_`) khỏi `slugSchema` trong `lib/validation/common.ts`; cập nhật `lib/validation/catalog.ts`
+- Tạo storage adapter: `lib/storage/{storage.port,r2-storage.adapter,local-storage.adapter,image-validation,index}.ts`
+- Tạo presentation mapper (thuần): `lib/presentation/{recipe-view,recipe-links,recipe-form-values,slug}.ts`
+- Tạo API: `app/api/v1/recipes/route.ts`, `recipes/[id]/route.ts`, `recipes/[id]/{publish,archive,submit-review,versions}/route.ts`, `admin/recipes/route.ts`, `media/route.ts`, `media/[id]/route.ts`, `media/file/[...key]/route.ts`
+- Tạo trang công khai: `app/(public)/cong-thuc/page.tsx` (danh sách), `loading.tsx`, `error.tsx`, `[slug]/page.tsx` (chi tiết + JSON-LD)
+- Tạo trang quản trị: `app/(admin)/admin/cong-thuc/{page.tsx,moi/page.tsx,[id]/sua/page.tsx}`
+- Tạo component: `components/admin/{recipe-form,recipe-status-actions,admin-access-notice}.tsx`, `components/recipe/recipe-filters.tsx`
+- Tạo test: `tests/lib/recipe-validation.test.ts`, `tests/lib/recipe.presentation.test.ts`, `tests/components/{recipe-filters,recipe-form}.test.tsx`, `tests/integration/{recipe.repository,recipe.service}.test.ts`
+- Tạo `docs/P07/`: `RECIPE_MODULE_ARCHITECTURE.md`, `RECIPE_DOMAIN.md`, `RECIPE_API_IMPLEMENTATION.md`, `RECIPE_FRONTEND.md`, `RECIPE_MEDIA.md`, `RECIPE_AUTHORIZATION.md`, `RECIPE_CONTENT_POLICY.md`, `TEST_REPORT.md`
+- Cập nhật `CURRENT_STATUS.md`, `PHASE_PROGRESS.md`, `DECISIONS.md`, `BLOCKERS.md`
+
 ## Ràng buộc xuyên suốt
 - Chỉ dùng 1 agent, không tạo sub-agent.
 - Không code website / không tạo database / không triển khai backend trong P00, P00-FIX & P01; P02 thiết kế kiến trúc/schema/API nhưng **không viết code ứng dụng**; P03 chỉ xây **Design System + đặc tả giao diện**, P04 chỉ tạo **tài nguyên nhận diện (SVG) + quy chuẩn**, cả hai **không dựng UI/không triển khai website**. **P05 mới dựng UI thật** (Shared UI Components + Application Shell) nhưng **không** kết nối database/Auth/R2, **không** triển khai chức năng module (route chức năng là placeholder).
 - Tài nguyên P04 phải nhất quán với palette/typography/phong cách đã khóa ở P03; không tự đổi thương hiệu; không dùng asset có bản quyền không rõ nguồn. P05 **tái sử dụng** token P03 (không tạo hệ thống token thứ hai) và asset P04.
 - Giữ nguyên kiến trúc đã chốt (stack lớp rời, gói miễn phí, phi thương mại, Pastel Mint).
 - **P06** chỉ triển khai **nền tảng dữ liệu** (Prisma/migration/seed/repository/service/validation/authorization); **không** triển khai đăng nhập thật (Auth.js) và **không** kết nối Neon/R2 thật khi chưa có credentials; **không** giả lập người dùng đã đăng nhập (`getCurrentActor()` trả `null`); **không** tạo công thức giả như nội dung đã xuất bản.
+- **P07** chỉ triển khai **module Recipe** trên nền dữ liệu P06, **tái sử dụng** component P05 (không viết lại UI dùng chung); UI **không** gọi Prisma trực tiếp; quyền kiểm ở **server** (RBAC tập trung, không hardcode role); Auth.js vẫn **chưa nối** → mọi thao tác ghi trả **401**, **không** giả lập người dùng; media chạy **local provider** khi chưa có credentials R2 (R2 adapter đã hoàn thiện nhưng **chưa** xác minh kết nối thật); nội dung công thức trong test là **fixture**, **không** tuyên bố có công thức thật đã xuất bản; **không** tự chuyển sang P08.
 - Chỉ commit file thuộc phạm vi phase. P00/P00-FIX/P01 chỉ commit local; P02 trở đi được phép đưa checkpoint lên `origin/main` một cách an toàn (không force-push, không rewrite lịch sử).

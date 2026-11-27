@@ -1,7 +1,7 @@
 # DECISIONS — WALE COOKING
 
 > Nhật ký các quyết định đã chốt. Không tự thay đổi quyết định đã xác lập nếu chưa có căn cứ.
-> Cập nhật: 2026-11-28 (P06).
+> Cập nhật: 2026-11-28 (P07).
 
 | # | Quyết định | Nội dung | Căn cứ | Trạng thái |
 | --- | --- | --- | --- | --- |
@@ -55,12 +55,21 @@
 | D48 | Authorization khi Auth.js chưa nối | RBAC tập trung (`lib/auth/authorization.ts`); `getCurrentActor()` trả `null` → mọi thao tác ghi nhận **401**; **không** giả lập người dùng đã đăng nhập | P06 (§8), P02/D-P02-03 | Đã chốt |
 | D49 | Seed | Idempotent bằng `upsert`; tách **seed hệ thống** (luôn chạy) vs **dữ liệu phát triển** (`SEED_DEV=1`, TLD `.invalid`); không chứa thông tin cá nhân thật | P06 (§6) | Đã chốt |
 | D50 | Kiểm thử tích hợp | Tách cấu hình: unit (`vitest.config.ts`, jsdom) và integration (`vitest.integration.config.ts`, node + PostgreSQL thử nghiệm `TEST_DATABASE_URL`) | P06 (§9) | Đã chốt |
+| D51 | Định dạng slug | Tách **hai** schema: `slugSchema` (slug **URL công thức**, chỉ `[a-z0-9-]`) và `termSlugSchema` (slug **từ vựng/nguyên liệu/thiết bị**, cho phép thêm `_`) — vì seed chuẩn P06 dùng `main_dish`, `gluten_free`, `stir_fry` | P07 (regression seed P06) | Đã chốt — [RECIPE_API_IMPLEMENTATION.md](./docs/P07/RECIPE_API_IMPLEMENTATION.md) §2.3 |
+| D52 | Ba tầng mô hình dữ liệu | **Prisma model → DTO → view-model**; mapper `lib/presentation/*` là **hàm thuần** (chỉ `import type`) → an toàn cho bundle client, kiểm thử không cần DB | P07 (§12/§16) | Đã chốt — [RECIPE_MODULE_ARCHITECTURE.md](./docs/P07/RECIPE_MODULE_ARCHITECTURE.md) §4 |
+| D53 | Endpoint chuyển trạng thái bổ sung | Thêm `POST /api/v1/recipes/{id}/submit-review` (draft → in_review) để hoàn thiện workflow soạn thảo; **không** thay thế endpoint duyệt `POST /admin/recipes/{id}/review` của P02 | P07 (§13) | Đã chốt — [RECIPE_API_IMPLEMENTATION.md](./docs/P07/RECIPE_API_IMPLEMENTATION.md) §1 |
+| D54 | Điều kiện xuất bản (BR-03) | Yêu cầu **≥1 nguồn** khi publish, **kể cả** nội dung tự biên soạn (khai báo bằng nguồn hệ thống "WALE COOKING (tự biên soạn)") — vì server không xác định chắc chắn tính "gốc" | P07 (§17), BR-01/BR-03 | Đã chốt — [RECIPE_CONTENT_POLICY.md](./docs/P07/RECIPE_CONTENT_POLICY.md) §4 |
+| D55 | Media adapter | Bytes ở **storage adapter** (R2 mục tiêu/local dev-test), Postgres **chỉ** lưu metadata; loại tệp xác định bằng **magic bytes** (không tin client); **khóa do server sinh** (`recipes/YYYY/MM/<uuid>-<slug>.<ext>`) | P07 (§15), P02 D-P02-06/MEDIA_STORAGE | Đã chốt — [RECIPE_MEDIA.md](./docs/P07/RECIPE_MEDIA.md) |
+| D56 | Xóa & delete behavior | Xóa công thức = **xóa mềm** (`deletedAt` + `status='archived'`, giữ dữ liệu); FK mặc định **RESTRICT**, CASCADE chỉ cho con thuộc sở hữu (ingredients/steps/images) | P07 (§18), P02 D-P02-08 | Đã chốt — [RECIPE_DOMAIN.md](./docs/P07/RECIPE_DOMAIN.md) §3/§6 |
+| D57 | Frontend module Recipe | Server Component + `dynamic="force-dynamic"`; **tái sử dụng** component P05; presentation mapper không bịa dữ liệu (thiếu trường → ẩn mục) | P07 (§16/§17) | Đã chốt — [RECIPE_FRONTEND.md](./docs/P07/RECIPE_FRONTEND.md) |
+| D58 | Kiểm thử P07 | Bổ sung **46 unit + 22 integration**; **không** xóa/làm suy yếu test P05/P06; authorization kiểm ở tầng service (dùng actor giả trong bộ nhớ — **không** giả lập phiên đăng nhập thật) | P07 (§19) | Đã chốt — [docs/P07/TEST_REPORT.md](./docs/P07/TEST_REPORT.md) |
 
 > Chi tiết bối cảnh/lý do/đánh đổi/phương án thay thế của **D-P02-01..11** xem [ARCHITECTURE_DECISIONS.md](./docs/P02/ARCHITECTURE_DECISIONS.md).
 > Chi tiết Design System của **D22–D28** xem [DESIGN_SYSTEM.md](./docs/P03/DESIGN_SYSTEM.md), [DESIGN_TOKENS.md](./docs/P03/DESIGN_TOKENS.md), [COLOR_ACCESSIBILITY_AUDIT.md](./docs/P03/COLOR_ACCESSIBILITY_AUDIT.md).
 > Chi tiết bộ nhận diện minh họa của **D29–D33** xem [BRAND_ASSET_GUIDELINES.md](./docs/P04/BRAND_ASSET_GUIDELINES.md), [MASCOT_SPECIFICATION.md](./docs/P04/MASCOT_SPECIFICATION.md), [LOGO_USAGE_GUIDELINES.md](./docs/P04/LOGO_USAGE_GUIDELINES.md), [ICON_SYSTEM.md](./docs/P04/ICON_SYSTEM.md), [ILLUSTRATION_GUIDELINES.md](./docs/P04/ILLUSTRATION_GUIDELINES.md), [ASSET_CATALOG.md](./docs/P04/ASSET_CATALOG.md).
 > Chi tiết hiện thực UI của **D34–D41** xem [docs/P05/](./docs/P05/): [IMPLEMENTATION_REPORT.md](./docs/P05/IMPLEMENTATION_REPORT.md), [COMPONENT_CATALOG.md](./docs/P05/COMPONENT_CATALOG.md), [APPLICATION_SHELL.md](./docs/P05/APPLICATION_SHELL.md), [RESPONSIVE_IMPLEMENTATION.md](./docs/P05/RESPONSIVE_IMPLEMENTATION.md), [ACCESSIBILITY_REPORT.md](./docs/P05/ACCESSIBILITY_REPORT.md), [TEST_REPORT.md](./docs/P05/TEST_REPORT.md).
 > Chi tiết nền tảng dữ liệu của **D42–D50** xem [docs/P06/](./docs/P06/): [DATABASE_IMPLEMENTATION.md](./docs/P06/DATABASE_IMPLEMENTATION.md), [PRISMA_SCHEMA_GUIDE.md](./docs/P06/PRISMA_SCHEMA_GUIDE.md), [MIGRATION_GUIDE.md](./docs/P06/MIGRATION_GUIDE.md), [SEED_GUIDE.md](./docs/P06/SEED_GUIDE.md), [REPOSITORY_ARCHITECTURE.md](./docs/P06/REPOSITORY_ARCHITECTURE.md), [DATABASE_SECURITY.md](./docs/P06/DATABASE_SECURITY.md), [TEST_REPORT.md](./docs/P06/TEST_REPORT.md).
+> Chi tiết module công thức của **D51–D58** xem [docs/P07/](./docs/P07/): [RECIPE_MODULE_ARCHITECTURE.md](./docs/P07/RECIPE_MODULE_ARCHITECTURE.md), [RECIPE_DOMAIN.md](./docs/P07/RECIPE_DOMAIN.md), [RECIPE_API_IMPLEMENTATION.md](./docs/P07/RECIPE_API_IMPLEMENTATION.md), [RECIPE_FRONTEND.md](./docs/P07/RECIPE_FRONTEND.md), [RECIPE_MEDIA.md](./docs/P07/RECIPE_MEDIA.md), [RECIPE_AUTHORIZATION.md](./docs/P07/RECIPE_AUTHORIZATION.md), [RECIPE_CONTENT_POLICY.md](./docs/P07/RECIPE_CONTENT_POLICY.md), [TEST_REPORT.md](./docs/P07/TEST_REPORT.md).
 
 ## Quyết định còn để mở (cần xác minh trước khi áp dụng)
 

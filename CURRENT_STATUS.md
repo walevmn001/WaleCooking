@@ -1,10 +1,10 @@
 # CURRENT STATUS — WALE COOKING
 
-> Cập nhật: 2026-11-28 (P06).
+> Cập nhật: 2026-11-28 (P07).
 
 ## Tóm tắt
 - **Sản phẩm:** WALE COOKING — website hướng dẫn nấu ăn (tiếng Việt, sẵn sàng i18n EN).
-- **Phase hiện tại:** hoàn thành **P00**, **P00-FIX**, **P01**, **P02**, **P03**, **P04**, **P05** và **P06**; **chưa bắt đầu P07.**
+- **Phase hiện tại:** hoàn thành **P00**, **P00-FIX**, **P01**, **P02**, **P03**, **P04**, **P05**, **P06** và **P07**; **chưa bắt đầu P08.**
 - **Đã hoàn thiện P00:** khảo sát thực tế + tài liệu định hướng + đề xuất công nghệ.
 - **Đã hoàn thiện P00-FIX:** đồng bộ thương hiệu sang WALE COOKING, bổ sung đầy đủ 20 nhóm chức năng, chuẩn hóa 7 trục phân loại, cập nhật tài liệu trạng thái.
 - **Đã hoàn thiện P01:** bộ đặc tả sản phẩm có thể triển khai — PRD, Product Constitution, personas, user journeys, đặc tả 20 nhóm chức năng, quy tắc nghiệp vụ, NFR đo lường được, phạm vi MVP và tiêu chí nghiệm thu.
@@ -13,6 +13,7 @@
 - **Đã hoàn thiện P04:** **Bộ nhận diện minh họa** — 60 asset SVG nguyên bản (5 logo/brand mark, 8 biến thể mascot, 38 icon, 9 illustration trạng thái) + 7 tài liệu quy chuẩn trong `docs/P04/`. Sinh/kiểm tự động bằng script; validator **0 lỗi, 0 cảnh báo**; tổng ~56.6 KB. **Chưa tích hợp vào UI** (thuộc P05); phần render pixel chưa xác minh do môi trường không có rasterizer.
 - **Đã hoàn thiện P05:** **Application Foundation & Shared UI System** — (A) nền tảng + 60 component dùng chung (ui/forms/navigation/feedback/recipe/recipe-meta/layout) theo token P03, dùng Lucide + asset P04; (B) Application Shell: Root/Public/Auth/Admin layout, Header (desktop/tablet/mobile), Navigation, MobileMenu, Footer; trang kiểm tra dev-only `/dev/components`. **Kiểm chứng:** `typecheck` 0 lỗi · `lint` 0 lỗi/0 cảnh báo · **60/60 unit test pass** (11 file) · `build` thành công **15 route**. **Chưa** kiểm trình duyệt thật / axe / screen reader / zoom 200% → **không tuyên bố đạt WCAG 2.2 AA**.
 - **Đã hoàn thiện P06:** **Database Foundation** — Prisma schema theo P02 (**22 enum / 57 model**; **58 bảng** trong DB), Prisma client singleton, kiểm tra biến môi trường, migration baseline tái lập được (`20261127175936_init`, chạy từ DB sạch), seed hệ thống **idempotent** (9 taxonomy type/83 term, 22 unit, 10 equipment, 40 ingredient, 1 content source), lớp **repository + service + validation + authorization tập trung**. **Kiểm chứng:** `prisma validate/generate` OK · migration áp thành công lên `wale_dev`+`wale_test` · seed chạy 2 lần không trùng · **78/78 unit test** (14 file) · **28/28 integration test** (5 file) · `typecheck` 0 lỗi · `lint` 0 lỗi · `build` 15 route. **Chưa kết nối Neon thật** (dùng PostgreSQL local); Auth.js **chưa nối** → `getCurrentActor()` trả `null` (không giả lập đăng nhập).
+- **Đã hoàn thiện P07:** **Recipe Module** — domain công thức (Recipe/Translation/Ingredient/Step/Nutrition/Allergen/Source/Version) trên nền dữ liệu P06; **CRUD + workflow** (draft → in_review → published → archived, xóa mềm); **API** `/api/v1/recipes*` + `/api/v1/admin/recipes` + `/api/v1/media*` theo contract P02; **media adapter** (R2 mục tiêu + local cho dev/test; magic bytes, khóa do server sinh); **frontend** listing/detail công khai + quản trị create/edit **tái sử dụng component P05**; **authorization tập trung** (RBAC, actor=null ⇒ 401, không hardcode role); **transaction** bảo toàn thứ tự nguyên liệu/bước; JSON-LD schema.org/Recipe. **Kiểm chứng:** **124/124 unit test** (18 file) · **50/50 integration test** (7 file) · `typecheck` 0 lỗi · `lint` 0 lỗi · `build` **29 route**. **Chưa xác minh trên dịch vụ thật**: Auth.js chưa nối (chưa test 401/403 qua HTTP), chưa có credentials R2 (media chạy local provider); nội dung công thức trong test là **fixture**, không tuyên bố có công thức thật đã xuất bản.
 
 ## Git
 | Mục | Giá trị |
@@ -94,6 +95,28 @@
 
 **Kiểm thử:** `tests/lib/` (3 file, 18 test) + `tests/integration/` (5 file, 28 test) + `tests/stubs/server-only.ts` + `vitest.integration.config.ts`. Tổng **78 unit + 28 integration test pass**.
 
+## Sản phẩm bàn giao P07 (`docs/P07/` + mã nguồn)
+**Tài liệu (`docs/P07/`):** `RECIPE_MODULE_ARCHITECTURE.md` · `RECIPE_DOMAIN.md` · `RECIPE_API_IMPLEMENTATION.md` · `RECIPE_FRONTEND.md` · `RECIPE_MEDIA.md` · `RECIPE_AUTHORIZATION.md` · `RECIPE_CONTENT_POLICY.md` · `TEST_REPORT.md`
+
+**Domain & dữ liệu (`lib/`):**
+- `db/repositories/recipe.repository.ts` (interface + DTO) + `prisma-recipe.repository.ts` (adapter Prisma: transaction, resolve term/unit, mapping).
+- `db/repositories/media.repository.ts` + `prisma-media.repository.ts`.
+- `services/recipe.service.ts` (CRUD + publish/archive/submit-review/version + BR-01/BR-03), `services/media.service.ts`.
+
+**Validation & auth:**
+- `validation/recipe.ts` (Zod); `validation/common.ts` tách `termSlugSchema` (cho phép `_`) khỏi `slugSchema` (URL).
+- `auth/authorization.ts` (RBAC tập trung: `can`/`requirePermission`), `auth/session.ts` (`getCurrentActor()` → `null`).
+
+**Storage (media adapter):** `storage/{storage.port,r2-storage.adapter,local-storage.adapter,image-validation,index}.ts`.
+
+**Presentation (thuần):** `presentation/{recipe-view,recipe-links,recipe-form-values,slug}.ts` (DTO → view-model P05 + JSON-LD).
+
+**API (`app/api/v1/`):** `recipes` (list/create), `recipes/[id]` (get/patch/delete), `recipes/[id]/{publish,archive,submit-review,versions}`, `admin/recipes`, `media` (upload), `media/[id]`, `media/file/[...key]`.
+
+**Frontend:** `app/(public)/cong-thuc/{page,loading,error,[slug]/page}.tsx`; `app/(admin)/admin/cong-thuc/{page,moi/page,[id]/sua/page}.tsx`; `components/admin/{recipe-form,recipe-status-actions,admin-access-notice}.tsx`; `components/recipe/recipe-filters.tsx`.
+
+**Kiểm thử:** `tests/lib/{recipe-validation,recipe.presentation}.test.ts` (36) + `tests/components/{recipe-filters,recipe-form}.test.tsx` (10) + `tests/integration/{recipe.repository,recipe.service}.test.ts` (22). Tổng **124 unit + 50 integration test pass**.
+
 ## Việc còn chờ xác minh
 - **B5:** repo là shallow clone (ảnh hưởng thấp).
 - **B6:** chưa có tài khoản/môi trường triển khai (Neon, R2, Vercel/Cloudflare…).
@@ -105,11 +128,20 @@
 - **B-P02-02:** cơ chế backup điểm-trong-thời-gian (PITR) của Neon theo gói free chưa xác minh.
 - **B-P03-01:** nghiệm thu a11y/responsive/motion **trên UI thật** (axe, screen reader, zoom 200%, 320px, header sticky) **chưa thực hiện** — P05 đã dựng UI + đặc tả a11y nhưng môi trường không có trình duyệt; **còn mở** (xem [ACCESSIBILITY_REPORT.md](./docs/P05/ACCESSIBILITY_REPORT.md) §6).
 - **B-P04-01:** **render pixel & tương thích runtime** của asset P04 (mascot trên nền P03, logo ≥16–24px, `currentColor` trên Safari/Firefox) **chưa xác minh** — asset đã được tích hợp vào UI ở P05 (`SiteLogo`, `RecipeImage`, `EmptyState`, `ErrorState`, `not-found`), nhưng render thật vẫn chưa kiểm; **còn mở**.
+- **B-P05-01:** chưa kiểm trình duyệt thật / E2E / console runtime; không tuyên bố đạt WCAG 2.2 AA.
+- **B-P06-01:** chưa xác minh kết nối **Neon PostgreSQL thật** (dùng PostgreSQL 16.15 local).
+- **B-P06-02:** **Auth.js chưa nối** → chưa kiểm 401/403 end-to-end (`getCurrentActor()` trả `null`).
+- **B-P07-01:** chưa xác minh media trên **Cloudflare R2 thật** (chạy local provider).
+- **B-P07-02:** chưa có test **HTTP end-to-end** cho authorization (mới kiểm ở tầng service).
+- **B-P07-03:** chưa nối luồng **upload ảnh trong form quản trị** với `POST /api/v1/media`.
+- **B-P07-04:** chưa kiểm **UI module Recipe trên trình duyệt thật** (kế thừa B-P05-01).
+- **B-P07-05:** chưa siết BR-03 "nội dung tự biên soạn" & chưa có quy trình reviewer nhiều bước.
 - Hạn mức gói miễn phí đã ghi theo thời điểm **11/2026** — cần kiểm tra lại trước khi deploy.
 
 ## Phase tiếp theo
-- **P07 — Recipe Module**: xây module công thức thật trên nền dữ liệu P06 — domain (Recipe/Translation/Ingredient/Step), CRUD (draft → submit → publish → archive), API theo contract P02, media adapter (R2/local), frontend listing/detail/create-edit tái sử dụng component P05, transaction bảo toàn thứ tự, authorization tập trung. **Chỉ bắt đầu sau khi checkpoint P06 đạt.** Không tự chuyển sang P08.
+- **Chưa tự chuyển phase.** P07 đã hoàn thành → chờ người dùng xác nhận trước khi bắt đầu **P08**.
+- Định hướng P08 (khi được xác nhận): nối **Auth.js** (đăng nhập/session), xác minh **Neon PostgreSQL** & **Cloudflare R2** bằng credentials thật, hoàn thiện các module còn lại (tìm kiếm nâng cao, danh mục, yêu thích, kiến thức) và kiểm thử E2E/a11y trên trình duyệt.
 
 ## Tham chiếu
 - [PHASE_PROGRESS.md](./PHASE_PROGRESS.md) · [DECISIONS.md](./DECISIONS.md) · [BLOCKERS.md](./BLOCKERS.md)
-- Tài liệu P00: [docs/P00](./docs/P00/) · P01: [docs/P01](./docs/P01/) · P02: [docs/P02](./docs/P02/) · P03: [docs/P03](./docs/P03/) · P04: [docs/P04](./docs/P04/) · P05: [docs/P05](./docs/P05/) · P06: [docs/P06](./docs/P06/)
+- Tài liệu P00: [docs/P00](./docs/P00/) · P01: [docs/P01](./docs/P01/) · P02: [docs/P02](./docs/P02/) · P03: [docs/P03](./docs/P03/) · P04: [docs/P04](./docs/P04/) · P05: [docs/P05](./docs/P05/) · P06: [docs/P06](./docs/P06/) · P07: [docs/P07](./docs/P07/)

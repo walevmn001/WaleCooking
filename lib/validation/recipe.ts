@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { localeSchema, paginationSchema, slugSchema, uuidSchema } from "./common";
+import { localeSchema, paginationSchema, slugSchema, termSlugSchema, uuidSchema } from "./common";
 
 /**
  * Validation cho module Recipe (P07 §14/§8).
@@ -29,12 +29,12 @@ const temperatureRegex = /^-?\d{1,4}(\.\d)?$/;
 
 export const taxonomyTermRefSchema = z.object({
   typeCode: z.string().min(1).max(60),
-  slug: slugSchema,
+  slug: termSlugSchema,
 });
 
 export const recipeIngredientInputSchema = z
   .object({
-    ingredientSlug: slugSchema.nullable().optional(),
+    ingredientSlug: termSlugSchema.nullable().optional(),
     displayName: z.string().trim().min(1).max(200),
     quantityType: quantityTypeSchema.default("decimal"),
     quantityNumeric: decimalInput(quantityRegex, "Số lượng không hợp lệ (tối đa 3 chữ số thập phân).").nullable().optional(),
@@ -101,8 +101,8 @@ export const createRecipeSchema = z.object({
   description: z.string().trim().max(5000).nullable().optional(),
   seoTitle: z.string().trim().max(200).nullable().optional(),
   seoDescription: z.string().trim().max(320).nullable().optional(),
-  foodTypeSlug: slugSchema.nullable().optional(),
-  cuisineSlug: slugSchema.nullable().optional(),
+  foodTypeSlug: termSlugSchema.nullable().optional(),
+  cuisineSlug: termSlugSchema.nullable().optional(),
   difficulty: difficultySchema.default("easy"),
   prepMinutes: z.number().int().min(0).max(14400).nullable().optional(),
   cookMinutes: z.number().int().min(0).max(14400).nullable().optional(),
@@ -112,7 +112,7 @@ export const createRecipeSchema = z.object({
   ingredients: z.array(recipeIngredientInputSchema).max(200).default([]),
   steps: z.array(recipeStepInputSchema).max(100).default([]),
   sourceIds: z.array(uuidSchema).max(20).optional(),
-  allergenSlugs: z.array(slugSchema).max(30).optional(),
+  allergenSlugs: z.array(termSlugSchema).max(30).optional(),
   taxonomyTerms: z.array(taxonomyTermRefSchema).max(60).optional(),
   images: z.array(recipeImageInputSchema).max(30).optional(),
 });
@@ -139,7 +139,7 @@ export const updateRecipeSchema = z.object({
   ingredients: z.array(recipeIngredientInputSchema).max(200).optional(),
   steps: z.array(recipeStepInputSchema).max(100).optional(),
   sourceIds: z.array(uuidSchema).max(20).optional(),
-  allergenSlugs: z.array(slugSchema).max(30).optional(),
+  allergenSlugs: z.array(termSlugSchema).max(30).optional(),
   taxonomyTerms: z.array(taxonomyTermRefSchema).max(60).optional(),
   images: z.array(recipeImageInputSchema).max(30).optional(),
   primaryImageMediaId: uuidSchema.nullable().optional(),
