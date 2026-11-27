@@ -1,7 +1,7 @@
 # PHASE PROGRESS — WALE COOKING
 
 > Theo dõi tiến độ theo phase. Mỗi phase chỉ triển khai đúng phạm vi của nó.
-> Cập nhật: 2026-11-28 (P04).
+> Cập nhật: 2026-11-28 (P05).
 
 | Phase | Tên | Phạm vi | Trạng thái |
 | --- | --- | --- | --- |
@@ -11,6 +11,7 @@
 | P02 | Kiến trúc hệ thống, thiết kế database & API | Kiến trúc phân lớp, thiết kế module, schema database + ERD, hợp đồng API, bảo mật/phân quyền, tìm kiếm, media storage, triển khai | ✅ Hoàn thành |
 | P03 | Design System & đặc tả giao diện | Bộ quy chuẩn giao diện Pastel Mint: design tokens máy đọc được, audit WCAG 2.2 AA (contrast đo thực tế), typography & layout, đặc tả component, responsive, motion, accessibility, QA checklist | ✅ Hoàn thành |
 | P04 | Mascot & Illustration Assets | Bộ nhận diện minh họa: mascot đầu bếp (8 biến thể), logo/brand mark (5), bộ icon (38), illustration trạng thái (9), quy chuẩn sử dụng & quản lý tài sản, QA checklist | ✅ Hoàn thành |
+| P05 | Application Foundation & Shared UI System | (A) Nền tảng + Shared UI Components (tokens/global styles, basic, form, navigation/feedback, cooking-specific); (B) Application Shell (Root/Public/Auth/Admin layout, Header, Navigation, MobileMenu, Footer); trang kiểm tra dev-only; 6 tài liệu `docs/P05/`; 60 unit test | ✅ Hoàn thành |
 
 ## Sản phẩm bàn giao theo phase
 
@@ -79,9 +80,24 @@
 - Tạo `scripts/p04_generate_assets.py` (sinh asset, idempotent) và `scripts/p04_validate_assets.py` (kiểm định)
 - Cập nhật `CURRENT_STATUS.md`, `PHASE_PROGRESS.md`, `DECISIONS.md`, `BLOCKERS.md`
 
+### P05
+- Tạo `styles/globals.css` (tokens P03 → `@theme` Tailwind v4, reset, utilities, reduced-motion)
+- Tạo `components/ui/` (14): Button, IconButton, Link, Badge, Chip, Avatar, Card, Divider, Tooltip, Skeleton, Spinner, EmptyState, ErrorState, LoadingState
+- Tạo `components/forms/`: FormField, FormLabel, FormHint, FormError, Input, Textarea, Select, Checkbox, Radio/RadioGroup, Switch, SearchInput
+- Tạo `components/navigation/` (4): Breadcrumb, Tabs, Pagination, Dropdown
+- Tạo `components/feedback/` (3): Modal, ConfirmDialog, ToastProvider/useToast
+- Tạo `components/recipe/` (13): RecipeImage, RecipeCard, RecipeCardCompact, IngredientRow/IngredientList, CookingStepCard, CookingTime/PreparationTime/ServingsBadge/DifficultyBadge, CategoryCard, NutritionSummary, AllergenBadges (+ `types.ts`)
+- Tạo `components/layout/`: Container, SiteLogo, SiteHeader, PrimaryNav, MobileMenu, SiteFooter, PlaceholderPage
+- Tạo `app/layout.tsx` (root), `app/loading.tsx`, `app/error.tsx`, `app/not-found.tsx`
+- Tạo `app/(public)/` (12 route), `app/(auth)/` (1), `app/(admin)/` (1), `app/dev/components/` (dev-only)
+- Tạo `lib/` (`utils/{cn,format}.ts`, `hooks/use-outside-click.ts`, `constants/{site,navigation}.ts`, `mock/recipes.ts`)
+- Tạo `tests/` (11 file, 60 test) + cấu hình Vitest
+- Tạo `docs/P05/`: `IMPLEMENTATION_REPORT.md`, `COMPONENT_CATALOG.md`, `APPLICATION_SHELL.md`, `RESPONSIVE_IMPLEMENTATION.md`, `ACCESSIBILITY_REPORT.md`, `TEST_REPORT.md`
+- Cập nhật `CURRENT_STATUS.md`, `PHASE_PROGRESS.md`, `DECISIONS.md`, `BLOCKERS.md`
+
 ## Ràng buộc xuyên suốt
 - Chỉ dùng 1 agent, không tạo sub-agent.
-- Không code website / không tạo database / không triển khai backend trong P00, P00-FIX & P01; P02 thiết kế kiến trúc/schema/API nhưng **không viết code ứng dụng**; P03 chỉ xây **Design System + đặc tả giao diện**, P04 chỉ tạo **tài nguyên nhận diện (SVG) + quy chuẩn**, cả hai **không dựng UI/không triển khai website** (thuộc P05).
-- Tài nguyên P04 phải nhất quán với palette/typography/phong cách đã khóa ở P03; không tự đổi thương hiệu; không dùng asset có bản quyền không rõ nguồn.
+- Không code website / không tạo database / không triển khai backend trong P00, P00-FIX & P01; P02 thiết kế kiến trúc/schema/API nhưng **không viết code ứng dụng**; P03 chỉ xây **Design System + đặc tả giao diện**, P04 chỉ tạo **tài nguyên nhận diện (SVG) + quy chuẩn**, cả hai **không dựng UI/không triển khai website**. **P05 mới dựng UI thật** (Shared UI Components + Application Shell) nhưng **không** kết nối database/Auth/R2, **không** triển khai chức năng module (route chức năng là placeholder).
+- Tài nguyên P04 phải nhất quán với palette/typography/phong cách đã khóa ở P03; không tự đổi thương hiệu; không dùng asset có bản quyền không rõ nguồn. P05 **tái sử dụng** token P03 (không tạo hệ thống token thứ hai) và asset P04.
 - Giữ nguyên kiến trúc đã chốt (stack lớp rời, gói miễn phí, phi thương mại, Pastel Mint).
 - Chỉ commit file thuộc phạm vi phase. P00/P00-FIX/P01 chỉ commit local; P02 trở đi được phép đưa checkpoint lên `origin/main` một cách an toàn (không force-push, không rewrite lịch sử).

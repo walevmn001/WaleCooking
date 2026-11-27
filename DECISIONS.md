@@ -1,7 +1,7 @@
 # DECISIONS — WALE COOKING
 
 > Nhật ký các quyết định đã chốt. Không tự thay đổi quyết định đã xác lập nếu chưa có căn cứ.
-> Cập nhật: 2026-11-28 (P04).
+> Cập nhật: 2026-11-28 (P05).
 
 | # | Quyết định | Nội dung | Căn cứ | Trạng thái |
 | --- | --- | --- | --- | --- |
@@ -38,10 +38,19 @@
 | D31 | Hệ icon | **38 icon SVG** khung `0 0 24 24`, `stroke-width=2`, `fill=none`, màu qua `currentColor`, chia 4 nhóm (nav 7 / cooking 9 / interaction 13 / content 9). Ưu tiên Lucide cho chức năng thông thường; icon đặc trưng thương hiệu tự thiết kế; **không dùng emoji** thay icon trong UI chính | P04 | Đã chốt |
 | D32 | Illustration trạng thái | **9 minh họa SVG** khung `320×220`, phong cách blob pastel đồng nhất (Cream/Mint/Pink/Beige + nét Brown), kích thước vừa phải để không lấn át nội dung | P04 | Đã chốt |
 | D33 | Định dạng & an toàn asset | SVG cho logo/mascot/icon/illustration; SVG **không** chứa script/`foreignObject`/`image`/DOCTYPE/`on*`/href ngoài; tên file kebab-case; sinh & kiểm bằng `scripts/p04_generate_assets.py` + `scripts/p04_validate_assets.py` | P04 | Đã chốt |
+| D34 | Tổ chức mã nguồn P05 | `components/{ui,forms,navigation,feedback,recipe,layout,dev}` + `lib/{utils,hooks,constants,mock}` + `styles/` + `tests/` + `app/` (route groups). Mỗi nhóm có `index.ts` barrel export | P05 (§8) | Đã chốt |
+| D35 | Hiện thực design tokens | Dùng **Tailwind CSS v4** `@theme` map 1:1 từ `design-tokens.json` P03 → CSS variables → utility → component. **Không** tạo hệ thống token thứ hai; không dùng giá trị ngoài token | P05 (§3.1) | Đã chốt |
+| D36 | Icon & minh họa trong component | **Lucide** (`lucide-react`) cho icon chức năng thông thường; **asset P04** cho logo (`SiteLogo`), mascot (`RecipeImage` khi thiếu ảnh), illustration trạng thái (`EmptyState`/`ErrorState`/`not-found`). **Không** thêm thư viện icon khác | P05 (§3.6), P04/D31 | Đã chốt |
+| D37 | Application Shell | Route groups `(public)`/`(auth)`/`(admin)` (không xuất hiện trong URL). Header/Footer **chỉ** đặt trong `(public)/layout.tsx`; `(auth)` khung tối giản, `(admin)` chỉ nền tảng aside+main. Root layout bọc `ToastProvider` + skip-link `#main-content` | P05 (§4) | Đã chốt |
+| D38 | Route chức năng là placeholder | Các route Công thức/Danh mục/Kiến thức/Yêu thích/Tài khoản/Giới thiệu/Tìm kiếm/Điều khoản/Bảo mật/Bản quyền dùng `PlaceholderPage` và `NavItem.placeholder: true` — **không** tuyên bố module đã hoạt động | P05 (§4.3) | Đã chốt |
+| D39 | Trang kiểm tra component | `/dev/components` — **dev-only**: `notFound()` khi `NODE_ENV === "production"`; dùng mock data có nhãn `[MOCK]`, không dùng production | P05 (§5) | Đã chốt |
+| D40 | Stack kiểm thử P05 | **Vitest 5** + `@testing-library/react` + `jsdom`; `tests/**/*.test.{ts,tsx}`; **không** thêm framework UI/E2E mới trong P05 (E2E để phase sau) | P05 (§9) | Đã chốt |
+| D41 | Phạm vi kết nối dữ liệu P05 | **Không** kết nối Prisma/Neon, Auth.js, Cloudflare R2 trong P05. Component **không** tự gọi API; tầng dữ liệu thuộc P06+ | P05 (§7) | Đã chốt |
 
 > Chi tiết bối cảnh/lý do/đánh đổi/phương án thay thế của **D-P02-01..11** xem [ARCHITECTURE_DECISIONS.md](./docs/P02/ARCHITECTURE_DECISIONS.md).
 > Chi tiết Design System của **D22–D28** xem [DESIGN_SYSTEM.md](./docs/P03/DESIGN_SYSTEM.md), [DESIGN_TOKENS.md](./docs/P03/DESIGN_TOKENS.md), [COLOR_ACCESSIBILITY_AUDIT.md](./docs/P03/COLOR_ACCESSIBILITY_AUDIT.md).
 > Chi tiết bộ nhận diện minh họa của **D29–D33** xem [BRAND_ASSET_GUIDELINES.md](./docs/P04/BRAND_ASSET_GUIDELINES.md), [MASCOT_SPECIFICATION.md](./docs/P04/MASCOT_SPECIFICATION.md), [LOGO_USAGE_GUIDELINES.md](./docs/P04/LOGO_USAGE_GUIDELINES.md), [ICON_SYSTEM.md](./docs/P04/ICON_SYSTEM.md), [ILLUSTRATION_GUIDELINES.md](./docs/P04/ILLUSTRATION_GUIDELINES.md), [ASSET_CATALOG.md](./docs/P04/ASSET_CATALOG.md).
+> Chi tiết hiện thực UI của **D34–D41** xem [docs/P05/](./docs/P05/): [IMPLEMENTATION_REPORT.md](./docs/P05/IMPLEMENTATION_REPORT.md), [COMPONENT_CATALOG.md](./docs/P05/COMPONENT_CATALOG.md), [APPLICATION_SHELL.md](./docs/P05/APPLICATION_SHELL.md), [RESPONSIVE_IMPLEMENTATION.md](./docs/P05/RESPONSIVE_IMPLEMENTATION.md), [ACCESSIBILITY_REPORT.md](./docs/P05/ACCESSIBILITY_REPORT.md), [TEST_REPORT.md](./docs/P05/TEST_REPORT.md).
 
 ## Quyết định còn để mở (cần xác minh trước khi áp dụng)
 
