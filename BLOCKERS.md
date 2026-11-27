@@ -1,7 +1,7 @@
 # BLOCKERS — WALE COOKING
 
 > Các vấn đề còn tồn tại hoặc cần xác minh. Ghi rõ thay vì tự suy đoán.
-> Cập nhật: 2026-11-28 (P01).
+> Cập nhật: 2026-11-28 (P02).
 
 | # | Blocker | Mức độ | Trạng thái | Ghi chú |
 | --- | --- | --- | --- | --- |
@@ -15,9 +15,12 @@
 | B-P01-01 | **Quy trình phê duyệt taxonomy** giữa `editor` (đề xuất) và `admin` (phê duyệt) chưa chốt | Trung bình | **Còn mở** | Ảnh hưởng luồng CMS (FR-17, FR-04); tham chiếu [USER_PERSONAS.md](./docs/P01/USER_PERSONAS.md), tương ứng O5 |
 | B-P01-02 | **Tương phản màu** Pastel Mint/Soft Pink trên nền Cream có thể chưa đạt WCAG 2.2 AA | Trung bình | **Còn mở** | Cần đo tương phản thực tế trước khi chốt token; tham chiếu [NON_FUNCTIONAL_REQUIREMENTS.md](./docs/P01/NON_FUNCTIONAL_REQUIREMENTS.md) (NFR-A11Y) |
 | B-P01-03 | **Cơ chế xuất/xóa dữ liệu cá nhân** của người dùng chưa chốt | Trung bình | **Còn mở** | Ảnh hưởng NFR-PRIV (FR-16, FR-11); tương ứng O6 |
+| B-P02-01 | **CMS MVP: admin tự viết vs Payload CMS 3** — P02 tạm chọn admin tự viết, chưa chốt dứt khoát | Thấp | **Còn mở** | Quyết định một phần (D21/D-P02-11); có thể chốt lại ở P03+; tương ứng O8 |
+| B-P02-02 | **Cơ chế backup bổ sung (PITR + export định kỳ)** theo gói Neon free chưa xác minh | Trung bình | **Còn mở** | Ảnh hưởng NFR-BACKUP; cần kiểm tra hạn mức thực tế; tương ứng O9 |
+| B-P02-03 | **Quy trình phê duyệt taxonomy** chưa chốt → API tạo/sửa taxonomy tạm **chỉ Admin** | Trung bình | **Còn mở** | Hệ quả kéo theo của B-P01-01; khi chốt sẽ mở quyền `editor` (xem [API_CONTRACT.md](./docs/P02/API_CONTRACT.md)) |
 
 ## Nội dung còn chờ xác minh (không phải blocker cứng)
 
-- **O1–O7** trong [DECISIONS.md](./DECISIONS.md): thời điểm tách backend, chọn hosting, dịch vụ monitoring, nguồn asset, quy trình phê duyệt taxonomy, cơ chế xuất/xóa dữ liệu, vai trò `moderator`.
+- **O1–O9** trong [DECISIONS.md](./DECISIONS.md): thời điểm tách backend, chọn hosting, dịch vụ monitoring, nguồn asset, quy trình phê duyệt taxonomy, cơ chế xuất/xóa dữ liệu, vai trò `moderator`, CMS tự viết vs Payload, cơ chế backup PITR.
 - Hạn mức gói miễn phí (Neon/R2/Vercel/Cloudflare) đã ghi trong [03-de-xuat-cong-nghe.md](./docs/P00/03-de-xuat-cong-nghe.md) **theo thời điểm 11/2026** — cần kiểm tra lại trước khi triển khai.
 - Các ngưỡng NFR (Core Web Vitals, WCAG 2.2 AA, OWASP ASVS) là **mục tiêu đề xuất, chưa kiểm thử** — không tuyên bố đạt trước khi đo.

@@ -1,14 +1,14 @@
 # PHASE PROGRESS — WALE COOKING
 
 > Theo dõi tiến độ theo phase. Mỗi phase chỉ triển khai đúng phạm vi của nó.
-> Cập nhật: 2026-11-28.
+> Cập nhật: 2026-11-28 (P02).
 
 | Phase | Tên | Phạm vi | Trạng thái |
 | --- | --- | --- | --- |
 | P00 | Khảo sát dự án, xác lập yêu cầu và checkpoint nền tảng | Khảo sát môi trường/repo, tài liệu định hướng sản phẩm, giao diện, đề xuất công nghệ | ✅ Hoàn thành |
 | P00-FIX | Hoàn thiện phạm vi sản phẩm và đồng bộ thương hiệu | Đồng bộ tên WALE COOKING, bổ sung 20 nhóm chức năng, chuẩn hóa 7 trục phân loại, tài liệu trạng thái | ✅ Hoàn thành |
 | P01 | PRD & Product Constitution | Bộ đặc tả sản phẩm: PRD, Constitution, personas, journeys, 20 nhóm chức năng, quy tắc nghiệp vụ, NFR, MVP scope, acceptance criteria | ✅ Hoàn thành |
-| P02 | *(chưa xác định)* | Chờ yêu cầu tiếp theo | ⏳ Chưa bắt đầu |
+| P02 | Kiến trúc hệ thống, thiết kế database & API | Kiến trúc phân lớp, thiết kế module, schema database + ERD, hợp đồng API, bảo mật/phân quyền, tìm kiếm, media storage, triển khai | ✅ Hoàn thành |
 
 ## Sản phẩm bàn giao theo phase
 
@@ -36,8 +36,21 @@
 - Tạo `docs/P01/ACCEPTANCE_CRITERIA.md`
 - Cập nhật `CURRENT_STATUS.md`, `PHASE_PROGRESS.md`, `DECISIONS.md`, `BLOCKERS.md`
 
+### P02
+- Tạo `docs/P02/SYSTEM_ARCHITECTURE.md`
+- Tạo `docs/P02/MODULE_DESIGN.md`
+- Tạo `docs/P02/DATABASE_SCHEMA.md`
+- Tạo `docs/P02/ENTITY_RELATIONSHIP_DIAGRAM.md`
+- Tạo `docs/P02/API_CONTRACT.md`
+- Tạo `docs/P02/AUTHORIZATION_SECURITY.md`
+- Tạo `docs/P02/SEARCH_ARCHITECTURE.md`
+- Tạo `docs/P02/MEDIA_STORAGE.md`
+- Tạo `docs/P02/DEPLOYMENT_ARCHITECTURE.md`
+- Tạo `docs/P02/ARCHITECTURE_DECISIONS.md`
+- Cập nhật `CURRENT_STATUS.md`, `PHASE_PROGRESS.md`, `DECISIONS.md`, `BLOCKERS.md`
+
 ## Ràng buộc xuyên suốt
 - Chỉ dùng 1 agent, không tạo sub-agent.
-- Không code website / không tạo database / không triển khai backend trong P00, P00-FIX & P01.
+- Không code website / không tạo database / không triển khai backend trong P00, P00-FIX & P01; P02 thiết kế kiến trúc/schema/API nhưng **không viết code ứng dụng**.
 - Giữ nguyên kiến trúc đã chốt (stack lớp rời, gói miễn phí, phi thương mại, Pastel Mint).
-- Chỉ commit file thuộc phạm vi phase; không push khi chưa xác nhận.
+- Chỉ commit file thuộc phạm vi phase. P00/P00-FIX/P01 chỉ commit local; P02 được phép đưa checkpoint lên `origin/main` một cách an toàn (không force-push, không rewrite lịch sử).
