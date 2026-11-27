@@ -1,7 +1,7 @@
 # DECISIONS — WALE COOKING
 
 > Nhật ký các quyết định đã chốt. Không tự thay đổi quyết định đã xác lập nếu chưa có căn cứ.
-> Cập nhật: 2026-11-28 (P03).
+> Cập nhật: 2026-11-28 (P04).
 
 | # | Quyết định | Nội dung | Căn cứ | Trạng thái |
 | --- | --- | --- | --- | --- |
@@ -33,9 +33,15 @@
 | D26 | Card radius | **18–24px** (`radius.lg=18px`, `radius.xl=24px`); dùng thống nhất cho card/recipe card | P00 + P03 | Đã chốt |
 | D27 | Breakpoint & grid | `sm 640` / `md 768` / `lg 1024` / `xl 1280` / `2xl 1536` (px); grid **4 / 8 / 12** cột; mobile-first | P03 (khớp NFR-RESP) | Đã chốt |
 | D28 | Motion | Có token duration (80–420ms) + easing; **bắt buộc hỗ trợ `prefers-reduced-motion`**; animation nhẹ, GPU-friendly; **không** glassmorphism/shadow quá đậm | P03 | Đã chốt |
+| D29 | Nhận diện mascot | **Một nhân vật duy nhất** (đầu bếp 2D "Wale"): mũ kem `#FFF9F0`, tạp dề mint `#C9E8D5`, da beige `#E8DCC6`, má pink `#F8DDE3`, nét `#594B40`. Khung cố định `220×260`; tỷ lệ cơ thể/trang phục/palette **bất biến** giữa 8 biến thể (chỉ đổi biểu cảm + tư thế tay) | P04 | Đã chốt |
+| D30 | Logo & brand mark | 5 biến thể SVG nguyên bản: `logo-primary` (340×96, mark + wordmark), `logo-compact` (176×156), `logo-mark` (120×120, mascot-only), `favicon` (32×32), `app-icon` (512×512). Giữ nguyên tên **WALE COOKING**; không dùng logo thương hiệu khác | P04 | Đã chốt |
+| D31 | Hệ icon | **38 icon SVG** khung `0 0 24 24`, `stroke-width=2`, `fill=none`, màu qua `currentColor`, chia 4 nhóm (nav 7 / cooking 9 / interaction 13 / content 9). Ưu tiên Lucide cho chức năng thông thường; icon đặc trưng thương hiệu tự thiết kế; **không dùng emoji** thay icon trong UI chính | P04 | Đã chốt |
+| D32 | Illustration trạng thái | **9 minh họa SVG** khung `320×220`, phong cách blob pastel đồng nhất (Cream/Mint/Pink/Beige + nét Brown), kích thước vừa phải để không lấn át nội dung | P04 | Đã chốt |
+| D33 | Định dạng & an toàn asset | SVG cho logo/mascot/icon/illustration; SVG **không** chứa script/`foreignObject`/`image`/DOCTYPE/`on*`/href ngoài; tên file kebab-case; sinh & kiểm bằng `scripts/p04_generate_assets.py` + `scripts/p04_validate_assets.py` | P04 | Đã chốt |
 
 > Chi tiết bối cảnh/lý do/đánh đổi/phương án thay thế của **D-P02-01..11** xem [ARCHITECTURE_DECISIONS.md](./docs/P02/ARCHITECTURE_DECISIONS.md).
 > Chi tiết Design System của **D22–D28** xem [DESIGN_SYSTEM.md](./docs/P03/DESIGN_SYSTEM.md), [DESIGN_TOKENS.md](./docs/P03/DESIGN_TOKENS.md), [COLOR_ACCESSIBILITY_AUDIT.md](./docs/P03/COLOR_ACCESSIBILITY_AUDIT.md).
+> Chi tiết bộ nhận diện minh họa của **D29–D33** xem [BRAND_ASSET_GUIDELINES.md](./docs/P04/BRAND_ASSET_GUIDELINES.md), [MASCOT_SPECIFICATION.md](./docs/P04/MASCOT_SPECIFICATION.md), [LOGO_USAGE_GUIDELINES.md](./docs/P04/LOGO_USAGE_GUIDELINES.md), [ICON_SYSTEM.md](./docs/P04/ICON_SYSTEM.md), [ILLUSTRATION_GUIDELINES.md](./docs/P04/ILLUSTRATION_GUIDELINES.md), [ASSET_CATALOG.md](./docs/P04/ASSET_CATALOG.md).
 
 ## Quyết định còn để mở (cần xác minh trước khi áp dụng)
 
@@ -44,7 +50,7 @@
 | O1 | Thời điểm tách backend riêng (NestJS/Fastify) | Kiến trúc | Chưa cần ở giai đoạn đầu |
 | O2 | Chọn hosting triển khai (Vercel Hobby vs Cloudflare Pages) | Vận hành | Phi thương mại → cả hai khả thi |
 | O3 | Dịch vụ logging/monitoring cụ thể & hạn mức free | Vận hành | Chưa có số liệu xác nhận |
-| O4 | Nguồn tạo asset (mascot, bộ icon minh họa) | Thiết kế | P03 đã định **quy chuẩn** mascot/icon trong Design System nhưng **chưa có asset thật**; cần nguồn tạo (không dùng tài nguyên không rõ bản quyền) → B7 |
+| O4 | Nguồn tạo asset (mascot, bộ icon minh họa) | Thiết kế | **ĐÃ GIẢI QUYẾT Ở P04** — 60 SVG **nguyên bản** do dự án tự sinh (`scripts/p04_generate_assets.py`), không dùng tài nguyên không rõ bản quyền (D29–D33); xem [ASSET_CATALOG.md](./docs/P04/ASSET_CATALOG.md). Phần **render/runtime** chuyển sang B-P04-01 |
 | O5 | Quy trình phê duyệt taxonomy giữa `editor` và `admin` | Nghiệp vụ | Tương ứng B-P01-01 |
 | O6 | Cơ chế xuất/xóa dữ liệu cá nhân của người dùng | Quyền riêng tư | Tương ứng B-P01-03 |
 | O7 | Có cần vai trò `moderator` (kiểm duyệt đánh giá) không? | Nghiệp vụ | Hiện **chưa** đưa vào |

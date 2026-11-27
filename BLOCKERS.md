@@ -1,7 +1,7 @@
 # BLOCKERS — WALE COOKING
 
 > Các vấn đề còn tồn tại hoặc cần xác minh. Ghi rõ thay vì tự suy đoán.
-> Cập nhật: 2026-11-28 (P03).
+> Cập nhật: 2026-11-28 (P04).
 
 | # | Blocker | Mức độ | Trạng thái | Ghi chú |
 | --- | --- | --- | --- | --- |
@@ -11,7 +11,7 @@
 | B4 | Chưa rõ có được commit/push checkpoint | Trung bình | **ĐÃ GIẢI QUYẾT (P00)** | Commit local, không push (D3) |
 | B5 | Repo là **shallow clone** → thiếu lịch sử/refs đầy đủ | Thấp | **Còn mở** | Ảnh hưởng thấp (mới 3 commit). Cân nhắc `git fetch --unshallow` khi cần |
 | B6 | **Chưa có tài khoản/môi trường triển khai** (Neon, R2, Vercel/Cloudflare…) | Trung bình | **Còn mở** | Cần trước khi deploy; thuộc phase sau |
-| B7 | **Chưa có asset thật**: mascot, bộ icon minh họa riêng | Trung bình | **Còn mở** | Chặn một phần phase giao diện; cần nguồn tạo asset |
+| B7 | **Chưa có asset thật**: mascot, bộ icon minh họa riêng | Trung bình | **ĐÃ GIẢI QUYẾT (P04)** | 60 SVG nguyên bản (5 logo, 8 mascot, 38 icon, 9 illustration) + quy chuẩn trong `docs/P04/`; xem [ASSET_CATALOG.md](./docs/P04/ASSET_CATALOG.md) |
 | B-P01-01 | **Quy trình phê duyệt taxonomy** giữa `editor` (đề xuất) và `admin` (phê duyệt) chưa chốt | Trung bình | **Còn mở** | Ảnh hưởng luồng CMS (FR-17, FR-04); tham chiếu [USER_PERSONAS.md](./docs/P01/USER_PERSONAS.md), tương ứng O5 |
 | B-P01-02 | **Tương phản màu** Pastel Mint/Soft Pink trên nền Cream có thể chưa đạt WCAG 2.2 AA | Trung bình | **ĐÃ ĐO Ở P03 (còn phần runtime)** | P03 đã đo contrast thực tế cho toàn bộ cặp hero/UI; các cặp không đạt có quy tắc cấm + shade phụ trợ → [COLOR_ACCESSIBILITY_AUDIT.md](./docs/P03/COLOR_ACCESSIBILITY_AUDIT.md). Phần **contrast trên UI thật (alpha/overlay)** chuyển sang B-P03-01 |
 | B-P01-03 | **Cơ chế xuất/xóa dữ liệu cá nhân** của người dùng chưa chốt | Trung bình | **Còn mở** | Ảnh hưởng NFR-PRIV (FR-16, FR-11); tương ứng O6 |
@@ -19,6 +19,7 @@
 | B-P02-02 | **Cơ chế backup bổ sung (PITR + export định kỳ)** theo gói Neon free chưa xác minh | Trung bình | **Còn mở** | Ảnh hưởng NFR-BACKUP; cần kiểm tra hạn mức thực tế; tương ứng O9 |
 | B-P02-03 | **Quy trình phê duyệt taxonomy** chưa chốt → API tạo/sửa taxonomy tạm **chỉ Admin** | Trung bình | **Còn mở** | Hệ quả kéo theo của B-P01-01; khi chốt sẽ mở quyền `editor` (xem [API_CONTRACT.md](./docs/P02/API_CONTRACT.md)) |
 | B-P03-01 | **Nghiệm thu a11y/responsive/motion trên UI thật chưa thực hiện** | Trung bình | **Còn mở (chờ P05)** | P03 mới ở mức token/đặc tả: chưa chạy axe/Lighthouse, chưa test screen reader (NVDA/VoiceOver), chưa kiểm zoom 200%/320px, focus-not-obscured với header sticky, contrast có alpha/overlay. Xem [DESIGN_QA_CHECKLIST.md](./docs/P03/DESIGN_QA_CHECKLIST.md) §3 |
+| B-P04-01 | **Render pixel & tương thích runtime của asset P04 chưa xác minh** | Thấp | **Còn mở (chờ P05)** | Môi trường build không có SVG rasterizer (`rsvg-convert`/`inkscape`/`cairosvg`/`chromium` đều thiếu) → chỉ kiểm được mức XML/an toàn/nhất quán. Cần kiểm bằng mắt khi tích hợp UI: mascot trên các nền P03, logo ≥16–24px, `currentColor` trong icon trên Safari/Firefox. Xem [ASSET_QA_CHECKLIST.md](./docs/P04/ASSET_QA_CHECKLIST.md) §10 |
 
 ## Nội dung còn chờ xác minh (không phải blocker cứng)
 

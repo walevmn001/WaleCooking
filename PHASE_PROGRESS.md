@@ -1,7 +1,7 @@
 # PHASE PROGRESS — WALE COOKING
 
 > Theo dõi tiến độ theo phase. Mỗi phase chỉ triển khai đúng phạm vi của nó.
-> Cập nhật: 2026-11-28 (P03).
+> Cập nhật: 2026-11-28 (P04).
 
 | Phase | Tên | Phạm vi | Trạng thái |
 | --- | --- | --- | --- |
@@ -10,6 +10,7 @@
 | P01 | PRD & Product Constitution | Bộ đặc tả sản phẩm: PRD, Constitution, personas, journeys, 20 nhóm chức năng, quy tắc nghiệp vụ, NFR, MVP scope, acceptance criteria | ✅ Hoàn thành |
 | P02 | Kiến trúc hệ thống, thiết kế database & API | Kiến trúc phân lớp, thiết kế module, schema database + ERD, hợp đồng API, bảo mật/phân quyền, tìm kiếm, media storage, triển khai | ✅ Hoàn thành |
 | P03 | Design System & đặc tả giao diện | Bộ quy chuẩn giao diện Pastel Mint: design tokens máy đọc được, audit WCAG 2.2 AA (contrast đo thực tế), typography & layout, đặc tả component, responsive, motion, accessibility, QA checklist | ✅ Hoàn thành |
+| P04 | Mascot & Illustration Assets | Bộ nhận diện minh họa: mascot đầu bếp (8 biến thể), logo/brand mark (5), bộ icon (38), illustration trạng thái (9), quy chuẩn sử dụng & quản lý tài sản, QA checklist | ✅ Hoàn thành |
 
 ## Sản phẩm bàn giao theo phase
 
@@ -63,8 +64,24 @@
 - Tạo `docs/P03/tokens/design-tokens.json`
 - Cập nhật `CURRENT_STATUS.md`, `PHASE_PROGRESS.md`, `DECISIONS.md`, `BLOCKERS.md`
 
+### P04
+- Tạo `docs/P04/BRAND_ASSET_GUIDELINES.md`
+- Tạo `docs/P04/MASCOT_SPECIFICATION.md`
+- Tạo `docs/P04/LOGO_USAGE_GUIDELINES.md`
+- Tạo `docs/P04/ICON_SYSTEM.md`
+- Tạo `docs/P04/ILLUSTRATION_GUIDELINES.md`
+- Tạo `docs/P04/ASSET_CATALOG.md`
+- Tạo `docs/P04/ASSET_QA_CHECKLIST.md`
+- Tạo `public/assets/brand/` (5 SVG): logo-primary, logo-compact, logo-mark, favicon, app-icon
+- Tạo `public/assets/mascot/` (8 SVG): default, happy, cooking, holding-recipe, thinking, success, error, waving
+- Tạo `public/assets/icons/` (38 SVG): nav (7), cooking (9), interaction (13), content (9)
+- Tạo `public/assets/illustrations/` (9 SVG): empty-recipes, no-results, empty-favorites, empty-shopping-list, loading, error, 404, success, welcome
+- Tạo `scripts/p04_generate_assets.py` (sinh asset, idempotent) và `scripts/p04_validate_assets.py` (kiểm định)
+- Cập nhật `CURRENT_STATUS.md`, `PHASE_PROGRESS.md`, `DECISIONS.md`, `BLOCKERS.md`
+
 ## Ràng buộc xuyên suốt
 - Chỉ dùng 1 agent, không tạo sub-agent.
-- Không code website / không tạo database / không triển khai backend trong P00, P00-FIX & P01; P02 thiết kế kiến trúc/schema/API nhưng **không viết code ứng dụng**; P03 chỉ xây **Design System + đặc tả giao diện**, **không dựng UI/không triển khai website** (thuộc P05).
+- Không code website / không tạo database / không triển khai backend trong P00, P00-FIX & P01; P02 thiết kế kiến trúc/schema/API nhưng **không viết code ứng dụng**; P03 chỉ xây **Design System + đặc tả giao diện**, P04 chỉ tạo **tài nguyên nhận diện (SVG) + quy chuẩn**, cả hai **không dựng UI/không triển khai website** (thuộc P05).
+- Tài nguyên P04 phải nhất quán với palette/typography/phong cách đã khóa ở P03; không tự đổi thương hiệu; không dùng asset có bản quyền không rõ nguồn.
 - Giữ nguyên kiến trúc đã chốt (stack lớp rời, gói miễn phí, phi thương mại, Pastel Mint).
 - Chỉ commit file thuộc phạm vi phase. P00/P00-FIX/P01 chỉ commit local; P02 trở đi được phép đưa checkpoint lên `origin/main` một cách an toàn (không force-push, không rewrite lịch sử).
