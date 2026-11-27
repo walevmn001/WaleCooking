@@ -1,7 +1,7 @@
 # DECISIONS — WALE COOKING
 
 > Nhật ký các quyết định đã chốt. Không tự thay đổi quyết định đã xác lập nếu chưa có căn cứ.
-> Cập nhật: 2026-11-28 (P02).
+> Cập nhật: 2026-11-28 (P03).
 
 | # | Quyết định | Nội dung | Căn cứ | Trạng thái |
 | --- | --- | --- | --- | --- |
@@ -26,8 +26,16 @@
 | D19 | Giới hạn JSONB | JSONB **chỉ** cho audit/snapshot/settings; không thay quan hệ cốt lõi | P02 | Đã chốt — D-P02-09 |
 | D20 | Môi trường DB | **Neon branches** cho local/test/preview; production tách nhánh riêng | P02 | Đã chốt — D-P02-10 |
 | D21 | CMS MVP | **Admin tự viết** trong Next.js; Payload CMS 3 là tùy chọn nâng cấp | P02 | Đã chốt (một phần mở) — D-P02-11 |
+| D22 | Nguồn tham chiếu UI duy nhất | **Design tokens** (DTCG) tại `docs/P03/tokens/design-tokens.json` là **nguồn duy nhất** cho màu/typography/spacing/radius/shadow/breakpoint/z-index/motion; **không** dùng giá trị ngoài token | P03 | Đã chốt |
+| D23 | Palette mở rộng | Giữ **6 màu brand gốc KHÓA**; thêm semantic + **shade phụ trợ** để đủ tương phản: `primary.default #52705C`, `border.strong #8F7E66`, `border.focus #52705C`, `text.muted #6B5C4F`, `text.subtle #7A6A5B` | P03 (đo contrast) | Đã chốt |
+| D24 | Quy tắc màu không đạt AA | **Cấm chữ thường trắng trên `mintDark` (@789B83)** và trên pastel; `border.subtle`/`text.subtle` không dùng cho control/chữ thường trên nền pastel. Màu brand gốc **vẫn giữ** trong palette nhưng gắn hạn chế dùng | P03 ([COLOR_ACCESSIBILITY_AUDIT.md](./docs/P03/COLOR_ACCESSIBILITY_AUDIT.md)) | Đã chốt |
+| D25 | Typography | Chỉ **Baloo 2** (heading) + **Nunito** (body) + fallback chuỗi cụ thể; scale cố định Display/H1–H4/bodyLg/body/bodySm/caption/label/button/nav (có size mobile & desktop) | P03 (định hướng P00) | Đã chốt |
+| D26 | Card radius | **18–24px** (`radius.lg=18px`, `radius.xl=24px`); dùng thống nhất cho card/recipe card | P00 + P03 | Đã chốt |
+| D27 | Breakpoint & grid | `sm 640` / `md 768` / `lg 1024` / `xl 1280` / `2xl 1536` (px); grid **4 / 8 / 12** cột; mobile-first | P03 (khớp NFR-RESP) | Đã chốt |
+| D28 | Motion | Có token duration (80–420ms) + easing; **bắt buộc hỗ trợ `prefers-reduced-motion`**; animation nhẹ, GPU-friendly; **không** glassmorphism/shadow quá đậm | P03 | Đã chốt |
 
 > Chi tiết bối cảnh/lý do/đánh đổi/phương án thay thế của **D-P02-01..11** xem [ARCHITECTURE_DECISIONS.md](./docs/P02/ARCHITECTURE_DECISIONS.md).
+> Chi tiết Design System của **D22–D28** xem [DESIGN_SYSTEM.md](./docs/P03/DESIGN_SYSTEM.md), [DESIGN_TOKENS.md](./docs/P03/DESIGN_TOKENS.md), [COLOR_ACCESSIBILITY_AUDIT.md](./docs/P03/COLOR_ACCESSIBILITY_AUDIT.md).
 
 ## Quyết định còn để mở (cần xác minh trước khi áp dụng)
 
@@ -36,7 +44,7 @@
 | O1 | Thời điểm tách backend riêng (NestJS/Fastify) | Kiến trúc | Chưa cần ở giai đoạn đầu |
 | O2 | Chọn hosting triển khai (Vercel Hobby vs Cloudflare Pages) | Vận hành | Phi thương mại → cả hai khả thi |
 | O3 | Dịch vụ logging/monitoring cụ thể & hạn mức free | Vận hành | Chưa có số liệu xác nhận |
-| O4 | Nguồn tạo asset (mascot, bộ icon minh họa) | Thiết kế | Thuộc phase giao diện |
+| O4 | Nguồn tạo asset (mascot, bộ icon minh họa) | Thiết kế | P03 đã định **quy chuẩn** mascot/icon trong Design System nhưng **chưa có asset thật**; cần nguồn tạo (không dùng tài nguyên không rõ bản quyền) → B7 |
 | O5 | Quy trình phê duyệt taxonomy giữa `editor` và `admin` | Nghiệp vụ | Tương ứng B-P01-01 |
 | O6 | Cơ chế xuất/xóa dữ liệu cá nhân của người dùng | Quyền riêng tư | Tương ứng B-P01-03 |
 | O7 | Có cần vai trò `moderator` (kiểm duyệt đánh giá) không? | Nghiệp vụ | Hiện **chưa** đưa vào |

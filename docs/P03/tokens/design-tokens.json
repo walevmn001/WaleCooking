@@ -1,0 +1,172 @@
+{
+  "$schema": "https://design-tokens.github.io/community-group/format/",
+  "$description": "WALE COOKING — Pastel Mint — Design Tokens. Nguồn tham chiếu duy nhất cho mọi phase UI (P03 trở đi). Không dùng giá trị màu/spacing/font nằm ngoài file này.",
+  "meta": {
+    "project": "WALE COOKING",
+    "style": "Pastel Mint",
+    "version": "1.0.0",
+    "phase": "P03",
+    "updatedAt": "2026-11-28",
+    "wcagTarget": "2.2 AA",
+    "note": "Giá trị màu brand (brand.*) KHÓA — không đổi. Các shade phụ trợ (primary.*, border.*, text.*) được tạo để bảo đảm độ tương phản; xem COLOR_ACCESSIBILITY_AUDIT.md."
+  },
+
+  "color": {
+    "brand": {
+      "cream":    { "$value": "#FFF9F0", "$type": "color", "locked": true, "usage": "Nền chính (background.default)" },
+      "mint":     { "$value": "#C9E8D5", "$type": "color", "locked": true, "usage": "Accent pastel / fill nhạt / chip nền" },
+      "mintDark": { "$value": "#789B83", "$type": "color", "locked": true, "usage": "Accent thương hiệu: fill/icon/chữ lớn trên nền trắng; KHÔNG dùng chữ thường trắng" },
+      "pink":     { "$value": "#F8DDE3", "$type": "color", "locked": true, "usage": "Nền phụ / chip / minh họa" },
+      "beige":    { "$value": "#E8DCC6", "$type": "color", "locked": true, "usage": "Đường kẻ trang trí / nền phụ" },
+      "brown":    { "$value": "#594B40", "$type": "color", "locked": true, "usage": "Màu chữ chính (text.primary)" }
+    },
+
+    "background": {
+      "default": { "$value": "#FFF9F0", "$type": "color", "contrastOnWhite": false },
+      "subtle":  { "$value": "#FFFBF3", "$type": "color" },
+      "inverse": { "$value": "#594B40", "$type": "color", "usage": "Nền tối (footer/hero đậm) — dùng text.inverse" }
+    },
+    "surface": {
+      "default": { "$value": "#FFFFFF", "$type": "color", "usage": "Bề mặt card/panel trên nền cream" },
+      "muted":   { "$value": "#FBF3E8", "$type": "color", "usage": "Bề mặt phụ, hàng zebra" },
+      "raised":  { "$value": "#FFFFFF", "$type": "color", "usage": "Card nổi (kèm shadow.md)" }
+    },
+
+    "text": {
+      "primary": { "$value": "#594B40", "$type": "color", "aa": "PASS", "ratio": { "onCream": 8.01, "onWhite": 8.38, "onMint": 6.38, "onPink": 6.56, "onBeige": 6.18 } },
+      "muted":   { "$value": "#6B5C4F", "$type": "color", "aa": "PASS", "ratio": { "onCream": 6.14, "onWhite": 6.42, "onMint": 4.89, "onPink": 5.03, "onBeige": 4.74 } },
+      "subtle":  { "$value": "#7A6A5B", "$type": "color", "aa": "PASS on cream/white only", "ratio": { "onCream": 4.97, "onWhite": 5.20, "onMint": 3.96, "onPink": 4.07, "onBeige": 3.83 }, "restriction": "≥4.5 chỉ trên nền cream/white; trên nền pastel chỉ dùng cho CHỮ LỚN (≥3:1) hoặc placeholder không bắt buộc" },
+      "inverse": { "$value": "#FFFFFF", "$type": "color", "note": "Chỉ trên primary.* và status.* solid (đều ≥4.5)" },
+      "onBrand": { "$value": "#594B40", "$type": "color", "note": "Chữ nâu trên fill pastel (mint/pink/beige) — luôn ≥6.1" },
+      "disabled":{ "$value": "#A2937F", "$type": "color", "note": "Trạng thái disabled — miễn yêu cầu tương phản AA (1.4.3 ngoại lệ), nhưng vẫn cần phân biệt được" }
+    },
+
+    "border": {
+      "subtle": { "$value": "#E8DCC6", "$type": "color", "usage": "Đường kẻ trang trí, hairline card (không dùng cho control cần 3:1)" },
+      "strong": { "$value": "#8F7E66", "$type": "color", "usage": "Viền control (input, outline button) — 3.75 trên cream / 3.93 trên white (PASS 3:1)" },
+      "focus":  { "$value": "#52705C", "$type": "color", "usage": "Focus ring — 5.24 trên cream / 5.48 trên white (PASS 3:1)" }
+    },
+
+    "primary": {
+      "default": { "$value": "#52705C", "$type": "color", "note": "Nút primary; chữ trắng 5.48 (PASS AA)" },
+      "hover":   { "$value": "#46624F", "$type": "color", "note": "chữ trắng 6.73" },
+      "active":  { "$value": "#3C5344", "$type": "color", "note": "chữ trắng 8.36" },
+      "subtle":  { "$value": "#C9E8D5", "$type": "color", "usage": "Nền nhạt; dùng text.onBrand (6.38)" },
+      "ring":    { "$value": "#52705C", "$type": "color" }
+    },
+    "accent": {
+      "brand":   { "$value": "#789B83", "$type": "color", "restriction": "Fill/icon/chữ LỚN trên nền trắng (3.08 ≥ 3:1). KHÔNG dùng chữ thường màu này trên nền cream (2.94 < 3) và KHÔNG làm viền 3:1 trên cream." }
+    },
+    "secondary": {
+      "default": { "$value": "#F8DDE3", "$type": "color", "note": "Nút secondary pastel; chữ text.primary 6.56 (PASS)" },
+      "hover":   { "$value": "#F3D2DA", "$type": "color" },
+      "active":  { "$value": "#EEC7D1", "$type": "color" }
+    },
+
+    "status": {
+      "success": { "$value": "#3F7D5B", "$type": "color", "note": "chữ trắng 4.89" },
+      "warning": { "$value": "#A15C00", "$type": "color", "note": "chữ trắng 5.19" },
+      "danger":  { "$value": "#B3261E", "$type": "color", "note": "chữ trắng 6.54" },
+      "info":    { "$value": "#2A6B9E", "$type": "color", "note": "chữ trắng 5.68" }
+    },
+
+    "chip": {
+      "success": { "bg": { "$value": "#C9E8D5" }, "text": { "$value": "#2C5C42" }, "ratio": 5.88 },
+      "danger":  { "bg": { "$value": "#F8DDE3" }, "text": { "$value": "#8A1C16" }, "ratio": 7.28 },
+      "warning": { "bg": { "$value": "#E8DCC6" }, "text": { "$value": "#7A4500" }, "ratio": 5.78 },
+      "info":    { "bg": { "$value": "#DCEAF5" }, "text": { "$value": "#1E4E75" }, "ratio": 7.13 },
+      "neutral": { "bg": { "$value": "#FBF3E8" }, "text": { "$value": "#594B40" }, "ratio": 8.12 }
+    }
+  },
+
+  "typography": {
+    "fontFamily": {
+      "heading": { "$value": "'Baloo 2', 'Segoe UI', system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif", "$type": "fontFamily" },
+      "body":    { "$value": "'Nunito', 'Segoe UI', system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif", "$type": "fontFamily" },
+      "fallbackNote": "Nếu Google Fonts không tải được, dùng fallback trong chuỗi trên (Segoe UI/system-ui). Chỉ Baloo 2 cho heading, Nunito cho body."
+    },
+    "fontWeight": { "regular": 400, "medium": 500, "semibold": 600, "bold": 700 },
+    "scale": {
+      "display": { "sizeMobile": "34px", "sizeDesktop": "48px", "lineHeight": 1.1, "weight": 700, "letterSpacing": "-0.02em", "font": "heading" },
+      "h1":      { "sizeMobile": "28px", "sizeDesktop": "36px", "lineHeight": 1.15, "weight": 700, "letterSpacing": "-0.01em", "font": "heading" },
+      "h2":      { "sizeMobile": "24px", "sizeDesktop": "30px", "lineHeight": 1.2, "weight": 700, "letterSpacing": "-0.01em", "font": "heading" },
+      "h3":      { "sizeMobile": "20px", "sizeDesktop": "24px", "lineHeight": 1.25, "weight": 600, "letterSpacing": "0", "font": "heading" },
+      "h4":      { "sizeMobile": "18px", "sizeDesktop": "20px", "lineHeight": 1.3, "weight": 600, "letterSpacing": "0", "font": "heading" },
+      "bodyLg":  { "size": "18px", "lineHeight": 1.6, "weight": 400, "letterSpacing": "0", "font": "body" },
+      "body":    { "size": "16px", "lineHeight": 1.65, "weight": 400, "letterSpacing": "0", "font": "body" },
+      "bodySm":  { "size": "14px", "lineHeight": 1.6, "weight": 400, "letterSpacing": "0", "font": "body" },
+      "caption": { "size": "13px", "lineHeight": 1.5, "weight": 500, "letterSpacing": "0.01em", "font": "body" },
+      "label":   { "size": "14px", "lineHeight": 1.4, "weight": 600, "letterSpacing": "0.01em", "font": "body" },
+      "button":  { "size": "16px", "sizeSm": "14px", "sizeLg": "18px", "lineHeight": 1.2, "weight": 600, "letterSpacing": "0.01em", "font": "body" },
+      "nav":     { "size": "15px", "lineHeight": 1.4, "weight": 600, "letterSpacing": "0.01em", "font": "body" }
+    }
+  },
+
+  "space": {
+    "base": "4px",
+    "0": "0", "1": "4px", "2": "8px", "3": "12px", "4": "16px", "5": "20px", "6": "24px",
+    "8": "32px", "10": "40px", "12": "48px", "16": "64px", "20": "80px", "24": "96px"
+  },
+
+  "size": {
+    "icon": { "sm": "16px", "md": "20px", "lg": "24px", "xl": "32px" },
+    "avatar": { "sm": "32px", "md": "40px", "lg": "48px", "xl": "64px" },
+    "touchTarget": { "min": "44px" },
+    "control": { "sm": "36px", "md": "44px", "lg": "52px" },
+    "lineWidth": { "prose": "68ch" }
+  },
+
+  "radius": {
+    "none": "0", "sm": "8px", "md": "12px", "lg": "18px", "xl": "24px",
+    "pill": "9999px", "circle": "50%",
+    "note": "Card dùng lg (18px) / xl (24px) theo định hướng P00 (bo góc 18–24px)."
+  },
+
+  "shadow": {
+    "xs": { "value": "0 1px 2px rgba(89,75,64,0.06)", "type": "shadow" },
+    "sm": { "value": "0 2px 4px rgba(89,75,64,0.08)", "type": "shadow" },
+    "md": { "value": "0 4px 12px rgba(89,75,64,0.10)", "type": "shadow", "usage": "Card mặc định" },
+    "lg": { "value": "0 8px 24px rgba(89,75,64,0.12)", "type": "shadow", "usage": "Card hover / modal nhỏ" },
+    "xl": { "value": "0 16px 40px rgba(89,75,64,0.14)", "type": "shadow", "usage": "Modal/dialog lớn" },
+    "focusRing": { "value": "0 0 0 3px #FFF9F0, 0 0 0 5px #52705C", "type": "shadow", "note": "Vòng trong màu nền (offset) + vòng ngoài primary.ring" },
+    "note": "Shadow ấm dùng tông nâu (không đen thuần). Không dùng shadow quá đậm, không glassmorphism/blur mạnh."
+  },
+
+  "border": {
+    "width": { "none": "0", "hairline": "1px", "thick": "2px", "heavy": "4px" },
+    "style": { "default": "solid", "focus": "solid" }
+  },
+
+  "breakpoint": {
+    "base": "0px", "sm": "640px", "md": "768px", "lg": "1024px", "xl": "1280px", "2xl": "1536px",
+    "deviceRule": { "mobile": "0–639px", "tablet": "640–1023px", "desktop": "≥1024px" }
+  },
+
+  "grid": {
+    "columns": { "mobile": 4, "tablet": 8, "desktop": 12 },
+    "gutter": { "mobile": "16px", "tablet": "24px", "desktop": "24px" },
+    "margin": { "mobile": "16px", "tablet": "24px", "desktop": "32px" }
+  },
+
+  "container": {
+    "narrow": "720px", "default": "1024px", "wide": "1200px", "full": "100%",
+    "paddingInline": { "mobile": "16px", "tablet": "24px", "desktop": "32px" }
+  },
+
+  "zIndex": {
+    "base": 0, "sticky": 1020, "dropdown": 1000, "overlay": 1040,
+    "modal": 1050, "toast": 1060, "tooltip": 1070, "skipLink": 1080
+  },
+
+  "motion": {
+    "duration": { "instant": "80ms", "fast": "120ms", "base": "180ms", "slow": "280ms", "slower": "420ms" },
+    "easing": {
+      "standard": "cubic-bezier(0.2, 0, 0, 1)",
+      "emphasized": "cubic-bezier(0.2, 0, 0, 1.2)",
+      "exit": "cubic-bezier(0.4, 0, 1, 1)",
+      "linear": "linear"
+    },
+    "distance": { "sm": "4px", "md": "8px", "lg": "16px" },
+    "reducedMotion": "Khi prefers-reduced-motion: reduce → duration = 0.01ms cho mọi transition/animation; chuyển trạng thái tức thời; không mất chức năng."
+  }
+}
