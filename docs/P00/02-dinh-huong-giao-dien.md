@@ -5,7 +5,7 @@
 
 ## 1. Phong cách
 
-**Cute Cookbook — Pastel Mint.** Phong cách cố định, không thay đổi.
+**WALE COOKING — Pastel Mint.** Phong cách cố định, không thay đổi.
 
 ## 2. Bảng màu nền tảng
 

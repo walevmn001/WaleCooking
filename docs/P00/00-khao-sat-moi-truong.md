@@ -73,22 +73,24 @@ Các mục dưới đây **chưa đủ thông tin để kết luận chắc ch�
 
 | # | Blocker | Ảnh hưởng | Đề xuất xử lý |
 | --- | --- | --- | --- |
-| B1 | **Prompt P00 bị cắt ngắn** ở mục 6 ("4. Phân loại…"). Danh sách phạm vi sản phẩm tổng thể chưa đầy đủ (thiếu các mục tiếp theo, và có thể thiếu cả mục 7+). | Tài liệu phạm vi sản phẩm ([01-dinh-huong-san-pham.md](./01-dinh-huong-san-pham.md)) chỉ có thể ghi nhận phần đã cung cấp + phần đề xuất, chờ xác nhận. | Cần bạn gửi phần còn lại của P00 để hoàn thiện đúng phạm vi. |
+| B1 | ~~Prompt P00 bị cắt ngắn ở mục 6 ("4. Phân loại…"). Danh sách phạm vi sản phẩm tổng thể chưa đầy đủ.~~ | Tài liệu phạm vi sản phẩm ban đầu chỉ ghi nhận phần đã cung cấp + phần đề xuất. | **ĐÃ GIẢI QUYẾT (P00-FIX)** → phạm vi 20 nhóm chức năng đã được bổ sung đầy đủ trong [01-dinh-huong-san-pham.md](./01-dinh-huong-san-pham.md). |
 | B2 | ~~Chưa rõ dự án có tính thương mại hay không.~~ | Ảnh hưởng lựa chọn hosting: Vercel **Hobby cấm dùng cho mục đích thương mại**. | **ĐÃ GIẢI QUYẾT** → phi thương mại (xem mục 8). |
-| B3 | **Tên brand không khớp:** repo là `WaleCooking`, sản phẩm là `CUTE COOKBOOK`. | Ảnh hưởng tên miền, tên app, tiêu đề SEO. | Xác nhận: giữ repo `WaleCooking` + brand `CUTE COOKBOOK`, hay thống nhất sau? |
+| B3 | ~~Tên brand không khớp: repo là `WaleCooking`, sản phẩm từng ghi "CUTE COOKBOOK".~~ *(ghi lại để giải thích lịch sử đổi tên)* | Ảnh hưởng tên miền, tên app, tiêu đề SEO. | **ĐÃ GIẢI QUYẾT (P00-FIX)** → tên sản phẩm chính thức là **WALE COOKING**; tên repo `WaleCooking` được giữ nguyên. |
 | B4 | ~~Chưa rõ P00 có được phép tạo commit checkpoint và push lên remote hay không.~~ | Quy tắc nêu "không push khi chưa xác nhận". | **ĐÃ GIẢI QUYẾT** → commit local, không push (xem mục 8). |
 | B5 | **Repo là shallow clone** → không truy xuất được toàn bộ lịch sử/refs. | Không ảnh hưởng P00 (mới có 1 commit). | Nếu cần full history về sau, cân nhắc `git fetch --unshallow`. |
 | B6 | **Chưa có môi trường triển khai / tài khoản dịch vụ nào được xác nhận** (Vercel, Supabase, Neon, R2…). | Không thể "triển khai" trong P00 — đúng với yêu cầu phase. | Chỉ đề xuất; cài đặt/triển khai để dành cho phase sau khi có xác nhận. |
 
-## 8. Quyết định đã chốt tại P00
+## 8. Quyết định đã chốt
 
 | # | Nội dung | Quyết định | Trạng thái blocker |
 | --- | --- | --- | --- |
 | D1 | Mục đích dự án | **Cá nhân / phi thương mại** | **B2 — đã giải quyết** (Vercel Hobby hợp lệ) |
 | D2 | Kiến trúc backend/DB | **Stack lớp rời**: Next.js + Prisma + Neon (Postgres) + Auth.js + Cloudflare R2 | Đã chốt |
 | D3 | Checkpoint P00 | **Commit local** trên branch hiện tại, **KHÔNG push** remote | **B4 — đã giải quyết** |
+| D4 | Tên thương hiệu | **WALE COOKING** (tên sản phẩm chính thức); repo `WaleCooking` giữ nguyên | **B3 — đã giải quyết (P00-FIX)** |
+| D5 | Phạm vi chức năng | **20 nhóm chức năng** đầy đủ + chuẩn hóa 7 trục phân loại độc lập | **B1 — đã giải quyết (P00-FIX)** |
 
-> Blocker **B1** (prompt bị cắt ở mục 6) và **B3** (tên brand repo vs sản phẩm) vẫn **cần xác nhận**.
+> Còn lại cần xác minh: **B5** (shallow clone) và **B6** (chưa có tài khoản/môi trường triển khai). Xem [BLOCKERS.md](../BLOCKERS.md).
 
 ## 9. Nguyên tắc thực thi đã tuân thủ trong P00
 
