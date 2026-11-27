@@ -1,7 +1,7 @@
 # BLOCKERS — WALE COOKING
 
 > Các vấn đề còn tồn tại hoặc cần xác minh. Ghi rõ thay vì tự suy đoán.
-> Cập nhật: 2026-11-28 (P00-FIX).
+> Cập nhật: 2026-11-28 (P01).
 
 | # | Blocker | Mức độ | Trạng thái | Ghi chú |
 | --- | --- | --- | --- | --- |
@@ -9,11 +9,15 @@
 | B2 | Chưa rõ mục đích thương mại hay phi thương mại | Cao | **ĐÃ GIẢI QUYẾT (P00)** | Phi thương mại (D1) |
 | B3 | Tên brand không khớp (repo `WaleCooking` vs sản phẩm cũ) | Trung bình | **ĐÃ GIẢI QUYẾT (P00-FIX)** | Tên chính thức WALE COOKING; repo giữ nguyên (D4) |
 | B4 | Chưa rõ có được commit/push checkpoint | Trung bình | **ĐÃ GIẢI QUYẾT (P00)** | Commit local, không push (D3) |
-| B5 | Repo là **shallow clone** → thiếu lịch sử/refs đầy đủ | Thấp | **Còn mở** | Ảnh hưởng thấp (mới 2 commit). Cân nhắc `git fetch --unshallow` khi cần |
+| B5 | Repo là **shallow clone** → thiếu lịch sử/refs đầy đủ | Thấp | **Còn mở** | Ảnh hưởng thấp (mới 3 commit). Cân nhắc `git fetch --unshallow` khi cần |
 | B6 | **Chưa có tài khoản/môi trường triển khai** (Neon, R2, Vercel/Cloudflare…) | Trung bình | **Còn mở** | Cần trước khi deploy; thuộc phase sau |
 | B7 | **Chưa có asset thật**: mascot, bộ icon minh họa riêng | Trung bình | **Còn mở** | Chặn một phần phase giao diện; cần nguồn tạo asset |
+| B-P01-01 | **Quy trình phê duyệt taxonomy** giữa `editor` (đề xuất) và `admin` (phê duyệt) chưa chốt | Trung bình | **Còn mở** | Ảnh hưởng luồng CMS (FR-17, FR-04); tham chiếu [USER_PERSONAS.md](./docs/P01/USER_PERSONAS.md), tương ứng O5 |
+| B-P01-02 | **Tương phản màu** Pastel Mint/Soft Pink trên nền Cream có thể chưa đạt WCAG 2.2 AA | Trung bình | **Còn mở** | Cần đo tương phản thực tế trước khi chốt token; tham chiếu [NON_FUNCTIONAL_REQUIREMENTS.md](./docs/P01/NON_FUNCTIONAL_REQUIREMENTS.md) (NFR-A11Y) |
+| B-P01-03 | **Cơ chế xuất/xóa dữ liệu cá nhân** của người dùng chưa chốt | Trung bình | **Còn mở** | Ảnh hưởng NFR-PRIV (FR-16, FR-11); tương ứng O6 |
 
 ## Nội dung còn chờ xác minh (không phải blocker cứng)
 
-- **O1–O4** trong [DECISIONS.md](./DECISIONS.md): thời điểm tách backend, chọn hosting, dịch vụ monitoring, nguồn asset.
+- **O1–O7** trong [DECISIONS.md](./DECISIONS.md): thời điểm tách backend, chọn hosting, dịch vụ monitoring, nguồn asset, quy trình phê duyệt taxonomy, cơ chế xuất/xóa dữ liệu, vai trò `moderator`.
 - Hạn mức gói miễn phí (Neon/R2/Vercel/Cloudflare) đã ghi trong [03-de-xuat-cong-nghe.md](./docs/P00/03-de-xuat-cong-nghe.md) **theo thời điểm 11/2026** — cần kiểm tra lại trước khi triển khai.
+- Các ngưỡng NFR (Core Web Vitals, WCAG 2.2 AA, OWASP ASVS) là **mục tiêu đề xuất, chưa kiểm thử** — không tuyên bố đạt trước khi đo.
