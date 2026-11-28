@@ -1,7 +1,7 @@
 # BLOCKERS — WALE COOKING
 
 > Các vấn đề còn tồn tại hoặc cần xác minh. Ghi rõ thay vì tự suy đoán.
-> Cập nhật: 2026-11-28 (P09).
+> Cập nhật: 2026-11-28 (P10).
 
 | # | Blocker | Mức độ | Trạng thái | Ghi chú |
 | --- | --- | --- | --- | --- |
@@ -40,6 +40,9 @@
 | B-P09-01 | **Chưa chạy E2E/integration cho luồng nấu** | Trung bình | **Còn mở — External Verification Pending** | Không có browser/PostgreSQL → luồng Cooking Mode/Portion Scaling/Checklist mới kiểm ở mức unit/component (jsdom). Kịch bản E2E (đổi khẩu phần → đánh dấu → mở chế độ nấu → tải lại → khôi phục) chưa chạy thật. Xem [TEST_REPORT.md](./docs/P09/TEST_REPORT.md) §4 |
 | B-P09-02 | **Chưa kiểm a11y/touch trên thiết bị thật khi đứng bếp** | Trung bình | **Còn mở** | Chế độ nấu nhắm tới điện thoại (nút lớn, tương phản, focus, khóa màn hình) nhưng chưa chạy axe/screen reader/browser thật. Kế thừa B-P07-04/B-P08-02. Xem [COOKING_MODE.md](./docs/P09/COOKING_MODE.md) §7/§9 |
 | B-P09-03 | **Tiến độ nấu lưu cục bộ — không đồng bộ giữa thiết bị** | Thấp | **Chấp nhận (theo thiết kế — D67)** | `localStorage` theo từng trình duyệt/thiết bị; xóa dữ liệu trình duyệt hoặc chế độ riêng tư → không khôi phục được. Đúng với mô hình **không tài khoản khách**; ghi nhận để minh bạch |
+| B-P10-01 | **Chưa kiểm đồng hồ trên thiết bị thật khi đứng bếp** (khoá màn hình, throttle, âm thanh, Notification) | Trung bình | **Còn mở — External Verification Pending** | Không có trình duyệt/thiết bị thật → chưa kiểm: tab bị ẩn/throttle, khoá màn hình điện thoại khi đồng hồ đang chạy, phát âm thanh (Web Audio), Notification API thực, rung thiết bị. Đã thiết kế đúng nguyên tắc `deadline` (D71) + có fallback trong trang. Kế thừa B-P07-04/B-P08-02/B-P09-02. Xem [MULTI_TIMER.md](./docs/P10/MULTI_TIMER.md) §8 |
+| B-P10-02 | **Chưa chạy integration test P10.3 (tìm món theo nguyên liệu)** | Trung bình | **Còn mở — External Verification Pending** | Đã viết `tests/integration/kitchen.ingredient-match.test.ts` (4 test) nhưng sandbox **không có PostgreSQL** (`TEST_DATABASE_URL`) → chưa thực thi; file đã qua typecheck/lint. Logic khớp ở tầng miền được phủ đầy đủ bằng unit test. Xem [TEST_REPORT.md](./docs/P10/TEST_REPORT.md) §3 |
+| B-P10-03 | **Chưa đối chiếu hệ số quy đổi với dụng cụ đo vật lý** | Thấp | **Chấp nhận (theo thiết kế)** | Hệ số dựa trên định nghĩa chuẩn (SI / US customary / avoirdupois) đã ghi nguồn trong `UNIT_DEFINITIONS`; **không** áp dụng tỷ trọng nguyên liệu. Chưa đối chiếu cân/ca đong thực tế — nằm ngoài phạm vi môi trường sandbox. Xem [UNIT_CONVERTER.md](./docs/P10/UNIT_CONVERTER.md) §7 |
 
 ## Nội dung còn chờ xác minh (không phải blocker cứng)
 

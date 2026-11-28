@@ -17,6 +17,7 @@ export const primaryNav: NavItem[] = [
   { label: "Trang chủ", href: "/", placeholder: false },
   { label: "Công thức", href: "/cong-thuc", description: "Kho công thức nấu ăn", placeholder: false },
   { label: "Danh mục", href: "/danh-muc", description: "Phân loại theo món, vùng miền, phương pháp", placeholder: false },
+  { label: "Công cụ", href: "/cong-cu", description: "Đồng hồ, quy đổi đơn vị, tìm món theo nguyên liệu", placeholder: false },
   { label: "Kiến thức nấu ăn", href: "/kien-thuc", description: "Bài viết, mẹo và hướng dẫn", placeholder: true },
   { label: "Yêu thích", href: "/yeu-thich", description: "Công thức đã lưu", placeholder: false },
 ];
@@ -33,6 +34,7 @@ export const footerNavGroups: { title: string; items: NavItem[] }[] = [
     items: [
       { label: "Công thức", href: "/cong-thuc", placeholder: false },
       { label: "Danh mục", href: "/danh-muc", placeholder: false },
+      { label: "Công cụ nhà bếp", href: "/cong-cu", placeholder: false },
       { label: "Kiến thức nấu ăn", href: "/kien-thuc", placeholder: true },
       { label: "Yêu thích", href: "/yeu-thich", placeholder: false },
     ],

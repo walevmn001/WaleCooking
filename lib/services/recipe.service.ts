@@ -7,6 +7,7 @@ import { repositories, type Repositories } from "@/lib/db/repositories";
 import type {
   RecipeAdminSummaryDto,
   RecipeDetailDto,
+  RecipeIngredientCandidateDto,
   RecipeListFilters,
   RecipeSort,
   RecipeSummaryDto,
@@ -14,10 +15,17 @@ import type {
   RecipeVersionDto,
 } from "@/lib/db/repositories/recipe.repository";
 import { NotFoundError, ValidationError } from "@/lib/errors/app-error";
+import {
+  dedupeIngredients,
+  matchRecipesByIngredients,
+  type IngredientMatchCandidate,
+  type IngredientMatchResult,
+} from "@/lib/kitchen/ingredient-match";
 import { paginationSchema, parseInput, type Paginated } from "@/lib/validation/common";
 import {
   createRecipeSchema,
   listRecipesQuerySchema,
+  matchByIngredientsQuerySchema,
   recipeVersionReasonSchema,
   updateRecipeSchema,
 } from "@/lib/validation/recipe";
@@ -103,6 +111,32 @@ export class RecipeService {
       throw new NotFoundError("Không tìm thấy công thức.");
     }
     return detail;
+  }
+
+  /**
+   * Tìm công thức theo nguyên liệu người dùng đang có (P10.3).
+   *
+   * - Chuẩn hoá + loại trùng nguyên liệu đầu vào (bỏ dấu, chữ thường) trước khi khớp.
+   * - Lấy ứng viên công thức CÔNG KHAI kèm nguyên liệu (tận dụng lớp repository/discovery P08),
+   *   rồi chấm điểm/xếp hạng bằng logic THUẦN `matchRecipesByIngredients`.
+   * - CHỈ trả công thức có trong dữ liệu; KHÔNG tạo công thức mới, KHÔNG đoán đồng nghĩa.
+   */
+  async matchByIngredients(
+    rawIngredients: string[],
+    options: { limit?: number } = {},
+  ): Promise<IngredientMatchResult[]> {
+    const cleaned = dedupeIngredients(rawIngredients.filter((s) => typeof s === "string"));
+    if (cleaned.length === 0) return [];
+    const { ingredients } = parseInput(matchByIngredientsQuerySchema, { ingredients: cleaned });
+
+    const candidates = await this.deps.recipe.listPublicIngredientCandidates(
+      "vi",
+      options.limit ?? DEFAULT_MATCH_CANDIDATE_LIMIT,
+    );
+    return matchRecipesByIngredients(
+      ingredients,
+      candidates.map(toIngredientMatchCandidate),
+    );
   }
 
   // ---------------------------------------------------------------- Đọc quản trị
@@ -277,6 +311,31 @@ function buildDiscoveryFilters(parsed: {
     ...(parsed.ingredient ? { ingredientSlug: parsed.ingredient } : {}),
     ...(parsed.ingredientCategory ? { ingredientCategorySlug: parsed.ingredientCategory } : {}),
     ...(parsed.maxMinutes != null ? { maxTotalMinutes: parsed.maxMinutes } : {}),
+  };
+}
+
+/**
+ * Số ứng viên công thức tối đa nạp cho tính năng "tìm món theo nguyên liệu" (P10.3).
+ * Giới hạn để kiểm soát chi phí — với website cá nhân, kho công thức thường nhỏ hơn nhiều.
+ */
+export const DEFAULT_MATCH_CANDIDATE_LIMIT = 300;
+
+/** Ánh xạ DTO ứng viên → ứng viên chấm điểm (tầng miền, thuần). */
+function toIngredientMatchCandidate(dto: RecipeIngredientCandidateDto): IngredientMatchCandidate {
+  return {
+    slug: dto.slug,
+    title: dto.title,
+    imageUrl: dto.imageUrl,
+    imageAlt: dto.imageAlt,
+    totalMinutes: dto.totalMinutes,
+    cookMinutes: dto.cookMinutes,
+    difficulty: dto.difficulty,
+    baseServings: dto.baseServings,
+    ingredients: dto.ingredients.map((ing) => ({
+      name: ing.name,
+      slug: ing.slug,
+      required: ing.required,
+    })),
   };
 }
 

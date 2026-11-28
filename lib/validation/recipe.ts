@@ -163,6 +163,13 @@ export const listRecipesQuerySchema = paginationSchema.extend({
 
 export const listMediaQuerySchema = paginationSchema;
 
+/** Truy vấn "tìm món theo nguyên liệu người dùng đang có" (P10.3). */
+export const matchByIngredientsQuerySchema = z.object({
+  /** Danh sách tên nguyên liệu (đã tách), mỗi mục là chuỗi ngắn. */
+  ingredients: z.array(z.string().trim().min(1).max(80)).min(1).max(30),
+});
+export type MatchByIngredientsQuery = z.infer<typeof matchByIngredientsQuerySchema>;
+
 export const uploadMediaSchema = z.object({
   altText: z.string().trim().max(300).optional(),
 });

@@ -17,6 +17,7 @@ import type {
   RecipeStepDto,
   RecipeSummaryDto,
   RecipeVersionDto,
+  RecipeIngredientCandidateDto,
   SlugLookup,
   UpdateRecipeInput,
 } from "./recipe.repository";
@@ -168,6 +169,44 @@ export class PrismaRecipeRepository implements RecipeRepository {
     return unique
       .map((slug) => bySlug.get(slug))
       .filter((item): item is RecipeSummaryDto => item !== undefined);
+  }
+
+  async listPublicIngredientCandidates(
+    locale: string,
+    limit: number,
+  ): Promise<RecipeIngredientCandidateDto[]> {
+    const safeLimit = Math.max(1, Math.min(500, Math.floor(limit)));
+    const rows = await this.db.recipe.findMany({
+      where: { status: "published", deletedAt: null },
+      orderBy: this.orderBy("newest"),
+      take: safeLimit,
+      include: {
+        translations: true,
+        primaryImage: { select: { publicUrl: true, altTextDefault: true } },
+        ingredients: {
+          orderBy: { sortOrder: "asc" as const },
+          include: { ingredient: { select: { slug: true } } },
+        },
+      },
+    });
+    return rows.map((row) => {
+      const translation = this.pickTranslation(row.translations, locale);
+      return {
+        slug: row.slug,
+        title: translation?.title ?? row.slug,
+        imageUrl: row.primaryImage?.publicUrl ?? null,
+        imageAlt: row.primaryImage?.altTextDefault ?? null,
+        totalMinutes: row.totalMinutes,
+        cookMinutes: row.cookMinutes,
+        difficulty: row.difficulty,
+        baseServings: Number(row.baseServings),
+        ingredients: row.ingredients.map((ing) => ({
+          name: ing.displayName,
+          slug: ing.ingredient?.slug ?? null,
+          required: ing.isRequired,
+        })),
+      };
+    });
   }
 
   async findDetailBySlug(slug: string, locale: string): Promise<RecipeDetailDto | null> {

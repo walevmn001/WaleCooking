@@ -141,6 +141,32 @@ export interface RecipeSummaryDto {
   publishedAt: Date | null;
 }
 
+/** Nguyên liệu rút gọn của một công thức — dùng để khớp theo nguyên liệu người dùng có (P10.3). */
+export interface RecipeMatchIngredientDto {
+  /** Tên hiển thị của nguyên liệu trong công thức (nguồn để so khớp). */
+  name: string;
+  /** Định danh nguyên liệu nền (nếu có liên kết) — so khớp bổ sung, không bịa. */
+  slug: string | null;
+  /** Bắt buộc hay không (nguyên liệu thiết yếu). */
+  required: boolean;
+}
+
+/**
+ * Ứng viên công thức cho tính năng "tìm món theo nguyên liệu đang có" (P10.3).
+ * CHỈ gồm dữ liệu THỰC của công thức — không suy diễn, không tạo nguyên liệu.
+ */
+export interface RecipeIngredientCandidateDto {
+  slug: string;
+  title: string;
+  imageUrl: string | null;
+  imageAlt: string | null;
+  totalMinutes: number | null;
+  cookMinutes: number | null;
+  difficulty: Difficulty;
+  baseServings: number;
+  ingredients: RecipeMatchIngredientDto[];
+}
+
 /** Thẻ công thức cho trang quản trị (kèm trạng thái). */
 export interface RecipeAdminSummaryDto extends RecipeSummaryDto {
   status: RecipeStatus;
@@ -288,6 +314,16 @@ export interface RecipeRepository {
    * CHỈ trả công thức `published`; slug không tồn tại/không công khai bị bỏ qua.
    */
   listPublicSummariesBySlugs(slugs: string[], locale: string): Promise<RecipeSummaryDto[]>;
+
+  /**
+   * Danh sách công thức công khai kèm nguyên liệu để khớp theo nguyên liệu người dùng (P10.3).
+   * CHỈ trả công thức `published`; giới hạn `limit` để kiểm soát chi phí truy vấn.
+   */
+  listPublicIngredientCandidates(
+    locale: string,
+    limit: number,
+  ): Promise<RecipeIngredientCandidateDto[]>;
+
   findIdBySlug(slug: string): Promise<SlugLookup | null>;
   slugExists(slug: string, exceptId?: string): Promise<boolean>;
 
