@@ -10,8 +10,8 @@
 
 | Sub-phase | Nội dung | Trạng thái |
 |---|---|---|
-| P12.1 | Audit trạng thái thực tế | ✅ Hoàn thành — [DEPLOYMENT_AUDIT.md](../P12/DEPLOYMENT_AUDIT.md) |
-| P12.2 | Database readiness (Neon) | ⏳ Đang làm |
+| P12.1 | Audit trạng thái thực tế | ✅ Hoàn thành — [DEPLOYMENT_AUDIT.md](../P12/DEPLOYMENT_AUDIT.md) · commit `ce8d4fc` |
+| P12.2 | Database readiness (Neon) | ✅ Hoàn thành (Neon kết nối: BLOCKED) — [DATABASE_READINESS.md](../P12/DATABASE_READINESS.md) |
 | P12.3 | Storage production readiness | ⏳ Chờ |
 | P12.4 | Playwright browser automation | ⏳ Chờ |
 | P12.5 | Responsive & UX verification | ⏳ Chờ |
