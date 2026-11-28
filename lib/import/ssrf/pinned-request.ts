@@ -104,6 +104,9 @@ export function pinnedRequest(options: PinnedRequestOptions): Promise<PinnedRequ
         headers: options.headers,
         lookup: createPinnedLookup(options.address, options.family),
         timeout: options.timeoutMs,
+        // Tắt agent pooling: mỗi request tạo kết nối mới qua `lookup` đã pin ⇒ không
+        // tái dùng socket cũ (tránh lẫn IP giữa các lần fetch/rebinding).
+        agent: false,
         ...(isHttps
           ? { servername: options.hostname, ca: options.ca, rejectUnauthorized: true }
           : {}),
