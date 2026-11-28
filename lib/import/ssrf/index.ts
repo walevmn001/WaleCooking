@@ -23,3 +23,11 @@ export {
   type PinnedRequestResult,
   type PinnedResponse,
 } from "./pinned-request";
+export {
+  SafeFetcherImpl,
+  baseContentType,
+  decodeBody,
+  type PinnedRequester,
+  type SafeFetcherDeps,
+  type TargetResolver,
+} from "./safe-fetcher";

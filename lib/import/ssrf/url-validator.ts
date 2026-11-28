@@ -23,7 +23,16 @@ import { isDeniedHostname, normalizeHostname, registrableDomain } from "./hostna
 import { classifyIp } from "./ip";
 
 const ALLOWED_PROTOCOLS: ReadonlySet<string> = new Set(["http:", "https:"]);
-const ALLOWED_PORTS: ReadonlySet<string> = new Set(["80", "443"]);
+const DEFAULT_ALLOWED_PORTS: readonly number[] = [80, 443];
+
+/** Tuỳ chọn validator — mặc định bám policy (port 80/443). */
+export interface SsrfUrlValidatorOptions {
+  /**
+   * Cổng được phép. Mặc định `{80, 443}`. Chỉ mở rộng cho harness test cục bộ;
+   * production PHẢI giữ mặc định.
+   */
+  allowedPorts?: readonly number[];
+}
 
 /** Tham số truy vấn theo dõi (tracking) bị loại khi chuẩn hoá URL. */
 const TRACKING_PARAMS: ReadonlySet<string> = new Set([
@@ -47,6 +56,13 @@ function reject(reason: UrlRejectionReason, message: string): UrlValidationResul
 }
 
 export class SsrfUrlValidator implements UrlValidator {
+  private readonly allowedPorts: ReadonlySet<string>;
+
+  constructor(options: SsrfUrlValidatorOptions = {}) {
+    const ports = options.allowedPorts ?? DEFAULT_ALLOWED_PORTS;
+    this.allowedPorts = new Set(ports.map((port) => String(port)));
+  }
+
   validate(rawUrl: string): UrlValidationResult {
     if (typeof rawUrl !== "string" || rawUrl.trim() === "") {
       return reject("MALFORMED_URL", "URL không hợp lệ.");
@@ -71,7 +87,7 @@ export class SsrfUrlValidator implements UrlValidator {
       return reject("URL_HAS_CREDENTIALS", "URL không được chứa thông tin đăng nhập.");
     }
     // L7 — port.
-    if (url.port !== "" && !ALLOWED_PORTS.has(url.port)) {
+    if (url.port !== "" && !this.allowedPorts.has(url.port)) {
       return reject("DISALLOWED_PORT", "Cổng không được phép (chỉ 80/443).");
     }
 
