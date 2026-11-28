@@ -1,7 +1,7 @@
 # P13 — CHECKPOINT: NEON POSTGRESQL PRODUCTION INTEGRATION
 
 > Phase: **P13** · Sub-phase hiện tại: **P13.1** · Ngày: 2026-11-28
-> Trạng thái: **ĐANG THỰC HIỆN**
+> Trạng thái: **MỘT PHẦN — Neon BLOCKED** (kiểm chứng local PASS; chờ chủ dự án cấu hình Neon → B-P13-01..04)
 > Branch: `trae/agent-VkDApw` · Mốc tiếp nối: `b3936be` (P12.7, `origin/main`)
 > Phạm vi: tích hợp **Neon PostgreSQL thật**. **Không** triển khai R2/Auth.js; **không** đổi kiến trúc.
 
@@ -14,9 +14,9 @@
 | P13.1.1 | Audit trạng thái thực tế | ✅ Hoàn thành — [P13.1_AUDIT.md](../P13/P13.1_AUDIT.md) · `eb0034c` |
 | P13.1.2 | Neon configuration (`DATABASE_URL`/`DIRECT_URL`) | ✅ Hoàn thành — cấu hình đã đúng, không cần sửa; bổ sung test env (6/6 PASS) |
 | P13.1.3 | Database connectivity | ✅ Hoàn thành (local PASS) · ⛔ Neon **BLOCKED** (thiếu credentials) — script `scripts/verify-db.ts` |
-| P13.1.4 | Migration deployment | ✅ `migrate status` + `migrate deploy` PASS (DB trống local `wale_p13`, 58 bảng) · ⛔ Neon **BLOCKED** (chưa có DB đích) |
-| P13.1.5 | Integration verification | ⏳ Chờ |
-| P13.1.6 | Documentation | ⏳ Chờ |
+| P13.1.4 | Migration deployment | ✅ `migrate status` + `migrate deploy` PASS (DB trống local `wale_p13`, 58 bảng) · ⛔ Neon **BLOCKED** (chưa có DB đích) · `10ec5bd` |
+| P13.1.5 | Integration verification | ✅ Hoàn thành — typecheck/lint/unit 343/343/integration 59/59/build PASS (local) |
+| P13.1.6 | Documentation | ✅ Hoàn thành — [P13.1_NEON_INTEGRATION_REPORT.md](../P13/P13.1_NEON_INTEGRATION_REPORT.md) + cập nhật CURRENT_STATUS/PHASE_PROGRESS/BLOCKERS/DECISIONS |
 
 ## 2. Git mốc đầu P13.1
 
@@ -40,15 +40,32 @@
 - Chrome 150 @ CDP `127.0.0.1:9222` ✅.
 - `DATABASE_URL`/`DIRECT_URL` **Neon** ❌ · `R2_*` ❌ · `AUTH_*` ❌ · quyền Vercel ❌.
 
-## 5. Trạng thái dự kiến (PASS / FAIL / BLOCKED / PENDING)
+## 5. Trạng thái cuối (PASS / FAIL / BLOCKED / PENDING)
 
-| Hạng mục | Dự kiến |
+| Hạng mục | Trạng thái |
 |---|---|
 | Audit (P13.1.1) | **PASS** |
-| Neon configuration (P13.1.2) | **PASS** (kiểm cấu hình) |
-| Neon connectivity (P13.1.3) | **BLOCKED** (không có credentials Neon trong sandbox) |
-| Migration deployment (P13.1.4) | **BLOCKED** (không xác định DB đích Neon) |
-| Integration verification (P13.1.5) | **PASS** (trên PostgreSQL local) |
+| Neon configuration (P13.1.2) | **PASS** (kiểm cấu hình + 6 test) |
+| Neon connectivity — local proxy (P13.1.3) | **PASS** |
+| Neon connectivity — Neon thật (P13.1.3) | **BLOCKED** |
+| Migration status + deploy — local (P13.1.4) | **PASS** |
+| Migration deploy — Neon (P13.1.4) | **BLOCKED** |
+| Integration verification (P13.1.5) | **PASS** (343 unit · 59 integration · build) |
 | Documentation (P13.1.6) | **PASS** |
 
-*Checkpoint này sẽ được cập nhật ở cuối P13.1 với kết quả cuối cùng.*
+## 6. Commit hashes
+
+| Sub-phase | Commit |
+|---|---|
+| P13.1.1 Audit | `eb0034c` |
+| P13.1.2 Neon configuration | `4af1440` |
+| P13.1.3 Database connectivity | `9cb3836` |
+| P13.1.4 Migration deployment | `10ec5bd` |
+| P13.1.5–6 Verification + Documentation | *(commit P13.1.6 — xem `git log`)* |
+
+## 7. Điều kiện tiếp tục (khi sandbox bị ngắt)
+
+- Cấu hình Neon còn thiếu: `DATABASE_URL` (pooled, `?pgbouncer=true`) + `DIRECT_URL` (direct) → **B-P13-01..04**.
+- Hướng dẫn thủ công đầy đủ: [P13.1_NEON_INTEGRATION_REPORT.md](../P13/P13.1_NEON_INTEGRATION_REPORT.md) §7.
+- Sau khi có credentials: chạy `pnpm prisma migrate status` → `pnpm prisma migrate deploy` (khi đã xác nhận DB đích) → `pnpm db:seed` → `pnpm tsx scripts/verify-db.ts` → `TEST_DATABASE_URL=… pnpm test:integration`.
+- **Không** `db push`/`migrate reset`; **không** commit `.env`/secret; **không** tuyên bố PASS khi chưa chạy thật.

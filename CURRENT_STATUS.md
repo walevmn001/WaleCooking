@@ -1,10 +1,10 @@
 # CURRENT STATUS — WALE COOKING
 
-> Cập nhật: 2026-11-28 (P12).
+> Cập nhật: 2026-11-28 (P13).
 
 ## Tóm tắt
 - **Sản phẩm:** WALE COOKING — website cá nhân chuyên công thức & hỗ trợ nấu ăn (**Recipe-focused Cooking Assistant**; tiếng Việt, sẵn sàng i18n EN). **Không** mạng xã hội, **không** cộng đồng, **không** tài khoản khách truy cập.
-- **Phase hiện tại:** hoàn thành **P00**, **P00-FIX**, **P01**, **P02**, **P03**, **P04**, **P05**, **P06**, **P07**, **P07.1**, **P08**, **P09**, **P10**, **P11** và **P12** — **P12 là phase production-readiness & xác minh trình duyệt** (không thêm tính năng mới).
+- **Phase hiện tại:** hoàn thành **P00**, **P00-FIX**, **P01**, **P02**, **P03**, **P04**, **P05**, **P06**, **P07**, **P07.1**, **P08**, **P09**, **P10**, **P11**, **P12** và **P13.1** (Neon PostgreSQL) — **P13.1 là phase tích hợp database production** (không thêm tính năng mới).
 - **Đã hoàn thiện P00:** khảo sát thực tế + tài liệu định hướng + đề xuất công nghệ.
 - **Đã hoàn thiện P00-FIX:** đồng bộ thương hiệu sang WALE COOKING, bổ sung đầy đủ 20 nhóm chức năng, chuẩn hóa 7 trục phân loại, cập nhật tài liệu trạng thái.
 - **Đã hoàn thiện P01:** bộ đặc tả sản phẩm có thể triển khai — PRD, Product Constitution, personas, user journeys, đặc tả 20 nhóm chức năng, quy tắc nghiệp vụ, NFR đo lường được, phạm vi MVP và tiêu chí nghiệm thu.
@@ -20,6 +20,7 @@
 - **Đã hoàn thiện P10:** **Smart Kitchen Tools** — (1) **P10.1 Multi Timer** — nhiều đồng hồ cùng lúc (tạo/đặt tên/bắt đầu/tạm dừng/tiếp tục/đặt lại/xoá/cảnh báo hết giờ), **nguồn sự thật là `deadline` (epoch ms)** — `setInterval` chỉ re-render (đúng khi tab ẩn/khoá màn hình), tạm dừng chốt `pausedRemaining`, lưu **cục bộ** `localStorage` (`wale_timers_v1`, có `version`, khôi phục khi tải lại), cảnh báo 4 kênh (banner / Web Audio mở khoá qua tương tác / Notification API xin quyền khi người dùng bấm / rung thiết bị), **không** xin quyền không liên quan; (2) **P10.2 Unit Converter** — khối lượng (SI/avoirdupois), thể tích (US customary + **metric cup** 250 ml), nhiệt độ; **chỉ quy đổi khi có hệ số xác định**, **không** quy đổi mass↔volume/giữa đơn vị đếm, `convertUnit` không ném lỗi, logic **tách khỏi UI**; (3) **P10.3 Ingredient-Based Discovery** — tìm món theo nguyên liệu đang có: chuẩn hoá bỏ dấu + loại trùng + so khớp tên/slug, điểm phù hợp (`matched`/`coverage`/`missingRequired`) trên **dữ liệu thật**, **không** AI, **không** tự tạo công thức; (4) **P10.4 UI** — khu vực `/cong-cu` (hub + 3 công cụ) + **8 component** tái sử dụng (`MultiTimer`/`TimerCard`/`TimerForm`/`UnitConverter`/`IngredientSearch`/`IngredientChip`/`RecipeMatchCard`/`MissingIngredients`), tận dụng P05 + Recipe Discovery P08 (D74). **Kiểm chứng:** `typecheck` 0 lỗi · `lint` 0 lỗi · **337/337 unit test** (31 file, **+88 test P10**) · `build` thành công (thêm `/cong-cu*` + `/api/v1/kitchen/ingredient-match`; `DATABASE_URL` placeholder). **Chưa xác minh:** integration P10.3 (không có PostgreSQL), E2E/thiết bị thật (khoá màn hình/throttle/âm thanh/Notification). Tài liệu `docs/P10/` + `docs/checkpoints/P10_CHECKPOINT.md`.
 - **Đã hoàn thiện P11:** **Real-World Verification & UX Polish** (phase ổn định & hoàn thiện — **không** thêm tính năng mới) — (1) **P11.1 Full Project Audit** 16 khu vực (Foundation/Database/Recipe/Admin/Media/Taxonomy/Discovery/Favorites/Cooking/Portion/Checklist/Multi Timer/Unit Converter/Ingredient Discovery/SEO/Responsive) + phân loại Critical/High/Medium/Low; (2) **P11.2–P11.4** xác minh luồng khách & quản trị (HTTP thật), trải nghiệm nấu & công cụ nhà bếp (bảng ca kiểm thử Portion Scaling + Unit Converter); (3) **P11.5–P11.6** audit mobile/SEO/performance/security; (4) **P11.9 sửa 3 lỗi Medium**: **BUG-01** soft-404 (xóa 3 `loading.tsx` tạo Suspense boundary → route động trả **404** đúng), **BUG-02** thêm `app/sitemap.ts` + `app/robots.ts` (trước đây 404), **BUG-03** thêm security headers + ẩn `X-Powered-By`; (5) **P11.7** chạy lại toàn bộ test. **Kiểm chứng:** `typecheck` 0 lỗi · `lint` 0 lỗi · **337/337 unit test** (31 file) · **59/59 integration test** (9 file — PostgreSQL thật, gồm `kitchen.ingredient-match` **khắc phục B-P10-02**) · `build` thành công **42 route** (có `/sitemap.xml`, `/robots.txt`). **Chưa xác minh (External Verification Pending):** hiển thị thực tế 6 viewport, E2E/axe/Lighthouse/screen reader, timer nền (khóa màn hình/chuyển app), đăng nhập admin thật (Auth.js chưa nối). 10 tài liệu `docs/P11/` + `docs/checkpoints/P11_CHECKPOINT.md`.
 - **Đã hoàn thiện P12:** **Production Deployment & Browser Verification** (tiếp nối P00–P11; **không** thêm tính năng, **không** đổi kiến trúc/framework/DB/design system; **1 AI Agent**, không sub-agent) — (1) **P12.1** audit trạng thái thực tế; (2) **P12.2** DB readiness — sửa **FIND-04**: `lib/db/prisma.ts` chuyển sang **Proxy lazy** → `pnpm build` **không còn cần `DATABASE_URL`**, loại bỏ lỗi Vercel *"Failed to collect configuration for /api/v1/admin/recipes"*; (3) **P12.3** storage readiness — sửa **FIND-07**: `getStorage()` ở `NODE_ENV=production` thiếu `R2_*` → **ném lỗi rõ ràng** (không ghi FS tạm Vercel), `MediaService` resolve storage **lazy**; chấp nhận **FIND-05** (cảnh báo tracing media local); (4) **P12.4** thiết lập **Playwright** kết nối Chrome qua **CDP** (không có Chromium binary) + DB E2E **riêng** (`wale_e2e`, seed idempotent tiền tố `e2e-`) → **28/28 E2E PASS** (public/cooking/tools/admin/api); (5) **P12.5** responsive & UX — **14/14 PASS** (viewport 375/390/768/1440; tràn ngang, nav, menu mobile, console/network, bàn phím/focus); (6) **P12.6** xác minh build production **PASS** khi thiếu `DATABASE_URL` + checklist deploy (ghi rõ `DIRECT_URL` cần cho migration Neon). **Kiểm chứng:** `typecheck` 0 lỗi · `lint` 0 lỗi · **337/337 unit** (31 file) · **59/59 integration** (9 file) · **42/42 E2E** (6 file) · `build` thành công **40 route**. **BLOCKED (thiếu môi trường):** Neon thật, R2 thật, Vercel production, đăng nhập Admin thật/RBAC (Auth.js chưa nối). 9 tài liệu `docs/P12/` + `docs/checkpoints/P12_CHECKPOINT.md`.
+- **Đã hoàn thiện P13.1:** **Neon PostgreSQL Production Integration** (tiếp nối P12; **1 AI Agent**, không sub-agent; **không** thêm tính năng, **không** đổi schema/kiến trúc; **không** triển khai R2/Auth.js) — (1) **P13.1.1** audit (`docs/P13/P13.1_AUDIT.md`); (2) **P13.1.2** kiểm cấu hình Neon: `prisma/schema.prisma` (`url=env("DATABASE_URL")` POOLED + `directUrl=env("DIRECT_URL")` DIRECT) + `lib/config/env.ts` **đã đúng**, **không cần sửa mã**; bổ sung `tests/lib/config/env.test.ts` (**6 test**); (3) **P13.1.3** kết nối: thêm `scripts/verify-db.ts` (chỉ đọc, không lộ secret) — chạy thực tế trên PostgreSQL 16.15 local **PASS**; **Neon thật BLOCKED** (sandbox không có credentials); (4) **P13.1.4** migration: `prisma migrate status` OK, `prisma migrate deploy` trên **DB trống mới `wale_p13`** → áp `20261127175936_init`, **58 bảng**; **Neon BLOCKED**; **không** dùng `db push`/`migrate reset`; (5) **P13.1.5** kiểm chứng: `typecheck`/`lint` 0 lỗi · **343/343 unit** (32 file) · **59/59 integration** (9 file) · `build` **PASS** (không cần `DATABASE_URL`); (6) **P13.1.6** tài liệu + checkpoint. **BLOCKED (thiếu môi trường):** kết nối Neon thật, `migrate deploy`/seed/xác minh CRUD trên Neon. Tài liệu `docs/P13/` + `docs/checkpoints/P13_CHECKPOINT.md`.
 
 ## Git
 | Mục | Giá trị |
@@ -46,9 +47,14 @@
 | Commit P12.4 | `63f46f0` — test(P12.4): bộ kiểm thử trình duyệt Playwright E2E (28/28 PASS) |
 | Commit P12.5 | `399eb39` — test(P12.5): kiểm thử responsive & UX trên 4 viewport (14/14 PASS) |
 | Commit P12.6 | `97ec94e` — docs(P12.6): xác minh build production & cấu hình triển khai Vercel |
-| Commit P12.7 | *(commit chứa tài liệu này — xem `git log -1`)* — docs(P12.7): tài liệu bàn giao & checkpoint cuối P12 |
-| Working tree | Sạch sau khi commit P12.7 |
-| `origin/main` | `97ec94e` (P12.6) trước P12.7; cập nhật P12.7 sau khi push (xem báo cáo push) |
+| Commit P12.7 | `b3936be` — docs(P12.7): tài liệu bàn giao & checkpoint cuối P12 |
+| Commit P13.1.1 | `eb0034c` — docs(P13.1.1): audit tích hợp Neon PostgreSQL production |
+| Commit P13.1.2 | `4af1440` — test(P13.1.2): kiểm chứng hợp đồng cấu hình datasource Neon |
+| Commit P13.1.3 | `9cb3836` — test(P13.1.3): kiểm chứng kết nối database (local PASS, Neon BLOCKED) |
+| Commit P13.1.4 | `10ec5bd` — docs(P13.1.4): xác minh quy trình migration (local PASS, Neon BLOCKED) |
+| Commit P13.1.5–6 | *(commit chứa tài liệu này — xem `git log -1`)* — test/docs(P13.1.5–6): kiểm chứng tích hợp & báo cáo Neon |
+| Working tree | Sạch sau khi commit P13.1.6 |
+| `origin/main` | `10ec5bd` (P13.1.4) trước P13.1.5–6; cập nhật sau khi push (xem báo cáo push) |
 
 ## Kiến trúc đã chốt (không thay đổi)
 - Stack lớp rời: **Next.js + Prisma + Neon PostgreSQL + Auth.js + Cloudflare R2**.
@@ -234,6 +240,19 @@
 **Kiểm thử:** `typecheck` 0 lỗi · `lint` 0 lỗi · **337/337 unit** (31 file) · **59/59 integration** (9 file) · **42/42 E2E** (6 file) · `build` **40 route** (không cần `DATABASE_URL`).
 
 **Không** thêm schema/migration/feature; **không** đổi framework/DB/design system.
+
+## Sản phẩm bàn giao P13.1 (`docs/P13/` + script & test)
+**Tài liệu (`docs/P13/`):** `P13.1_AUDIT.md` · `P13.1_NEON_INTEGRATION_REPORT.md` + checkpoint `docs/checkpoints/P13_CHECKPOINT.md`.
+
+**Thêm mới (không đổi mã nguồn ứng dụng, không đổi schema):**
+- [scripts/verify-db.ts](file:///workspace/scripts/verify-db.ts) — kiểm chứng kết nối database (**chỉ đọc**, không lộ secret): runtime `DATABASE_URL` (pooled) + migration `DIRECT_URL` (direct), version, quyền schema/bảng, Prisma Client đọc, lịch sử migration.
+- [tests/lib/config/env.test.ts](file:///workspace/tests/lib/config/env.test.ts) — **6 test** hợp đồng env: bắt buộc/scheme `DATABASE_URL`, `DIRECT_URL` tùy chọn, không lộ giá trị trong thông báo lỗi, memoized, `hasR2Config`.
+
+**Xác nhận (không sửa):** `prisma/schema.prisma` (`url=env("DATABASE_URL")` pooled + `directUrl=env("DIRECT_URL")` direct) và `lib/config/env.ts` (Zod lazy+memoized) **đã đúng cho Neon**; Prisma **6.19.3** tương thích `directUrl` + `?pgbouncer=true`; lazy Proxy (FIND-04) **giữ nguyên** → build vẫn không cần `DATABASE_URL`.
+
+**Kiểm chứng:** `typecheck` 0 lỗi · `lint` 0 lỗi · **343/343 unit** (32 file) · **59/59 integration** (9 file) · `prisma migrate deploy` trên **DB trống `wale_p13`** → **58 bảng** · `build` **PASS** (không cần `DATABASE_URL`).
+
+**BLOCKED (thiếu môi trường sandbox — không giả lập PASS):** kết nối Neon thật, `migrate deploy`/seed/xác minh CRUD trên Neon. Hướng dẫn thủ công ở [P13.1_NEON_INTEGRATION_REPORT.md](./docs/P13/P13.1_NEON_INTEGRATION_REPORT.md) §7.
 
 ## Việc còn chờ xác minh
 - **B5:** repo là shallow clone (ảnh hưởng thấp).

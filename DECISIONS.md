@@ -1,7 +1,7 @@
 # DECISIONS — WALE COOKING
 
 > Nhật ký các quyết định đã chốt. Không tự thay đổi quyết định đã xác lập nếu chưa có căn cứ.
-> Cập nhật: 2026-11-28 (P12).
+> Cập nhật: 2026-11-28 (P13.1).
 
 | # | Quyết định | Nội dung | Căn cứ | Trạng thái |
 | --- | --- | --- | --- | --- |
@@ -86,6 +86,7 @@
 | D79 | **Prisma lazy-init (sửa FIND-04)** — đảo D78 | `lib/db/prisma.ts` dùng **Proxy lazy**: `PrismaClient` chỉ được tạo ở lần truy cập đầu tiên, không tạo ở module scope. Nhờ đó `pnpm build` **không cần** `DATABASE_URL` cho route/module không truy vấn DB; lỗi Vercel *"Failed to collect configuration for /api/v1/admin/recipes"* được loại bỏ. Kiểm tra `serverEnv()` vẫn giữ (đúng thời điểm), **không** bỏ validation | P12.2 — [DATABASE_READINESS.md](./docs/P12/DATABASE_READINESS.md) | Đã chốt |
 | D80 | **Guard storage ở production (sửa FIND-07)** | `getStorage()` khi `NODE_ENV=production` mà thiếu `R2_*` → **ném lỗi rõ ràng** (nêu tên biến, không lộ giá trị), **không** fallback local (tránh ghi media vào FS tạm Vercel). `MediaService` resolve storage **lazy** qua getter. Dev/test vẫn dùng local adapter | P12.3 — [STORAGE_READINESS.md](./docs/P12/STORAGE_READINESS.md) | Đã chốt |
 | D81 | **Kiểm thử E2E bằng Playwright qua CDP** | Dùng `@playwright/test` kết nối Chrome có sẵn qua CDP (`chromium.connectOverCDP`, mặc định `127.0.0.1:9222`) thay vì `launch()` (sandbox không có Chromium binary). Fixture `browser` override ở scope `worker`. DB E2E **riêng** (`wale_e2e`) + seed idempotent tiền tố `e2e-`; **không** dùng credentials production | P12.4 — [PLAYWRIGHT_SETUP.md](./docs/P12/PLAYWRIGHT_SETUP.md) | Đã chốt |
+| D82 | **Neon datasource: pooled `DATABASE_URL` + direct `DIRECT_URL`** | Runtime dùng **pooled** connection string qua PgBouncer (`DATABASE_URL`, kèm `?pgbouncer=true`); migration/CLI dùng **direct** (`DIRECT_URL` trong `datasource.directUrl`). Prisma 6.19.3 tương thích. Không hardcode URL; không log connection string; giữ **Proxy lazy** (D79) → build **không cần** `DATABASE_URL` | P13.1.1/P13.1.2 — [P13.1_AUDIT.md](./docs/P13/P13.1_AUDIT.md), [P13.1_NEON_INTEGRATION_REPORT.md](./docs/P13/P13.1_NEON_INTEGRATION_REPORT.md) §2 | Đã chốt (cấu hình đã đúng — **không sửa mã**; kiểm chứng Neon thật **BLOCKED**, xem B-P13-01) |
 
 > Chi tiết bối cảnh/lý do/đánh đổi/phương án thay thế của **D-P02-01..11** xem [ARCHITECTURE_DECISIONS.md](./docs/P02/ARCHITECTURE_DECISIONS.md).
 > Chi tiết Design System của **D22–D28** xem [DESIGN_SYSTEM.md](./docs/P03/DESIGN_SYSTEM.md), [DESIGN_TOKENS.md](./docs/P03/DESIGN_TOKENS.md), [COLOR_ACCESSIBILITY_AUDIT.md](./docs/P03/COLOR_ACCESSIBILITY_AUDIT.md).
@@ -99,6 +100,7 @@
 > Chi tiết P10 của **D71–D74** xem [docs/P10/](./docs/P10/): [MULTI_TIMER.md](./docs/P10/MULTI_TIMER.md), [UNIT_CONVERTER.md](./docs/P10/UNIT_CONVERTER.md), [INGREDIENT_DISCOVERY.md](./docs/P10/INGREDIENT_DISCOVERY.md), [SMART_KITCHEN_UI.md](./docs/P10/SMART_KITCHEN_UI.md), [TEST_REPORT.md](./docs/P10/TEST_REPORT.md). Checkpoint: [docs/checkpoints/P10_CHECKPOINT.md](./docs/checkpoints/P10_CHECKPOINT.md).
 > Chi tiết P11 của **D75–D78** xem [docs/P11/](./docs/P11/): [FULL_PROJECT_AUDIT.md](./docs/P11/FULL_PROJECT_AUDIT.md), [BUG_FIX_REPORT.md](./docs/P11/BUG_FIX_REPORT.md), [SEO_PERFORMANCE_AUDIT.md](./docs/P11/SEO_PERFORMANCE_AUDIT.md), [SECURITY_AUDIT.md](./docs/P11/SECURITY_AUDIT.md), [TEST_REPORT.md](./docs/P11/TEST_REPORT.md). Checkpoint: [docs/checkpoints/P11_CHECKPOINT.md](./docs/checkpoints/P11_CHECKPOINT.md).
 > Chi tiết P12 của **D79–D81** xem [docs/P12/](./docs/P12/): [DATABASE_READINESS.md](./docs/P12/DATABASE_READINESS.md), [STORAGE_READINESS.md](./docs/P12/STORAGE_READINESS.md), [PLAYWRIGHT_SETUP.md](./docs/P12/PLAYWRIGHT_SETUP.md), [E2E_TEST_REPORT.md](./docs/P12/E2E_TEST_REPORT.md), [P12_SUMMARY.md](./docs/P12/P12_SUMMARY.md). Checkpoint: [docs/checkpoints/P12_CHECKPOINT.md](./docs/checkpoints/P12_CHECKPOINT.md).
+> Chi tiết P13.1 của **D82** xem [docs/P13/](./docs/P13/): [P13.1_AUDIT.md](./docs/P13/P13.1_AUDIT.md), [P13.1_NEON_INTEGRATION_REPORT.md](./docs/P13/P13.1_NEON_INTEGRATION_REPORT.md). Checkpoint: [docs/checkpoints/P13_CHECKPOINT.md](./docs/checkpoints/P13_CHECKPOINT.md).
 
 ## Quyết định còn để mở (cần xác minh trước khi áp dụng)
 
