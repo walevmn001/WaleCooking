@@ -29,10 +29,27 @@ export interface UploadMediaInput {
  * - Khóa lưu trữ do server sinh (không dùng thẳng tên tệp client).
  */
 export class MediaService {
-  constructor(
-    private readonly deps: Repositories = repositories,
-    private readonly storage: StoragePort = getStorage(),
-  ) {}
+  private readonly deps: Repositories;
+  private readonly storageOverride?: StoragePort;
+  private resolvedStorage?: StoragePort;
+
+  constructor(deps: Repositories = repositories, storage?: StoragePort) {
+    this.deps = deps;
+    this.storageOverride = storage;
+  }
+
+  /**
+   * Giải mã storage LAZY (P12.3): chỉ chọn adapter khi thực sự thao tác tệp.
+   * Nhờ đó `export const mediaService = new MediaService()` ở phạm vi module KHÔNG
+   * khởi tạo adapter lúc import → `next build` không bị ảnh hưởng; đồng thời guard
+   * "production phải dùng R2" chỉ kích hoạt đúng khi thực sự upload.
+   */
+  private get storage(): StoragePort {
+    if (!this.resolvedStorage) {
+      this.resolvedStorage = this.storageOverride ?? getStorage();
+    }
+    return this.resolvedStorage;
+  }
 
   async upload(actor: Actor | null, input: UploadMediaInput): Promise<MediaAssetDto> {
     const current = requirePermission(actor, "media:upload");
