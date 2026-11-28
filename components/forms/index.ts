@@ -25,3 +25,5 @@ export { Switch } from "./switch";
 export type { SwitchProps } from "./switch";
 export { SearchInput } from "./search-input";
 export type { SearchInputProps } from "./search-input";
+export { SearchForm } from "./search-form";
+export type { SearchFormProps } from "./search-form";
