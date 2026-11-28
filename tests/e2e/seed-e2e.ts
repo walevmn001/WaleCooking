@@ -1,6 +1,8 @@
 import { PrismaClient } from "@prisma/client";
 
+import { hashPassword } from "../../lib/auth/password";
 import { runSystemSeed } from "../../prisma/seed/run";
+import { E2E_ADMIN, E2E_EDITOR } from "./accounts";
 
 /**
  * Seed cơ sở dữ liệu RIÊNG cho kiểm thử E2E (P12.4).
@@ -144,13 +146,34 @@ async function main(): Promise<void> {
   const removed = await db.recipe.deleteMany({ where: { slug: { startsWith: PREFIX } } });
   console.log(`[e2e-seed] dọn ${removed.count} công thức E2E cũ.`);
 
+  // Tài khoản nhân sự quản trị cho E2E (P18): có MẬT KHẨU đã băm (scrypt) để đăng nhập
+  // qua Auth.js bằng HTTP thật. Chỉ tồn tại trong CSDL E2E; KHÔNG tạo tài khoản mặc định.
+  const [editorHash, adminHash] = await Promise.all([
+    hashPassword(E2E_EDITOR.password),
+    hashPassword(E2E_ADMIN.password),
+  ]);
+
   const author = await db.user.upsert({
-    where: { email: "e2e-editor@wale.invalid" },
-    update: { role: "editor" },
+    where: { email: E2E_EDITOR.email },
+    update: { role: "editor", passwordHash: editorHash, name: E2E_EDITOR.name },
     create: {
-      email: "e2e-editor@wale.invalid",
-      name: "Biên tập viên E2E",
+      email: E2E_EDITOR.email,
+      name: E2E_EDITOR.name,
       role: "editor",
+      passwordHash: editorHash,
+      preferredLocale: "vi",
+    },
+    select: { id: true },
+  });
+
+  await db.user.upsert({
+    where: { email: E2E_ADMIN.email },
+    update: { role: "admin", passwordHash: adminHash, name: E2E_ADMIN.name },
+    create: {
+      email: E2E_ADMIN.email,
+      name: E2E_ADMIN.name,
+      role: "admin",
+      passwordHash: adminHash,
       preferredLocale: "vi",
     },
     select: { id: true },

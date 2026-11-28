@@ -1,22 +1,36 @@
 import "server-only";
 
-import type { Actor, Role } from "./authorization";
+import { auth } from "@/auth";
+
+import { APP_ROLES, type Actor, type Role } from "./authorization";
 
 /**
- * Cầu nối phiên đăng nhập (P06/P07).
+ * Cầu nối phiên đăng nhập (P06/P07/P18).
  *
- * Auth.js CHƯA được nối đầy đủ trong phạm vi P06 (P06 chỉ làm nền dữ liệu; P02 đã
- * thiết kế bảng `sessions` kiểu database-session). Hàm này là ĐIỂM DUY NHẤT để lấy
- * actor hiện tại cho tầng API.
+ * Auth.js (next-auth v5) đã được nối ở P18 (giải quyết B-P06-02). Hàm này là ĐIỂM DUY
+ * NHẤT để lấy actor hiện tại cho tầng API / server component.
  *
- * QUAN TRỌNG: KHÔNG giả lập người dùng đã đăng nhập. Khi Auth.js chưa nối, hàm trả
- * về `null` (guest). Mọi endpoint ghi sẽ nhận 401 — đúng hành vi an toàn.
- *
- * Khi nối Auth.js ở phase sau, chỉ cần thay thân hàm bằng `auth()` và map sang Actor.
+ * Quy tắc an toàn:
+ * - `actor = null` khi chưa đăng nhập, session không hợp lệ/hết hạn, hoặc vai trò không
+ *   nằm trong danh sách hợp lệ → coi là KHÁCH (`can(null, …) === false`, ghi → 401).
+ * - Vai trò LẤY TỪ DANH TÍNH ĐÃ XÁC THỰC (token đã ký), KHÔNG lấy từ request body/client.
  */
+
+function toRole(value: unknown): Role | null {
+  return typeof value === "string" && (APP_ROLES as readonly string[]).includes(value)
+    ? (value as Role)
+    : null;
+}
+
 export async function getCurrentActor(): Promise<Actor | null> {
-  // TODO(P08+): thay bằng `const session = await auth();` rồi map sang Actor.
-  return null;
+  const session = await auth();
+  const user = session?.user;
+  if (!user?.id) return null;
+
+  const role = toRole(user.role);
+  if (!role) return null;
+
+  return { id: user.id, role };
 }
 
 /** Lấy actor và vai trò, dùng khi cần kiểm tra role trực tiếp (hiếm khi cần). */

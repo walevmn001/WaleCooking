@@ -1,6 +1,11 @@
 import type { Metadata } from "next";
-import { Card, CardBody, CardTitle } from "@/components/ui/card";
+import { redirect } from "next/navigation";
+
+import { AdminSignInForm } from "@/components/auth/admin-sign-in-form";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardBody, CardTitle } from "@/components/ui/card";
+import { hasRole } from "@/lib/auth/authorization";
+import { getCurrentActor } from "@/lib/auth/session";
 
 export const metadata: Metadata = {
   title: "Đăng nhập quản trị",
@@ -8,31 +13,32 @@ export const metadata: Metadata = {
 };
 
 /**
- * Cổng đăng nhập QUẢN TRỊ (P07.1 §7.1.2).
+ * Cổng đăng nhập QUẢN TRỊ (P07.1 §7.1.2, P18).
  *
  * WALE COOKING là website công thức cá nhân: khách truy cập KHÔNG cần tài khoản.
- * Chỉ chủ website (vai trò `editor`/`admin`) đăng nhập khu vực quản trị.
- *
- * Auth.js (database-session) chưa được nối credential thật — xem
- * `docs/P07_1/EXTERNAL_VERIFICATION.md`. Trang này KHÔNG hiển thị form giả để tránh
- * gây hiểu lầm là đăng nhập đã hoạt động.
+ * Chỉ chủ website (vai trò `editor`/`admin`) đăng nhập khu vực quản trị qua Auth.js
+ * (Credentials). Không có đăng ký công khai.
  */
-export default function AdminSignInPage() {
+export default async function AdminSignInPage() {
+  const actor = await getCurrentActor();
+  if (hasRole(actor, "editor")) {
+    redirect("/admin");
+  }
+
   return (
     <Card>
-      <CardBody className="flex flex-col items-start gap-3">
+      <CardBody className="flex flex-col items-start gap-4">
         <Badge variant="warning">Khu vực quản trị</Badge>
         <CardTitle as="h1" className="text-h2">
           Đăng nhập quản trị
         </CardTitle>
         <p className="text-body text-ink-muted">
-          Đây là cổng đăng nhập dành riêng cho chủ website. Khách truy cập không cần tài
-          khoản để xem công thức, tìm kiếm hay lưu món yêu thích.
+          Cổng đăng nhập dành riêng cho chủ website. Khách truy cập không cần tài khoản để xem
+          công thức, tìm kiếm hay lưu món yêu thích.
         </p>
-        <p className="text-body-sm text-ink-subtle">
-          Xác thực (Auth.js) chưa được cấu hình trong môi trường này. Khi hoàn tất cấu hình
-          biến môi trường, biểu mẫu đăng nhập sẽ được bật tại đây.
-        </p>
+        <div className="w-full">
+          <AdminSignInForm />
+        </div>
       </CardBody>
     </Card>
   );

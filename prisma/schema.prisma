@@ -322,6 +322,10 @@ model User {
   email           String?   @unique @db.Citext
   emailVerified   DateTime? @map("email_verified") @db.Timestamptz(6)
   image           String?
+  // P18 (B-P06-02): băm mật khẩu cho đăng nhập Credentials (chỉ tài khoản quản trị).
+  // NULL = tài khoản không có mật khẩu (không thể đăng nhập bằng Credentials).
+  // KHÔNG lưu mật khẩu thô; chỉ lưu chuỗi băm scrypt có salt (xem lib/auth/password.ts).
+  passwordHash    String?   @map("password_hash")
   role            AppRole   @default(user)
   preferredLocale String    @default("vi") @map("preferred_locale")
   createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)

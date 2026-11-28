@@ -1,10 +1,10 @@
 # CURRENT STATUS — WALE COOKING
 
-> Cập nhật: 2026-11-28 (P17 / I1).
+> Cập nhật: 2026-11-28 (P18 — Auth.js Integration).
 
 ## Tóm tắt
 - **Sản phẩm:** WALE COOKING — website cá nhân chuyên công thức & hỗ trợ nấu ăn (**Recipe-focused Cooking Assistant**; tiếng Việt, sẵn sàng i18n EN). **Không** mạng xã hội, **không** cộng đồng, **không** tài khoản khách truy cập.
-- **Phase hiện tại:** hoàn thành **P00**, **P00-FIX**, **P01**, **P02**, **P03**, **P04**, **P05**, **P06**, **P07**, **P07.1**, **P08**, **P09**, **P10**, **P11**, **P12**, **P13.1** (Neon PostgreSQL), **P14** (feature roadmap audit), **P15** (Public Discovery Completion — trang chủ FR-01 + tìm kiếm công khai FR-05), **P16** (Recipe Discovery & Importer Architecture Design — thiết kế kiến trúc, **không** triển khai code) và **I1 (P17)** (Hạ tầng & tiền đề Recipe Importer — schema + permission + khung repository/service; **không** triển khai URL Import). **I2 (URL Import) chưa bắt đầu** (chờ đánh giá của chủ dự án).
+- **Phase hiện tại:** hoàn thành **P00**, **P00-FIX**, **P01**, **P02**, **P03**, **P04**, **P05**, **P06**, **P07**, **P07.1**, **P08**, **P09**, **P10**, **P11**, **P12**, **P13.1** (Neon PostgreSQL), **P14** (feature roadmap audit), **P15** (Public Discovery Completion — trang chủ FR-01 + tìm kiếm công khai FR-05), **P16** (Recipe Discovery & Importer Architecture Design — thiết kế kiến trúc, **không** triển khai code), **I1 (P17)** (Hạ tầng & tiền đề Recipe Importer) và **P18** (**Auth.js Integration** — xác thực & phân quyền nền tảng, giải quyết blocker **B-P06-02**). **I2 (URL Import) chưa bắt đầu** (chờ đánh giá của chủ dự án).
 - **Đã hoàn thiện P00:** khảo sát thực tế + tài liệu định hướng + đề xuất công nghệ.
 - **Đã hoàn thiện P00-FIX:** đồng bộ thương hiệu sang WALE COOKING, bổ sung đầy đủ 20 nhóm chức năng, chuẩn hóa 7 trục phân loại, cập nhật tài liệu trạng thái.
 - **Đã hoàn thiện P01:** bộ đặc tả sản phẩm có thể triển khai — PRD, Product Constitution, personas, user journeys, đặc tả 20 nhóm chức năng, quy tắc nghiệp vụ, NFR đo lường được, phạm vi MVP và tiêu chí nghiệm thu.
@@ -25,13 +25,14 @@
 - **Đã hoàn thiện P15:** **Public Discovery Completion — Trang chủ (FR-01) & Tìm kiếm công khai (FR-05)** (1 AI Agent, không sub-agent; **không** thêm schema/migration; **không** FTS/autocomplete; **không** phụ thuộc Neon/R2) — (1) **P15.1** `lib/services/homepage.service.ts` — `HomepageService.load()` → `{ newest, categories }`: **món mới** `published` sắp theo `publishedAt` giảm dần + giới hạn 6, **danh mục** taxonomy khám phá thật; **tách lỗi độc lập** từng khối (khối lỗi → `null`, `console.error`, không nuốt lỗi), **không N+1** (`Promise.all`), tái sử dụng `recipeService.listPublic` + `taxonomyService.listDiscoveryGroups`; (2) **P15.2** `app/(public)/page.tsx` — thay landing P05 tĩnh bằng **trang chủ dữ liệu thật** (`force-dynamic`): Hero (WALE COOKING + CTA), **ô tìm kiếm** → `/tim-kiem?q=…` (`SearchForm`), khối **“Món mới”** (`RecipeCard`), **Khám phá danh mục** (taxonomy thật → `/danh-muc*`), **Lối vào công cụ**; khối rỗng bị **ẩn**, DB rỗng → `EmptyState` thân thiện; (3) **P15.3** `app/(public)/tim-kiem/page.tsx` — **thay hoàn toàn `PlaceholderPage`** bằng trang tìm kiếm công khai: nhận `q` + bộ lọc (`foodType`/`cuisine`/`difficulty`/`mealType`/`cookingMethod`/`dietary`/`maxMinutes`/`sort`), phân trang, **đồng bộ URL** (chia sẻ được), Empty/Error state, giữ nguyên validation (`sanitizeRecipeListQuery` loại trường sai thay vì lỗi server); (4) **P15.4** UX/trợ năng + mở rộng E2E (semantic heading, `aria-live` số kết quả thật, keyboard/focus, back/forward, 4 viewport); (5) **P15.5** kiểm chứng đầy đủ + tài liệu. **Kiểm chứng P15.5 (thực tế):** `typecheck` 0 lỗi · `lint` 0 lỗi · **363/363 unit** (34 file) · **59/59 integration** (9 file, PostgreSQL 16.15 local `wale_test`) · **52/52 E2E** (Chrome CDP + DB `wale_e2e`) · `build` PASS (26 trang tĩnh; `/` và `/tim-kiem` Dynamic). **14/14 Acceptance Criteria PASS**. Tài liệu `docs/checkpoints/P15.1…P15.4_CHECKPOINT.md` + `docs/checkpoints/P15_CHECKPOINT.md`.
 - **Đã hoàn thiện P16:** **Recipe Discovery & Importer Architecture Design** (phase **audit & thiết kế kiến trúc** — **KHÔNG** triển khai importer, **không** sửa `prisma/schema.prisma`/mã nguồn, **không** thêm dependency, **không** chạy migration/seed; **1 AI Agent**, không sub-agent) — (1) **P16.0** preflight & audit trạng thái thực tế; (2) **P16.1** `SOURCE_DISCOVERY_STRATEGY.md` — 9 phương thức discovery (D1–D9) + 5 tầng phân loại nguồn (discoverable/accessible/extractable/permitted/manual) + **Source Registry** (`ImportSource` + enum `support_status`) + phân tích robots.txt/ToS/copyright/attribution/rate limit/ảnh/opt-out; (3) **P16.2** `EXTRACTION_ENGINE.md` — pipeline **5 bậc E1–E5** (JSON-LD → metadata → site adapter → heuristic → AI), ánh xạ **21 trường** sang DTO thật, **trạng thái trường** `MISSING/UNREADABLE/CONFIRMED/DERIVED/CONFLICT` + bậc + bằng chứng, interface `RecipeExtractor`/`ExtractionEngine`, lưu raw; **không bịa/không quy đổi đơn vị**; (4) **P16.3** `VIETNAMESE_LOCALIZATION.md` — quy trình **7 bước**, lưu song song gốc↔Việt (`RecipeTranslationDraft`), **9 loại lỗi I1–I9**, **không** auto-publish; (5) **P16.4** `DUPLICATE_DETECTION.md` — **6 lớp kiểm** L1–L6, **4 nhãn** EXACT/LIKELY/SIMILAR/DIFFERENT, không tự xoá/ghi đè, quality score; (6) **P16.5** `BATCH_PROCESSING_ARCHITECTURE.md` — **DB-backed queue** + worker stateless + checkpoint/resume/retry/**idempotency**, **16 thành phần**, trần **500 item/đợt**, đánh giá Vercel Hobby (không chạy worker dài hạn); (7) **P16.6** `ADMIN_REVIEW_WORKFLOW.md` — tinh gọn **12→9 trạng thái**, 11 thao tác admin; (8) **P16.7** `DATABASE_DESIGN.md` + `API_DESIGN.md` — **6 entity mới** + **11 enum**, **10 endpoint admin**; (9) **P16.8** `SECURITY_LEGAL_RESOURCE_LIMITS.md` — SSRF/private IP/DNS rebinding/prompt injection, bản quyền & attribution, giới hạn tài nguyên/chi phí; (10) **P16.9** `IMPLEMENTATION_ROADMAP.md` — **11 phase I1–I11**, URL Import trước. Tổng **11 tài liệu `docs/P16/` + 11 checkpoint `docs/checkpoints/P16.*`**; **18/18 Acceptance Criteria PASS**. **Chưa** triển khai code/không sửa schema; blocker hạ tầng Auth.js (B-P06-02) là điều kiện tiên quyết của phase I1.
 - **Đã hoàn thiện I1 (P17):** **Hạ tầng & tiền đề Recipe Importer** — phase **triển khai đầu tiên** sau P16 (theo `docs/P16/IMPLEMENTATION_ROADMAP.md`; **1 AI Agent**, không sub-agent) — (1) **Schema:** mở rộng `prisma/schema.prisma` thêm **11 enum** + **6 entity** (`ImportSource`/`ImportJob`/`ImportJobItem`/`RecipeExtraction`/`RecipeTranslationDraft`/`DuplicateCandidate`) + back-relations trên `User`/`Recipe`; (2) **Migration** `20261128104202_add_recipe_importer_schema` — **chỉ** áp trên DB **dev/test local** (`wale_test`, `wale_e2e`), **KHÔNG** chạm production; (3) **Permission importer** `import:read/manage/approve/publish` + `source:manage` (**admin-only**) trong `lib/auth/authorization.ts`; (4) **Port** `ImportRepository` (+DTO) + **service khung** `ImportService` (guard `import:*`, `createdById` lấy từ actor — không tin client). **Quyết định chủ dự án: HOÃN Auth.js** → giữ `getCurrentActor() → null`, ghi B-P06-02 là **tiền đề bắt buộc** của I2/I6. **Không** triển khai URL Import (I2); **không** API; **không** thêm dependency; **không** tạo tài khoản admin/public registration/social login. **Kiểm chứng:** `typecheck`/`lint` 0 lỗi · **371/371 unit** (35 file) · **59/59 integration** (9 file) · **52/52 E2E** (Chrome CDP + `wale_e2e`) · `build` PASS · **4/4 AC PASS**. Checkpoint [P17_I1_CHECKPOINT.md](./docs/checkpoints/P17_I1_CHECKPOINT.md). **Chưa** xác minh 401/403 qua HTTP phiên thật (Auth.js chưa nối) — **không** tuyên bố production authentication hoạt động.
+- **Đã hoàn thiện P18:** **Auth.js Integration** (xác thực & phân quyền nền tảng — **giải quyết B-P06-02**; tiếp nối I1 tại `9ca6537`; **1 AI Agent**, không sub-agent) — (1) **P18.1 kiến trúc:** chốt **Credentials provider** (email + mật khẩu) + **session strategy JWT (BẮT BUỘC)** — Auth.js **không hỗ trợ database session** cho Credentials; tái dùng bảng `users` (không đổi `sessions`/`accounts`, dành cho OAuth tương lai); role lấy từ `users.role` ký trong JWT; **không BLOCKED** (không cần credentials bên thứ ba); (2) **P18.2 Authentication:** `auth.ts` (NextAuth + callbacks `jwt`/`session`), `app/api/auth/[...nextauth]/route.ts`, trang đăng nhập thật `/dang-nhap` (`AdminSignInForm`), nút **Đăng xuất**; băm mật khẩu **scrypt** (`node:crypto`, không thêm dependency); **chỉ admin/editor** đăng nhập; **không** public registration/tài khoản mặc định/hardcode secret; (3) **P18.3 Authorization:** `getCurrentActor()` nối `await auth()` (điểm nối actor duy nhất), guard `/admin` (layout redirect) + `/api/v1/admin` (401/403); **giữ nguyên** permission importer I1; role **không** lấy từ client; (4) **P18.4 Env & provisioning:** thêm `AUTH_SECRET`/`AUTH_URL` (`.env.example`), script `pnpm admin:create` (băm scrypt, **không** tài khoản mặc định), **không** ghi secret thật; (5) **P18.5 Tests:** `tests/lib/{password,session}.test.ts` (10) + **E2E HTTP thật** `tests/e2e/auth.e2e.ts` (8). **Không** triển khai I2; **không** sửa schema/API importer; migration `20261128123000_add_user_password_hash` **chỉ** dev/test local. **Kiểm chứng:** `typecheck`/`lint` 0 lỗi · **381/381 unit** (37 file) · **59/59 integration** (9 file) · **60/60 E2E** (Chrome CDP + `wale_e2e`) · `build` PASS · **10/10 AC PASS**. Checkpoint [P18_AUTHJS_CHECKPOINT.md](./docs/checkpoints/P18_AUTHJS_CHECKPOINT.md). **Còn lại (ngoài phạm vi P18):** xác minh trên **Neon/Vercel production thật**.
 
 > ⚠️ **Git preflight P15:** repo là **shallow clone 1 commit** ở trạng thái **đã gồm P15.1–P15.4** (`b8b96b3`, message `feat(P15.4)`); commit dự kiến `502a848` (P14) **không tồn tại** trong clone này. Working tree **sạch** → milestone còn lại **P15.5** đã hoàn tất; **không** reset/force-push/rewrite.
 
 ## Git
 | Mục | Giá trị |
 | --- | --- |
-| Branch hiện tại | `trae/agent-da4PT9` (đồng bộ `origin/main`) |
+| Branch hiện tại | `trae/agent-GnjYMp` (đồng bộ `origin/main`) |
 | Remote | `origin` → `https://github.com/walevmn001/WaleCooking` |
 | Commit P00 | `a7c3ee5` — docs(P00): khảo sát dự án, xác lập yêu cầu và checkpoint nền tảng |
 | Commit P00-FIX | `59ca67a` — docs(P00-FIX): đồng bộ thương hiệu WALE COOKING và hoàn thiện phạm vi sản phẩm |
@@ -73,9 +74,10 @@
 | Commit P16.8 | `19dcc31` — docs(p16): P16.8 security, legal & resource limits design |
 | Commit P16.9 | `e3e28a3` — docs(p16): P16.9 implementation roadmap design |
 | Commit P16 final | `3ed47c7` — docs(p16): P16 final report, checkpoint & status update |
-| Commit I1 (P17) | *(commit chứa tài liệu này — xem `git log -1`)* — feat(P17/I1): hạ tầng & tiền đề Recipe Importer (schema 6 entity + 11 enum, permission importer, khung repository/service) |
-| Working tree | Sạch sau khi commit I1 (P17) |
-| `origin/main` | `3ed47c7` (P16 final); cập nhật **fast-forward** sau khi push I1 (xem báo cáo push) |
+| Commit I1 (P17) | `9ca6537` — feat(P17/I1): hạ tầng & tiền đề Recipe Importer (schema 6 entity + 11 enum, permission importer, khung repository/service) |
+| Commit P18 | *(commit chứa tài liệu này — xem `git log -1`)* — feat(P18): tích hợp Auth.js (Credentials + JWT), xác thực quản trị & phân quyền nền tảng (giải quyết B-P06-02) |
+| Working tree | Sạch sau khi commit P18 |
+| `origin/main` | `9ca6537` (I1/P17) trước P18; cập nhật **fast-forward** sau khi push P18 (xem báo cáo push) |
 
 ## Kiến trúc đã chốt (không thay đổi)
 - Stack lớp rời: **Next.js + Prisma + Neon PostgreSQL + Auth.js + Cloudflare R2**.
@@ -293,6 +295,29 @@
 
 **Không** sửa `prisma/schema.prisma`/mã nguồn; **không** thêm dependency; **không** chạy migration/seed/destructive; **không** secrets. **18/18 Acceptance Criteria PASS.**
 
+## Sản phẩm bàn giao P18 (`docs/checkpoints/P18_AUTHJS_CHECKPOINT.md` + mã nguồn & kiểm thử)
+**Checkpoint:** `docs/checkpoints/P18_AUTHJS_CHECKPOINT.md` (báo cáo 11 mục).
+
+**Xác thực (Auth.js v5 — Credentials + JWT):**
+- [auth.ts](file:///workspace/auth.ts) — `NextAuth`: `session.strategy="jwt"`, `pages.signIn="/dang-nhap"`, `trustHost`, Credentials provider, callbacks `jwt`/`session`; module augmentation `next-auth`.
+- [app/api/auth/[...nextauth]/route.ts](file:///workspace/app/api/auth/%5B...nextauth%5D/route.ts) — re-export `handlers` (`GET`/`POST`).
+- [lib/auth/password.ts](file:///workspace/lib/auth/password.ts) — băm/kiểm mật khẩu **scrypt** (`node:crypto`, N=16384/r=8/p=1/keylen=64/salt 16B), format `scrypt$N$r$p$salt$hash`, `timingSafeEqual`.
+- [components/auth/admin-sign-in-form.tsx](file:///workspace/components/auth/admin-sign-in-form.tsx) + [app/(auth)/dang-nhap/page.tsx](file:///workspace/app/(auth)/dang-nhap/page.tsx) — cổng đăng nhập quản trị thật.
+
+**Phân quyền:**
+- [lib/auth/session.ts](file:///workspace/lib/auth/session.ts) — `getCurrentActor()` nối `await auth()` (điểm nối actor duy nhất).
+- [app/(admin)/layout.tsx](file:///workspace/app/(admin)/layout.tsx) — guard server + nút Đăng xuất.
+- Giữ nguyên [lib/auth/authorization.ts](file:///workspace/lib/auth/authorization.ts) (RBAC + 5 permission importer từ I1).
+
+**Provisioning & env:**
+- [scripts/create-admin.ts](file:///workspace/scripts/create-admin.ts) — `pnpm admin:create` (băm scrypt; **không** tài khoản/mật khẩu mặc định).
+- [.env.example](file:///workspace/.env.example) — `AUTH_SECRET` (bắt buộc runtime) + `AUTH_URL` + hướng dẫn provisioning.
+- `prisma/schema.prisma` — `User.passwordHash`; migration `20261128123000_add_user_password_hash` (**chỉ** dev/test local).
+
+**Kiểm thử:** `tests/lib/password.test.ts` (4) · `tests/lib/session.test.ts` (6) · `tests/e2e/{auth.e2e.ts (8), accounts.ts}` + cập nhật `seed-e2e.ts`/`admin.e2e.ts`/`api.e2e.ts`.
+
+**Kiểm chứng:** `typecheck` 0 lỗi · `lint` 0 lỗi · **381/381 unit** (37 file) · **59/59 integration** (9 file) · **60/60 E2E HTTP thật** (Chrome CDP + `wale_e2e`) · `build` PASS · **10/10 AC PASS**.
+
 ## Việc còn chờ xác minh
 - **B5:** repo là shallow clone (ảnh hưởng thấp).
 - **B6:** chưa có tài khoản/môi trường triển khai (Neon, R2, Vercel/Cloudflare…).
@@ -306,19 +331,19 @@
 - **B-P04-01:** **render pixel & tương thích runtime** của asset P04 (mascot trên nền P03, logo ≥16–24px, `currentColor` trên Safari/Firefox) **chưa xác minh** — asset đã được tích hợp vào UI ở P05 (`SiteLogo`, `RecipeImage`, `EmptyState`, `ErrorState`, `not-found`), nhưng render thật vẫn chưa kiểm; **còn mở**.
 - **B-P05-01:** chưa kiểm trình duyệt thật / E2E / console runtime; không tuyên bố đạt WCAG 2.2 AA.
 - **B-P06-01:** chưa xác minh kết nối **Neon PostgreSQL thật** (dùng PostgreSQL 16.15 local).
-- **B-P06-02:** **Auth.js chưa nối** → chưa kiểm 401/403 end-to-end (`getCurrentActor()` trả `null`).
+- **B-P06-02:** ~~**Auth.js chưa nối**~~ → **✅ ĐÃ GIẢI QUYẾT (P18)** — Auth.js (Credentials + JWT) đã nối; `getCurrentActor()` trả actor từ phiên thật; 401/403 kiểm chứng qua HTTP thật (E2E). Xem [P18_AUTHJS_CHECKPOINT.md](./docs/checkpoints/P18_AUTHJS_CHECKPOINT.md).
 - **B-P07-01:** chưa xác minh media trên **Cloudflare R2 thật** (chạy local provider).
-- **B-P07-02:** chưa có test **HTTP end-to-end** cho authorization (mới kiểm ở tầng service).
+- **B-P07-02:** ~~chưa có test HTTP end-to-end cho authorization~~ → **✅ ĐÃ GIẢI QUYẾT (P18)** — thêm `tests/e2e/auth.e2e.ts` (8 test HTTP thật: 200/401/403/client sửa role/cookie giả mạo).
 - **B-P07-03:** chưa nối luồng **upload ảnh trong form quản trị** với `POST /api/v1/media`.
 - **B-P07-04:** chưa kiểm **UI module Recipe trên trình duyệt thật** (kế thừa B-P05-01).
 - **B-P07-05:** chưa siết BR-03 "nội dung tự biên soạn" & chưa có quy trình reviewer nhiều bước.
 - **B-P07_1-01:** chưa xác minh **Neon PostgreSQL thật** (External Verification Pending; kế thừa B-P06-01).
 - **B-P07_1-02:** chưa xác minh **Cloudflare R2 thật** (External Verification Pending; media chạy local provider).
-- **B-P07_1-03:** chưa xác minh **đăng nhập quản trị (Auth.js)** → chưa kiểm 401/403 qua HTTP phiên thật.
+- **B-P07_1-03:** ~~chưa xác minh **đăng nhập quản trị (Auth.js)**~~ → **✅ ĐÃ GIẢI QUYẾT (P18)** — đăng nhập quản trị + 401/403 kiểm chứng qua HTTP thật.
 - **B-P07_1-04:** chưa chạy **E2E trình duyệt thật** (yêu thích cookie, responsive, a11y).
 - **B-P08-01:** chưa chạy **integration test taxonomy** (đã viết, sandbox không có PostgreSQL — External Verification Pending).
 - **B-P08-02:** chưa kiểm **trang danh mục trên trình duyệt thật** (responsive, SEO/canonical/JSON-LD, a11y).
-- **B-P08-03:** chưa xác minh **phân quyền quản trị taxonomy qua HTTP phiên thật** (Auth.js chưa nối).
+- **B-P08-03:** ~~chưa xác minh **phân quyền quản trị taxonomy qua HTTP phiên thật**~~ → **✅ ĐÃ GIẢI QUYẾT (P18)** — E2E: editor tạo taxonomy → 403; admin → được phép.
 - **B-P08-04:** chưa có **ảnh đại diện/SEO cho danh mục** (schema chưa có cột — ghi backlog).
 - **B-P10-01:** chưa kiểm **đồng hồ đếm ngược trên thiết bị thật khi đứng bếp** (tab ẩn/throttle, khoá màn hình, phát âm thanh, Notification API, rung) — External Verification Pending.
 - **B-P10-02:** chưa chạy **integration test P10.3 (tìm món theo nguyên liệu)** → **ĐÃ GIẢI QUYẾT (P11)** — `tests/integration/kitchen.ingredient-match.test.ts` (4 test) đã **chạy thành công trên PostgreSQL thật** trong P11 (59/59 integration test pass).
@@ -329,18 +354,19 @@
 - **B-P12-01:** chưa xác minh **Neon PostgreSQL thật** (External Verification Pending) — sandbox không có credentials Neon; đã xác minh gián tiếp qua PostgreSQL 16.15 local + `prisma migrate deploy` chờ chủ dự án chạy.
 - **B-P12-02:** chưa xác minh **Cloudflare R2 thật** (External Verification Pending) — cần cấu hình `R2_*` trên Vercel; thiếu → production **ném lỗi rõ ràng** (guard P12.3), không ghi FS tạm.
 - **B-P12-03:** chưa xác minh **Vercel production deployment** — không có quyền truy cập Vercel; đã xác minh **build local PASS** khi thiếu `DATABASE_URL`.
-- **B-P12-04:** chưa xác minh **đăng nhập Admin thật / RBAC qua HTTP** — Auth.js chưa nối (`getCurrentActor()` → `null`); kế thừa B-P07_1-03.
+- **B-P12-04:** ~~chưa xác minh **đăng nhập Admin thật / RBAC qua HTTP**~~ → **✅ ĐÃ GIẢI QUYẾT (P18)** — Auth.js đã nối; E2E kiểm đăng nhập Admin thật + RBAC (admin 200 / editor 403 / guest 401).
 - Hạn mức gói miễn phí đã ghi theo thời điểm **11/2026** — cần kiểm tra lại trước khi deploy.
 
 ## Phase tiếp theo
-- **I1 (P17) hoàn thành** (trong giới hạn môi trường) — phase **triển khai đầu tiên** của Recipe Importer: hạ tầng & tiền đề (schema 6 entity + 11 enum, migration dev/test, permission importer admin-only, khung repository/service). **4/4 AC PASS**. Checkpoint [P17_I1_CHECKPOINT.md](./docs/checkpoints/P17_I1_CHECKPOINT.md). **KHÔNG** chuyển sang I2 trong lần thực hiện này.
+- **P18 hoàn thành** (trong giới hạn môi trường) — **Auth.js Integration**: xác thực quản trị (Credentials + JWT) + phân quyền nền tảng; **giải quyết B-P06-02**. **10/10 AC PASS**. Checkpoint [P18_AUTHJS_CHECKPOINT.md](./docs/checkpoints/P18_AUTHJS_CHECKPOINT.md). **DỪNG — KHÔNG** tự chuyển sang I2.
+- **I1 (P17) hoàn thành** — hạ tầng & tiền đề Recipe Importer: schema 6 entity + 11 enum, migration dev/test, permission importer admin-only, khung repository/service. **4/4 AC PASS**. Checkpoint [P17_I1_CHECKPOINT.md](./docs/checkpoints/P17_I1_CHECKPOINT.md).
 - **Bước kế tiếp — I2 (Core URL Import): CHƯA triển khai — chờ đánh giá của chủ dự án.** Theo roadmap `docs/P16/IMPLEMENTATION_ROADMAP.md` (11 phase I1–I11): **I2 (Core URL Import)** → I6 (duyệt admin). **URL Import hoạt động ổn định trước**, rồi mới Auto Discovery (I8) & batch 500 (I7).
-- **Điều kiện tiên quyết của I2 (và I6):** nối **Auth.js** (blocker **B-P06-02**) — hiện `getCurrentActor()` → `null`, mọi kiểm quyền importer mới mới enforce ở **tầng guard/service**, chưa qua HTTP phiên thật.
-- **BLOCKED (thiếu môi trường)** — cần chủ dự án thao tác thủ công: chạy `prisma migrate deploy` trên Neon, cấu hình `R2_*` trên Vercel, kiểm tra deployment Vercel, nối Auth.js. Xem [MANUAL_VERIFICATION_CHECKLIST.md](./docs/P12/MANUAL_VERIFICATION_CHECKLIST.md).
-- Các hạng mục "External Verification Pending" (Neon/R2/Auth.js/Vercel, thiết bị thật, a11y chuyên sâu) tiếp tục theo dõi ở `BLOCKERS.md`.
+- **Điều kiện tiên quyết của I2 (và I6): ✅ ĐÃ GỠ** — **B-P06-02** đã giải quyết ở P18 (Auth.js đã nối; 401/403 kiểm qua HTTP thật).
+- **BLOCKED (thiếu môi trường)** — cần chủ dự án thao tác thủ công: chạy `prisma migrate deploy` trên Neon, cấu hình `R2_*` + `AUTH_SECRET` trên Vercel, kiểm tra deployment Vercel, tạo tài khoản admin đầu tiên bằng `pnpm admin:create` trên môi trường thật. Xem [MANUAL_VERIFICATION_CHECKLIST.md](./docs/P12/MANUAL_VERIFICATION_CHECKLIST.md).
+- Các hạng mục "External Verification Pending" (Neon/R2/Vercel, thiết bị thật, a11y chuyên sâu) tiếp tục theo dõi ở `BLOCKERS.md`.
 - **Backlog định hướng tương lai** (chưa triển khai): thực đơn theo ngày; bộ lọc theo thời gian/độ khó; hướng dẫn sơ chế & bảo quản; danh sách đi chợ; đồng bộ tiến độ nấu giữa thiết bị.
 
 ## Tham chiếu
 - [PHASE_PROGRESS.md](./PHASE_PROGRESS.md) · [DECISIONS.md](./DECISIONS.md) · [BLOCKERS.md](./BLOCKERS.md)
-- Checkpoint: [docs/checkpoints/P07_1_CHECKPOINT.md](./docs/checkpoints/P07_1_CHECKPOINT.md) · [docs/checkpoints/P08_CHECKPOINT.md](./docs/checkpoints/P08_CHECKPOINT.md) · [docs/checkpoints/P09_CHECKPOINT.md](./docs/checkpoints/P09_CHECKPOINT.md) · [docs/checkpoints/P10_CHECKPOINT.md](./docs/checkpoints/P10_CHECKPOINT.md) · [docs/checkpoints/P11_CHECKPOINT.md](./docs/checkpoints/P11_CHECKPOINT.md) · [docs/checkpoints/P12_CHECKPOINT.md](./docs/checkpoints/P12_CHECKPOINT.md) · [docs/checkpoints/P15_CHECKPOINT.md](./docs/checkpoints/P15_CHECKPOINT.md) · [docs/checkpoints/P16_CHECKPOINT.md](./docs/checkpoints/P16_CHECKPOINT.md) · [docs/checkpoints/P17_I1_CHECKPOINT.md](./docs/checkpoints/P17_I1_CHECKPOINT.md)
+- Checkpoint: [docs/checkpoints/P07_1_CHECKPOINT.md](./docs/checkpoints/P07_1_CHECKPOINT.md) · [docs/checkpoints/P08_CHECKPOINT.md](./docs/checkpoints/P08_CHECKPOINT.md) · [docs/checkpoints/P09_CHECKPOINT.md](./docs/checkpoints/P09_CHECKPOINT.md) · [docs/checkpoints/P10_CHECKPOINT.md](./docs/checkpoints/P10_CHECKPOINT.md) · [docs/checkpoints/P11_CHECKPOINT.md](./docs/checkpoints/P11_CHECKPOINT.md) · [docs/checkpoints/P12_CHECKPOINT.md](./docs/checkpoints/P12_CHECKPOINT.md) · [docs/checkpoints/P15_CHECKPOINT.md](./docs/checkpoints/P15_CHECKPOINT.md) · [docs/checkpoints/P16_CHECKPOINT.md](./docs/checkpoints/P16_CHECKPOINT.md) · [docs/checkpoints/P17_I1_CHECKPOINT.md](./docs/checkpoints/P17_I1_CHECKPOINT.md) · [docs/checkpoints/P18_AUTHJS_CHECKPOINT.md](./docs/checkpoints/P18_AUTHJS_CHECKPOINT.md)
 - Tài liệu P00: [docs/P00](./docs/P00/) · P01: [docs/P01](./docs/P01/) · P02: [docs/P02](./docs/P02/) · P03: [docs/P03](./docs/P03/) · P04: [docs/P04](./docs/P04/) · P05: [docs/P05](./docs/P05/) · P06: [docs/P06](./docs/P06/) · P07: [docs/P07](./docs/P07/) · P07.1: [docs/P07_1](./docs/P07_1/) · P08: [docs/P08](./docs/P08/) · P09: [docs/P09](./docs/P09/) · P10: [docs/P10](./docs/P10/) · P11: [docs/P11](./docs/P11/) · P12: [docs/P12](./docs/P12/) · P16: [docs/P16](./docs/P16/)

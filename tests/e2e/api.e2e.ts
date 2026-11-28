@@ -4,7 +4,8 @@ import { expect, test } from "./fixtures";
  * E2E — API (P12.4 §D). Dùng `request` fixture (APIRequestContext, áp dụng `baseURL`).
  *
  * Kiểm tra mã trạng thái + hình dạng dữ liệu THỰC, không chỉ "gọi được".
- * Lưu ý: Auth.js chưa nối → mọi endpoint cần quyền trả 401 (hành vi an toàn đúng).
+ * Lưu ý: Auth.js đã nối (P18) → endpoint cần quyền trả 401 khi CHƯA đăng nhập
+ * (hành vi an toàn đúng); kiểm tra RBAC với phiên thật nằm ở `tests/e2e/auth.e2e.ts`.
  */
 
 test.describe("API — công khai", () => {
