@@ -226,11 +226,16 @@ export default async function SearchPage({
           }
         />
       ) : data && data.items.length > 0 ? (
-        <>
-          <p className="mt-8 text-body-sm text-ink-muted" aria-live="polite">
-            {data.total} kết quả
-          </p>
-          <ul className="mt-4 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <section aria-labelledby="search-results-heading" className="mt-8 flex flex-col gap-4">
+          <div className="flex flex-col gap-1">
+            <h2 id="search-results-heading" className="text-h3 text-ink">
+              Kết quả tìm kiếm
+            </h2>
+            <p className="text-body-sm text-ink-muted" aria-live="polite">
+              {data.total} kết quả
+            </p>
+          </div>
+          <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {data.items.map((dto, index) => (
               <li key={dto.id}>
                 <RecipeCard
@@ -250,12 +255,12 @@ export default async function SearchPage({
             ))}
           </ul>
           <Pagination
-            className="mt-10"
+            className="mt-6"
             page={data.page}
             totalPages={data.totalPages}
             hrefFor={(page) => buildRecipeListHref(params, { page }, SEARCH_BASE)}
           />
-        </>
+        </section>
       ) : (
         <EmptyState
           className="mt-8"

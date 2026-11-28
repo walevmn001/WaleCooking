@@ -13,8 +13,8 @@ const SLUG = "e2e-canh-trung-ca-chua";
 const TITLE = "Canh trứng cà chua (E2E)";
 const OTHER_TITLE = "Phở bò (E2E)";
 
-test.describe("Public — trang chủ & điều hướng", () => {
-  test("hiển thị thương hiệu và điều hướng tới kho công thức", async ({ page }) => {
+test.describe("Public — trang chủ dữ liệu thật (FR-01)", () => {
+  test("hiển thị thương hiệu, ô tìm kiếm và điều hướng tới kho công thức", async ({ page }) => {
     await page.goto("/");
 
     await expect(page.getByRole("heading", { level: 1, name: /WALE COOKING/i })).toBeVisible();
@@ -22,10 +22,23 @@ test.describe("Public — trang chủ & điều hướng", () => {
       page.getByRole("navigation", { name: "Điều hướng chính", exact: true }),
     ).toBeVisible();
 
-    await page.getByRole("link", { name: "Khám phá công thức" }).click();
+    // Ô tìm kiếm trong hero (phạm vi `section` để không lẫn với ô tìm kiếm ở header).
+    const hero = page.locator('section[aria-labelledby="hero-heading"]');
+    await expect(hero.getByRole("searchbox")).toBeVisible();
+
+    await page.getByRole("link", { name: "Khám phá thư viện" }).click();
 
     await expect(page).toHaveURL(/\/cong-thuc$/);
     await expect(page.getByRole("heading", { level: 1, name: "Công thức" })).toBeVisible();
+  });
+
+  test("hiển thị khối món mới với công thức đã xuất bản thật", async ({ page }) => {
+    await page.goto("/");
+
+    const newest = page.getByRole("region", { name: "Món mới" });
+    await expect(newest.getByRole("heading", { name: TITLE })).toBeVisible();
+    // Bản nháp KHÔNG được lên trang chủ.
+    await expect(page.getByText("Món nháp (E2E)")).toHaveCount(0);
   });
 });
 
@@ -69,6 +82,75 @@ test.describe("Public — danh sách công thức", () => {
     await expect(page.getByText("1 công thức", { exact: true })).toBeVisible();
     await expect(page.getByRole("heading", { name: TITLE })).toBeVisible();
     await expect(page.getByRole("heading", { name: OTHER_TITLE })).toHaveCount(0);
+  });
+});
+
+test.describe("Public — tìm kiếm công khai (FR-05)", () => {
+  test("trang /tim-kiem thay PlaceholderPage: hiển thị tiêu đề và giao diện giới thiệu", async ({
+    page,
+  }) => {
+    const response = await page.goto("/tim-kiem");
+    expect(response?.status()).toBe(200);
+
+    await expect(page.getByRole("heading", { level: 1, name: "Tìm kiếm" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Bắt đầu tìm kiếm" })).toBeVisible();
+    await expect(page.getByRole("region", { name: "Tìm kiếm và lọc công thức" })).toBeVisible();
+  });
+
+  test("tìm từ trang chủ chuyển sang /tim-kiem kèm từ khoá và hiển thị kết quả thật", async ({
+    page,
+  }) => {
+    await page.goto("/");
+
+    const hero = page.locator('section[aria-labelledby="hero-heading"]');
+    await hero.getByRole("searchbox").fill("Canh");
+    await hero.getByRole("button", { name: "Tìm kiếm", exact: true }).click();
+
+    await expect(page).toHaveURL(/\/tim-kiem\?q=Canh/);
+    await expect(page.getByText("1 kết quả", { exact: true })).toBeVisible();
+    await expect(page.getByRole("heading", { name: TITLE })).toBeVisible();
+    await expect(page.getByRole("heading", { name: OTHER_TITLE })).toHaveCount(0);
+  });
+
+  test("bộ lọc trên /tim-kiem cập nhật URL và kết quả", async ({ page }) => {
+    await page.goto("/tim-kiem");
+
+    await page.getByLabel("Loại món").selectOption("main_dish");
+
+    await expect(page).toHaveURL(/\/tim-kiem\?foodType=main_dish/);
+    await expect(page.getByText("1 kết quả", { exact: true })).toBeVisible();
+    await expect(page.getByRole("heading", { name: TITLE })).toBeVisible();
+    await expect(page.getByRole("heading", { name: OTHER_TITLE })).toHaveCount(0);
+  });
+
+  test("từ khoá không khớp hiển thị trạng thái rỗng và xoá bộ lọc về /tim-kiem", async ({
+    page,
+  }) => {
+    await page.goto("/tim-kiem?q=khong-co-mon-nao-nhu-vay");
+
+    await expect(page.getByRole("heading", { name: "Không tìm thấy công thức" })).toBeVisible();
+    await page.getByRole("link", { name: "Xoá bộ lọc" }).click();
+    await expect(page).toHaveURL(/\/tim-kiem$/);
+  });
+
+  test("tham số URL không hợp lệ không gây lỗi server", async ({ page }) => {
+    const response = await page.goto(
+      "/tim-kiem?maxMinutes=999999&difficulty=xyz&foodType=%3F%3F%3F&page=abc&mealType=",
+    );
+    expect(response?.status()).toBe(200);
+    await expect(page.getByRole("heading", { level: 1, name: "Tìm kiếm" })).toBeVisible();
+  });
+
+  test("điều hướng back/forward giữ nguyên trạng thái tìm kiếm", async ({ page }) => {
+    await page.goto("/tim-kiem?q=Canh");
+    await expect(page.getByRole("heading", { name: TITLE })).toBeVisible();
+
+    await page.getByRole("heading", { name: TITLE }).getByRole("link").click();
+    await expect(page).toHaveURL(new RegExp(`/cong-thuc/${SLUG}$`));
+
+    await page.goBack();
+    await expect(page).toHaveURL(/\/tim-kiem\?q=Canh/);
+    await expect(page.getByRole("heading", { name: TITLE })).toBeVisible();
   });
 });
 

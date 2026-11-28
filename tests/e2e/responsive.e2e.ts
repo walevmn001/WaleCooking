@@ -22,6 +22,8 @@ const VIEWPORTS = [
 
 const PAGES = [
   { path: "/", label: "Trang chủ" },
+  { path: "/tim-kiem", label: "Tìm kiếm (chưa nhập)" },
+  { path: "/tim-kiem?q=Canh", label: "Tìm kiếm (có kết quả)" },
   { path: "/cong-thuc", label: "Danh sách công thức" },
   { path: "/cong-thuc/e2e-canh-trung-ca-chua", label: "Chi tiết công thức" },
   { path: "/cong-cu/quy-doi-don-vi", label: "Quy đổi đơn vị" },
@@ -155,5 +157,65 @@ test.describe("Bàn phím — điều hướng & focus", () => {
       (focused!.outlineStyle !== "none" && focused!.outlineWidth !== "0px") ||
       (focused!.boxShadow !== "none" && focused!.boxShadow !== "");
     expect(hasVisibleFocus, `Focus không có dấu hiệu hiển thị: ${JSON.stringify(focused)}`).toBe(true);
+  });
+});
+
+test.describe("Trợ năng — trang chủ & tìm kiếm (P15.4)", () => {
+  test.use({ viewport: { width: 1440, height: 900 } });
+
+  test("trang chủ có đúng một h1 và các khối dùng heading ngữ nghĩa", async ({ page }) => {
+    await page.goto("/");
+
+    await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);
+    await expect(page.getByRole("heading", { level: 1, name: /WALE COOKING/i })).toBeVisible();
+    // Khối "Món mới" là một vùng có tên (region) với heading riêng.
+    await expect(page.getByRole("region", { name: "Món mới" })).toBeVisible();
+    await expect(page.getByRole("region", { name: "Công cụ nhà bếp" })).toBeVisible();
+  });
+
+  test("trang tìm kiếm có đúng một h1, nhãn lọc và số kết quả qua aria-live", async ({ page }) => {
+    await page.goto("/tim-kiem?q=Canh");
+
+    await expect(page.getByRole("heading", { level: 1, name: "Tìm kiếm" })).toHaveCount(1);
+
+    const filters = page.getByRole("region", { name: "Tìm kiếm và lọc công thức" });
+    await expect(filters.getByRole("searchbox")).toHaveAttribute("aria-label", /./);
+    await expect(page.getByLabel("Loại món")).toBeVisible();
+    await expect(page.getByLabel("Sắp xếp")).toBeVisible();
+
+    // Số kết quả đếm THẬT được công bố cho screen reader (không phải số giả).
+    await expect(
+      page.locator('section[aria-labelledby="search-results-heading"] [aria-live="polite"]'),
+    ).toContainText("1 kết quả");
+  });
+
+  test("bàn phím tới được ô tìm kiếm trên /tim-kiem và focus hiển thị", async ({ page }) => {
+    await page.goto("/tim-kiem");
+
+    const searchbox = page
+      .getByRole("region", { name: "Tìm kiếm và lọc công thức" })
+      .getByRole("searchbox");
+
+    let reached = false;
+    for (let i = 0; i < 25 && !reached; i += 1) {
+      await page.keyboard.press("Tab");
+      reached = await searchbox.evaluate((el) => el === document.activeElement);
+    }
+    expect(reached, "Không thể tới ô tìm kiếm bằng phím Tab").toBe(true);
+
+    const focused = await searchbox.evaluate((el) => {
+      const style = window.getComputedStyle(el);
+      return {
+        outlineStyle: style.outlineStyle,
+        outlineWidth: style.outlineWidth,
+        boxShadow: style.boxShadow,
+      };
+    });
+    const hasVisibleFocus =
+      (focused.outlineStyle !== "none" && focused.outlineWidth !== "0px") ||
+      (focused.boxShadow !== "none" && focused.boxShadow !== "");
+    expect(hasVisibleFocus, `Ô tìm kiếm thiếu dấu hiệu focus: ${JSON.stringify(focused)}`).toBe(
+      true,
+    );
   });
 });
