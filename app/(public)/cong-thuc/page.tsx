@@ -2,10 +2,12 @@ import type { Metadata } from "next";
 import { Container } from "@/components/layout/container";
 import { Breadcrumb } from "@/components/navigation/breadcrumb";
 import { Pagination } from "@/components/navigation/pagination";
+import { FavoriteButton } from "@/components/recipe/favorite-button";
 import { RecipeCard } from "@/components/recipe/recipe-card";
 import { RecipeFilters } from "@/components/recipe/recipe-filters";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ErrorState } from "@/components/ui/error-state";
+import { readFavorites } from "@/lib/favorites/server";
 import { buildRecipeListHref, parseRecipeListParams } from "@/lib/presentation/recipe-links";
 import { toRecipeSummary } from "@/lib/presentation/recipe-view";
 import { catalogService, recipeService } from "@/lib/services";
@@ -58,6 +60,9 @@ export default async function RecipesPage({ searchParams }: RecipesPageProps) {
   const foodTypes = foodTypeTerms.map((term) => ({ value: term.slug, label: term.name }));
   const cuisines = cuisineTerms.map((term) => ({ value: term.slug, label: term.name }));
 
+  // Trạng thái yêu thích (cookie) để tô sáng nút trái tim — không cần đăng nhập.
+  const favoriteSlugs = new Set(await readFavorites().catch(() => [] as string[]));
+
   return (
     <Container className="py-8 sm:py-12">
       <Breadcrumb items={[{ label: "Trang chủ", href: "/" }, { label: "Công thức" }]} />
@@ -94,6 +99,13 @@ export default async function RecipesPage({ searchParams }: RecipesPageProps) {
                   recipe={toRecipeSummary(dto)}
                   href={`/cong-thuc/${dto.slug}`}
                   priority={index < 3}
+                  favoriteSlot={
+                    <FavoriteButton
+                      slug={dto.slug}
+                      initialFavorite={favoriteSlugs.has(dto.slug)}
+                      variant="icon"
+                    />
+                  }
                   className="h-full"
                 />
               </li>

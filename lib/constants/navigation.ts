@@ -15,33 +15,32 @@ export interface NavItem {
 /** Điều hướng chính trên Header (desktop + mobile drawer). */
 export const primaryNav: NavItem[] = [
   { label: "Trang chủ", href: "/", placeholder: false },
-  { label: "Công thức", href: "/cong-thuc", description: "Kho công thức nấu ăn", placeholder: true },
-  { label: "Danh mục", href: "/danh-muc", description: "Phân loại theo món, vùng miền, phương pháp", placeholder: true },
+  { label: "Công thức", href: "/cong-thuc", description: "Kho công thức nấu ăn", placeholder: false },
+  { label: "Danh mục", href: "/danh-muc", description: "Phân loại theo món, vùng miền, phương pháp", placeholder: false },
   { label: "Kiến thức nấu ăn", href: "/kien-thuc", description: "Bài viết, mẹo và hướng dẫn", placeholder: true },
-  { label: "Yêu thích", href: "/yeu-thich", description: "Công thức đã lưu", placeholder: true },
+  { label: "Yêu thích", href: "/yeu-thich", description: "Công thức đã lưu", placeholder: false },
 ];
 
-/** Mục tài khoản (Header account entry). */
-export const accountNav: NavItem[] = [
-  { label: "Tài khoản", href: "/tai-khoan", placeholder: true },
-];
-
-/** Liên kết ở Footer — nhóm điều hướng. */
+/**
+ * Liên kết ở Footer — nhóm điều hướng.
+ *
+ * Lưu ý (P07.1): sản phẩm KHÔNG có tài khoản khách → không còn mục "Tài khoản của tôi".
+ * Footer chỉ giữ lối vào **quản trị** (`/dang-nhap`).
+ */
 export const footerNavGroups: { title: string; items: NavItem[] }[] = [
   {
     title: "Khám phá",
     items: [
-      { label: "Công thức", href: "/cong-thuc", placeholder: true },
-      { label: "Danh mục", href: "/danh-muc", placeholder: true },
+      { label: "Công thức", href: "/cong-thuc", placeholder: false },
+      { label: "Danh mục", href: "/danh-muc", placeholder: false },
       { label: "Kiến thức nấu ăn", href: "/kien-thuc", placeholder: true },
-      { label: "Yêu thích", href: "/yeu-thich", placeholder: true },
+      { label: "Yêu thích", href: "/yeu-thich", placeholder: false },
     ],
   },
   {
-    title: "Tài khoản",
+    title: "Quản trị",
     items: [
-      { label: "Đăng nhập", href: "/dang-nhap", placeholder: true },
-      { label: "Tài khoản của tôi", href: "/tai-khoan", placeholder: true },
+      { label: "Đăng nhập quản trị", href: "/dang-nhap", placeholder: true },
     ],
   },
   {

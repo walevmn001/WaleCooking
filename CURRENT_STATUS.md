@@ -1,10 +1,10 @@
 # CURRENT STATUS — WALE COOKING
 
-> Cập nhật: 2026-11-28 (P07).
+> Cập nhật: 2026-11-28 (P07.1).
 
 ## Tóm tắt
-- **Sản phẩm:** WALE COOKING — website hướng dẫn nấu ăn (tiếng Việt, sẵn sàng i18n EN).
-- **Phase hiện tại:** hoàn thành **P00**, **P00-FIX**, **P01**, **P02**, **P03**, **P04**, **P05**, **P06** và **P07**; **chưa bắt đầu P08.**
+- **Sản phẩm:** WALE COOKING — website cá nhân chuyên công thức & hỗ trợ nấu ăn (**Recipe-focused Cooking Assistant**; tiếng Việt, sẵn sàng i18n EN). **Không** mạng xã hội, **không** cộng đồng, **không** tài khoản khách truy cập.
+- **Phase hiện tại:** hoàn thành **P00**, **P00-FIX**, **P01**, **P02**, **P03**, **P04**, **P05**, **P06**, **P07** và **P07.1**; **chưa bắt đầu P08.**
 - **Đã hoàn thiện P00:** khảo sát thực tế + tài liệu định hướng + đề xuất công nghệ.
 - **Đã hoàn thiện P00-FIX:** đồng bộ thương hiệu sang WALE COOKING, bổ sung đầy đủ 20 nhóm chức năng, chuẩn hóa 7 trục phân loại, cập nhật tài liệu trạng thái.
 - **Đã hoàn thiện P01:** bộ đặc tả sản phẩm có thể triển khai — PRD, Product Constitution, personas, user journeys, đặc tả 20 nhóm chức năng, quy tắc nghiệp vụ, NFR đo lường được, phạm vi MVP và tiêu chí nghiệm thu.
@@ -14,11 +14,12 @@
 - **Đã hoàn thiện P05:** **Application Foundation & Shared UI System** — (A) nền tảng + 60 component dùng chung (ui/forms/navigation/feedback/recipe/recipe-meta/layout) theo token P03, dùng Lucide + asset P04; (B) Application Shell: Root/Public/Auth/Admin layout, Header (desktop/tablet/mobile), Navigation, MobileMenu, Footer; trang kiểm tra dev-only `/dev/components`. **Kiểm chứng:** `typecheck` 0 lỗi · `lint` 0 lỗi/0 cảnh báo · **60/60 unit test pass** (11 file) · `build` thành công **15 route**. **Chưa** kiểm trình duyệt thật / axe / screen reader / zoom 200% → **không tuyên bố đạt WCAG 2.2 AA**.
 - **Đã hoàn thiện P06:** **Database Foundation** — Prisma schema theo P02 (**22 enum / 57 model**; **58 bảng** trong DB), Prisma client singleton, kiểm tra biến môi trường, migration baseline tái lập được (`20261127175936_init`, chạy từ DB sạch), seed hệ thống **idempotent** (9 taxonomy type/83 term, 22 unit, 10 equipment, 40 ingredient, 1 content source), lớp **repository + service + validation + authorization tập trung**. **Kiểm chứng:** `prisma validate/generate` OK · migration áp thành công lên `wale_dev`+`wale_test` · seed chạy 2 lần không trùng · **78/78 unit test** (14 file) · **28/28 integration test** (5 file) · `typecheck` 0 lỗi · `lint` 0 lỗi · `build` 15 route. **Chưa kết nối Neon thật** (dùng PostgreSQL local); Auth.js **chưa nối** → `getCurrentActor()` trả `null` (không giả lập đăng nhập).
 - **Đã hoàn thiện P07:** **Recipe Module** — domain công thức (Recipe/Translation/Ingredient/Step/Nutrition/Allergen/Source/Version) trên nền dữ liệu P06; **CRUD + workflow** (draft → in_review → published → archived, xóa mềm); **API** `/api/v1/recipes*` + `/api/v1/admin/recipes` + `/api/v1/media*` theo contract P02; **media adapter** (R2 mục tiêu + local cho dev/test; magic bytes, khóa do server sinh); **frontend** listing/detail công khai + quản trị create/edit **tái sử dụng component P05**; **authorization tập trung** (RBAC, actor=null ⇒ 401, không hardcode role); **transaction** bảo toàn thứ tự nguyên liệu/bước; JSON-LD schema.org/Recipe. **Kiểm chứng:** **124/124 unit test** (18 file) · **50/50 integration test** (7 file) · `typecheck` 0 lỗi · `lint` 0 lỗi · `build` **29 route**. **Chưa xác minh trên dịch vụ thật**: Auth.js chưa nối (chưa test 401/403 qua HTTP), chưa có credentials R2 (media chạy local provider); nội dung công thức trong test là **fixture**, không tuyên bố có công thức thật đã xuất bản.
+- **Đã hoàn thiện P07.1:** **Integration Verification & Blocker Closure** — audit tích hợp thực tế sau P06/P07 (bảng thành phần, không giả định P07 đã chạy thật); điều chỉnh phạm vi theo mô hình **không tài khoản khách**; **module yêu thích bằng cookie** (HttpOnly `wale_favorites` + Server Actions, có **version**, dedupe, giới hạn **50**, xử lý cookie hỏng/quá lớn/version lạ, chỉ hiển thị công thức còn `published`; **không** ghi DB, **không** dùng localStorage); giữ **Auth.js** chỉ cho quản trị (không tạo hệ auth thứ hai); phân loại bảng DB + **2 ADR** (không drop/xóa bảng, không sửa lịch sử migration). **Kiểm chứng:** `typecheck` 0 lỗi · `lint` 0 lỗi · **153/153 unit test** (19 file, +29 test module cookie) · `build` **28 route** (đặt `DATABASE_URL` placeholder — dự án yêu cầu biến này để build route DB). **Chưa xác minh (External Verification Pending):** Neon PostgreSQL, Cloudflare R2, Auth.js/HTTP 401-403, E2E trình duyệt — sandbox không có credentials/browser/DB. Tài liệu `docs/P07_1/` + `docs/checkpoints/P07_1_CHECKPOINT.md`.
 
 ## Git
 | Mục | Giá trị |
 | --- | --- |
-| Branch hiện tại | `main` |
+| Branch hiện tại | `trae/agent-8KQLUd` (đồng bộ `origin/main`); nhánh `main` tại `82fd189` |
 | Remote | `origin` → `https://github.com/walevmn001/WaleCooking` |
 | Commit P00 | `a7c3ee5` — docs(P00): khảo sát dự án, xác lập yêu cầu và checkpoint nền tảng |
 | Commit P00-FIX | `59ca67a` — docs(P00-FIX): đồng bộ thương hiệu WALE COOKING và hoàn thiện phạm vi sản phẩm |
@@ -28,8 +29,10 @@
 | Commit P04 | `1eb7f2f` — feat(P04): bộ nhận diện minh họa WALE COOKING — mascot, logo, icon, illustration |
 | Commit P05 | `e44a62a` — feat(P05): nền tảng ứng dụng WALE COOKING & hệ thống UI dùng chung |
 | Commit P06 | *(commit chứa tài liệu này — xem `git log -1`)* — feat(P06): nền tảng dữ liệu (Prisma + migration + seed + repository) |
-| Working tree | Sạch sau khi commit P06 |
-| `origin/main` | Cập nhật checkpoint P06 (xem báo cáo push) |
+| Commit P07 | `82fd189` — feat(P07): module công thức — domain, API, media, frontend, kiểm thử |
+| Commit P07.1 | *(commit chứa tài liệu này — xem `git log -1`)* — feat(P07.1): điều chỉnh phạm vi không tài khoản khách + yêu thích cookie |
+| Working tree | Sạch sau khi commit P07.1 |
+| `origin/main` | Cập nhật checkpoint P07.1 (xem báo cáo push) |
 
 ## Kiến trúc đã chốt (không thay đổi)
 - Stack lớp rời: **Next.js + Prisma + Neon PostgreSQL + Auth.js + Cloudflare R2**.
@@ -117,6 +120,26 @@
 
 **Kiểm thử:** `tests/lib/{recipe-validation,recipe.presentation}.test.ts` (36) + `tests/components/{recipe-filters,recipe-form}.test.tsx` (10) + `tests/integration/{recipe.repository,recipe.service}.test.ts` (22). Tổng **124 unit + 50 integration test pass**.
 
+## Sản phẩm bàn giao P07.1 (`docs/P07_1/` + mã nguồn)
+**Tài liệu (`docs/P07_1/`):** `INTEGRATION_AUDIT.md` · `AUTHENTICATION_SCOPE.md` · `DATABASE_CLASSIFICATION.md` · `COOKIE_FAVORITES.md` · `EXTERNAL_VERIFICATION.md` · `E2E_VERIFICATION.md` + checkpoint `docs/checkpoints/P07_1_CHECKPOINT.md`.
+
+**Yêu thích bằng cookie (`lib/` + `app/`):**
+- `lib/favorites/cookie.ts` — module THUẦN: version (`v:1`), dedupe, giới hạn 50, xử lý cookie hỏng/quá lớn/version lạ.
+- `lib/favorites/server.ts` — đọc/ghi cookie **HttpOnly** (`SameSite=Lax`, `Secure` prod, `Path=/`, 180 ngày).
+- `app/actions/favorites.ts` — Server Actions add/remove/toggle/clear + revalidate.
+
+**UI (`components/` + `app/`):**
+- `components/recipe/{favorite-button,share-recipe-button,clear-favorites-button}.tsx`.
+- `app/(public)/yeu-thich/page.tsx` — danh sách yêu thích thật (chỉ công thức `published`).
+- Tích hợp nút yêu thích vào `cong-thuc/page.tsx` + `[slug]/page.tsx`.
+
+**Điều chỉnh phạm vi (bỏ tài khoản khách):**
+- Xóa `app/(public)/tai-khoan/page.tsx`; sửa `site-header`, `mobile-menu`, `lib/constants/navigation.ts`; `/dang-nhap` thành **cổng đăng nhập quản trị**.
+
+**Repository/service:** thêm `listPublicSummariesBySlugs` (Prisma adapter) + `getPublicSummariesBySlugs` (service).
+
+**Kiểm thử:** `tests/lib/favorites.test.ts` — **29 test**. Tổng toàn bộ **153 unit test** (19 file).
+
 ## Việc còn chờ xác minh
 - **B5:** repo là shallow clone (ảnh hưởng thấp).
 - **B6:** chưa có tài khoản/môi trường triển khai (Neon, R2, Vercel/Cloudflare…).
@@ -136,12 +159,18 @@
 - **B-P07-03:** chưa nối luồng **upload ảnh trong form quản trị** với `POST /api/v1/media`.
 - **B-P07-04:** chưa kiểm **UI module Recipe trên trình duyệt thật** (kế thừa B-P05-01).
 - **B-P07-05:** chưa siết BR-03 "nội dung tự biên soạn" & chưa có quy trình reviewer nhiều bước.
+- **B-P07_1-01:** chưa xác minh **Neon PostgreSQL thật** (External Verification Pending; kế thừa B-P06-01).
+- **B-P07_1-02:** chưa xác minh **Cloudflare R2 thật** (External Verification Pending; media chạy local provider).
+- **B-P07_1-03:** chưa xác minh **đăng nhập quản trị (Auth.js)** → chưa kiểm 401/403 qua HTTP phiên thật.
+- **B-P07_1-04:** chưa chạy **E2E trình duyệt thật** (yêu thích cookie, responsive, a11y).
 - Hạn mức gói miễn phí đã ghi theo thời điểm **11/2026** — cần kiểm tra lại trước khi deploy.
 
 ## Phase tiếp theo
-- **Chưa tự chuyển phase.** P07 đã hoàn thành → chờ người dùng xác nhận trước khi bắt đầu **P08**.
-- Định hướng P08 (khi được xác nhận): nối **Auth.js** (đăng nhập/session), xác minh **Neon PostgreSQL** & **Cloudflare R2** bằng credentials thật, hoàn thiện các module còn lại (tìm kiếm nâng cao, danh mục, yêu thích, kiến thức) và kiểm thử E2E/a11y trên trình duyệt.
+- P07.1 hoàn thành (trong giới hạn môi trường) → **tiếp tục P08 (Taxonomy & Recipe Discovery)** theo yêu cầu người dùng.
+- P08: xây hệ thống phân loại (tận dụng `taxonomy_types`/`taxonomy_terms` P06) + Recipe Discovery API (lọc/tìm/phân trang/sắp xếp dựa trên dữ liệu thực có) + trang danh mục công khai + quản trị taxonomy + Recipe UX foundation.
+- Các hạng mục "External Verification Pending" (Neon/R2/Auth.js/E2E) tiếp tục theo dõi ở `BLOCKERS.md`, không chặn P08.
 
 ## Tham chiếu
 - [PHASE_PROGRESS.md](./PHASE_PROGRESS.md) · [DECISIONS.md](./DECISIONS.md) · [BLOCKERS.md](./BLOCKERS.md)
-- Tài liệu P00: [docs/P00](./docs/P00/) · P01: [docs/P01](./docs/P01/) · P02: [docs/P02](./docs/P02/) · P03: [docs/P03](./docs/P03/) · P04: [docs/P04](./docs/P04/) · P05: [docs/P05](./docs/P05/) · P06: [docs/P06](./docs/P06/) · P07: [docs/P07](./docs/P07/)
+- Checkpoint: [docs/checkpoints/P07_1_CHECKPOINT.md](./docs/checkpoints/P07_1_CHECKPOINT.md)
+- Tài liệu P00: [docs/P00](./docs/P00/) · P01: [docs/P01](./docs/P01/) · P02: [docs/P02](./docs/P02/) · P03: [docs/P03](./docs/P03/) · P04: [docs/P04](./docs/P04/) · P05: [docs/P05](./docs/P05/) · P06: [docs/P06](./docs/P06/) · P07: [docs/P07](./docs/P07/) · P07.1: [docs/P07_1](./docs/P07_1/)

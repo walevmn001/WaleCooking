@@ -3,14 +3,14 @@
 import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
-import { Heart, User, X } from "lucide-react";
+import { Heart, X } from "lucide-react";
 import { Link } from "@/components/ui/link";
 import { IconButton } from "@/components/ui/icon-button";
 import { Divider } from "@/components/ui/divider";
 import { SearchInput } from "@/components/forms/search-input";
 import { SiteLogo } from "./site-logo";
 import { cn } from "@/lib/utils/cn";
-import { accountNav, primaryNav, type NavItem } from "@/lib/constants/navigation";
+import { primaryNav, type NavItem } from "@/lib/constants/navigation";
 
 const FOCUSABLE =
   'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])';
@@ -141,19 +141,6 @@ export function MobileMenu({ open, onClose, items = primaryNav }: MobileMenuProp
               Yêu thích
             </Link>
           </li>
-          {accountNav.map((item) => (
-            <li key={item.href}>
-              <Link
-                href={item.href}
-                appearance="unstyled"
-                onClick={onClose}
-                className="flex items-center gap-3 rounded-md px-3 py-3 text-body font-semibold text-ink hover:bg-primary-subtle focus-visible:outline-none focus-visible:focus-ring"
-              >
-                <User className="size-5" aria-hidden="true" />
-                {item.label}
-              </Link>
-            </li>
-          ))}
         </ul>
       </div>
     </div>,

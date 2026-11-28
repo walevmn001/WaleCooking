@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Heart, Menu, User } from "lucide-react";
+import { Heart, Menu } from "lucide-react";
 import { Link } from "@/components/ui/link";
 import { IconButton } from "@/components/ui/icon-button";
 import { SearchInput } from "@/components/forms/search-input";
@@ -49,9 +49,6 @@ export function SiteHeader({ className }: { className?: string }) {
 
           <Link href="/yeu-thich" aria-label="Yêu thích" appearance="unstyled" className={cn(iconLinkCls, "hidden sm:inline-flex")}>
             <Heart className="size-5" aria-hidden="true" />
-          </Link>
-          <Link href="/tai-khoan" aria-label="Tài khoản" appearance="unstyled" className={cn(iconLinkCls, "hidden sm:inline-flex")}>
-            <User className="size-5" aria-hidden="true" />
           </Link>
 
           <IconButton

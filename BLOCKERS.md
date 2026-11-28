@@ -1,7 +1,7 @@
 # BLOCKERS — WALE COOKING
 
 > Các vấn đề còn tồn tại hoặc cần xác minh. Ghi rõ thay vì tự suy đoán.
-> Cập nhật: 2026-11-28 (P07).
+> Cập nhật: 2026-11-28 (P07.1).
 
 | # | Blocker | Mức độ | Trạng thái | Ghi chú |
 | --- | --- | --- | --- | --- |
@@ -29,6 +29,10 @@
 | B-P07-03 | **Chưa nối luồng upload ảnh trong form quản trị** | Thấp | **Còn mở** | `RecipeForm` hiện gửi JSON (metadata ảnh); chưa tích hợp `POST /api/v1/media`. Media adapter đã sẵn sàng. Xem [RECIPE_FRONTEND.md](./docs/P07/RECIPE_FRONTEND.md) §10 |
 | B-P07-04 | **Chưa kiểm UI trên trình duyệt thật (a11y/responsive)** | Trung bình | **Còn mở** | Không có trình duyệt headless → chưa chạy E2E/axe/Lighthouse; UI kiểm ở mức render/typecheck/build. Kế thừa B-P05-01. Xem [TEST_REPORT.md](./docs/P07/TEST_REPORT.md) §6 |
 | B-P07-05 | **Chưa siết BR-03 "nội dung tự biên soạn" & chưa có quy trình reviewer nhiều bước** | Thấp | **Còn mở** | Hiện chỉ buộc "≥1 nguồn"; chưa ràng buộc cứng nguồn gốc phải có ghi chú/attribution; `submit-review` là chuyển trạng thái cơ bản, chưa có luồng duyệt editor→admin đầy đủ (liên quan B-P01-01/B-P02-03). Xem [RECIPE_CONTENT_POLICY.md](./docs/P07/RECIPE_CONTENT_POLICY.md) §7 |
+| B-P07_1-01 | **Chưa xác minh Neon PostgreSQL thật** (P07.1 kế thừa B-P06-01) | Trung bình | **Còn mở — External Verification Pending** | Không có `DATABASE_URL` trong sandbox; chưa chạy `migrate deploy`/seed/integration test trên Neon. Xem [EXTERNAL_VERIFICATION.md](./docs/P07_1/EXTERNAL_VERIFICATION.md) §2 |
+| B-P07_1-02 | **Chưa xác minh Cloudflare R2 thật** (P07.1 kế thừa B-P07-01) | Trung bình | **Còn mở — External Verification Pending** | Không có credentials `R2_*`; media chạy **LocalStorageAdapter**; adapter R2 hoàn thiện về code, chưa kiểm endpoint/SSL/CORS/CDN. Xem [EXTERNAL_VERIFICATION.md](./docs/P07_1/EXTERNAL_VERIFICATION.md) §3 |
+| B-P07_1-03 | **Chưa xác minh đăng nhập quản trị (Auth.js)** | Trung bình | **Còn mở** | Auth.js **chưa nối**; `getCurrentActor()` trả `null` → 401/403 mới kiểm ở tầng service/unit, chưa qua HTTP phiên thật. Không thêm hệ auth thứ hai. Xem [AUTHENTICATION_SCOPE.md](./docs/P07_1/AUTHENTICATION_SCOPE.md) §"Việc chưa xác minh" |
+| B-P07_1-04 | **Chưa chạy E2E trình duyệt thật** (yêu thích, responsive, a11y) | Trung bình | **Còn mở** | Không có trình duyệt headless trong sandbox → luồng khách/quản trị mới kiểm ở mức build/unit/logic. Xem [E2E_VERIFICATION.md](./docs/P07_1/E2E_VERIFICATION.md) §4/§5 |
 
 ## Nội dung còn chờ xác minh (không phải blocker cứng)
 

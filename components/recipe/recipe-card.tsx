@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { Heart } from "lucide-react";
 import { Card, CardBody } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -16,8 +17,13 @@ export interface RecipeCardProps {
   href: string;
   /** Trạng thái đã lưu (cho nút yêu thích). */
   isFavorite?: boolean;
-  /** Nếu truyền, hiển thị nút lưu yêu thích. */
+  /** Nếu truyền, hiển thị nút lưu yêu thích (điều khiển từ ngoài). */
   onToggleFavorite?: (recipe: RecipeSummary) => void;
+  /**
+   * Nút yêu thích do nơi gọi cung cấp (vd `FavoriteButton` dùng Server Action).
+   * Ưu tiên hơn `onToggleFavorite` khi cả hai cùng có.
+   */
+  favoriteSlot?: ReactNode;
   /** Ưu tiên tải ảnh (LCP). */
   priority?: boolean;
   className?: string;
@@ -32,6 +38,7 @@ export function RecipeCard({
   href,
   isFavorite = false,
   onToggleFavorite,
+  favoriteSlot,
   priority = false,
   className,
 }: RecipeCardProps) {
@@ -54,7 +61,9 @@ export function RecipeCard({
               {recipe.title}
             </Link>
           </h3>
-          {onToggleFavorite ? (
+          {favoriteSlot ? (
+            <div className="relative z-10 -mr-1">{favoriteSlot}</div>
+          ) : onToggleFavorite ? (
             <IconButton
               size="sm"
               variant="ghost"

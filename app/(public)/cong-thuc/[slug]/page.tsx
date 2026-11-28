@@ -5,6 +5,7 @@ import { Container } from "@/components/layout/container";
 import { Breadcrumb } from "@/components/navigation/breadcrumb";
 import { AllergenBadges } from "@/components/recipe/allergen-badges";
 import { CookingStepCard } from "@/components/recipe/cooking-step-card";
+import { FavoriteButton } from "@/components/recipe/favorite-button";
 import { IngredientList } from "@/components/recipe/ingredient-row";
 import { NutritionSummary } from "@/components/recipe/nutrition-summary";
 import {
@@ -17,6 +18,7 @@ import { RecipeImage } from "@/components/recipe/recipe-image";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardBody, CardTitle } from "@/components/ui/card";
 import { Link } from "@/components/ui/link";
+import { isFavorite } from "@/lib/favorites/server";
 import { toRecipeDetail, toRecipeJsonLd } from "@/lib/presentation/recipe-view";
 import { NotFoundError } from "@/lib/errors/app-error";
 import { recipeService } from "@/lib/services";
@@ -73,6 +75,7 @@ export default async function RecipeDetailPage({ params }: RecipeDetailPageProps
   const dto = await loadRecipe(slug);
   const recipe = toRecipeDetail(dto);
   const jsonLd = toRecipeJsonLd(recipe, `/cong-thuc/${dto.slug}`);
+  const favorited = await isFavorite(dto.slug).catch(() => false);
 
   const totalMinutes =
     recipe.totalMinutes ?? (recipe.prepMinutes != null || recipe.cookMinutes != null
@@ -116,6 +119,10 @@ export default async function RecipeDetailPage({ params }: RecipeDetailPageProps
             <CookingTime minutes={recipe.cookMinutes ?? totalMinutes} />
             <ServingsBadge servings={recipe.servings} />
             <DifficultyBadge level={recipe.difficulty} />
+          </div>
+
+          <div className="flex flex-wrap items-center gap-3">
+            <FavoriteButton slug={dto.slug} initialFavorite={favorited} variant="button" />
           </div>
 
           {recipe.categories.length > 0 ? (

@@ -138,6 +138,25 @@ export class PrismaRecipeRepository implements RecipeRepository {
 
   // ---------------------------------------------------------------- Đọc chi tiết
 
+  async listPublicSummariesBySlugs(slugs: string[], locale: string): Promise<RecipeSummaryDto[]> {
+    const unique = [...new Set(slugs)];
+    if (unique.length === 0) return [];
+    const rows = await this.db.recipe.findMany({
+      where: { slug: { in: unique }, status: "published", deletedAt: null },
+      include: {
+        translations: true,
+        primaryImage: { select: { publicUrl: true, altTextDefault: true } },
+        foodTypeTerm: { select: { slug: true } },
+        cuisineTerm: { select: { slug: true } },
+      },
+    });
+    // Giữ đúng thứ tự slug người dùng đã lưu (thứ tự thêm vào yêu thích).
+    const bySlug = new Map(rows.map((row) => [row.slug, this.toSummary(row, locale)]));
+    return unique
+      .map((slug) => bySlug.get(slug))
+      .filter((item): item is RecipeSummaryDto => item !== undefined);
+  }
+
   async findDetailBySlug(slug: string, locale: string): Promise<RecipeDetailDto | null> {
     const row = await this.db.recipe.findFirst({
       where: { slug, deletedAt: null },

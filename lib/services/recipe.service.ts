@@ -48,6 +48,17 @@ export class RecipeService {
     });
   }
 
+  /**
+   * Tóm tắt công thức công khai theo danh sách slug (P07.1 §7.1.4 — trang Yêu thích).
+   * CHỈ trả công thức `published`; slug không còn công khai/bị xoá bị BỎ QUA (không lỗi).
+   * Giữ nguyên thứ tự đầu vào.
+   */
+  async getPublicSummariesBySlugs(slugs: string[]): Promise<RecipeSummaryDto[]> {
+    const clean = slugs.filter((slug) => typeof slug === "string" && slug.length > 0);
+    if (clean.length === 0) return [];
+    return this.deps.recipe.listPublicSummariesBySlugs(clean, "vi");
+  }
+
   /** Chi tiết công khai theo slug — chỉ trả khi `published` (archived/draft → 404). */
   async getPublicBySlug(slug: string): Promise<RecipeDetailDto> {
     const detail = await this.deps.recipe.findDetailBySlug(slug, "vi");

@@ -1,7 +1,7 @@
 # DECISIONS — WALE COOKING
 
 > Nhật ký các quyết định đã chốt. Không tự thay đổi quyết định đã xác lập nếu chưa có căn cứ.
-> Cập nhật: 2026-11-28 (P07).
+> Cập nhật: 2026-11-28 (P07.1).
 
 | # | Quyết định | Nội dung | Căn cứ | Trạng thái |
 | --- | --- | --- | --- | --- |
@@ -63,6 +63,10 @@
 | D56 | Xóa & delete behavior | Xóa công thức = **xóa mềm** (`deletedAt` + `status='archived'`, giữ dữ liệu); FK mặc định **RESTRICT**, CASCADE chỉ cho con thuộc sở hữu (ingredients/steps/images) | P07 (§18), P02 D-P02-08 | Đã chốt — [RECIPE_DOMAIN.md](./docs/P07/RECIPE_DOMAIN.md) §3/§6 |
 | D57 | Frontend module Recipe | Server Component + `dynamic="force-dynamic"`; **tái sử dụng** component P05; presentation mapper không bịa dữ liệu (thiếu trường → ẩn mục) | P07 (§16/§17) | Đã chốt — [RECIPE_FRONTEND.md](./docs/P07/RECIPE_FRONTEND.md) |
 | D58 | Kiểm thử P07 | Bổ sung **46 unit + 22 integration**; **không** xóa/làm suy yếu test P05/P06; authorization kiểm ở tầng service (dùng actor giả trong bộ nhớ — **không** giả lập phiên đăng nhập thật) | P07 (§19) | Đã chốt — [docs/P07/TEST_REPORT.md](./docs/P07/TEST_REPORT.md) |
+| D59 | Định hướng sản phẩm P07.1 | Chuyển thành **Recipe-focused Cooking Assistant**: **không** mạng xã hội, **không** cộng đồng, **không** tài khoản khách truy cập. Yêu thích của khách dùng **cookie**, không gắn tài khoản | Prompt P07.1 (người dùng) | Đã chốt — [AUTHENTICATION_SCOPE.md](./docs/P07_1/AUTHENTICATION_SCOPE.md) |
+| D60 | Không drop bảng khi chuyển mô hình | **Không** tạo migration drop/xóa bảng nào; giữ `users`/`accounts`/`sessions`/`verification_tokens` cho quản trị; `favorites` + vai trò `user` chuyển **legacy (không dùng)**, không xóa. Không sửa lịch sử migration | P07.1 (ADR-P07_1-01) | Đã chốt — [DATABASE_CLASSIFICATION.md](./docs/P07_1/DATABASE_CLASSIFICATION.md) |
+| D61 | Yêu thích bằng cookie | Cookie **HttpOnly** `wale_favorites` (JSON có `v:1`, `items` slug) + **Server Actions**; KHÔNG dùng localStorage, KHÔNG ghi DB; giới hạn 50; xử lý cookie hỏng/quá lớn/version lạ; `SameSite=Lax`, `Secure` ở production, `Path=/`, 180 ngày | P07.1 (§7.1.4) | Đã chốt — [COOKIE_FAVORITES.md](./docs/P07_1/COOKIE_FAVORITES.md) |
+| D62 | Taxonomy P08 không thêm cột | P08 quản trị taxonomy chỉ dùng trường **có thật** trong schema (tên, slug, mô tả, icon, cha/con, thứ tự, active); **không** thêm cột SEO/ảnh trong P07.1/P08 (ghi backlog) | P07.1 (ADR-P07_1-02) | Đã chốt — [DATABASE_CLASSIFICATION.md](./docs/P07_1/DATABASE_CLASSIFICATION.md) |
 
 > Chi tiết bối cảnh/lý do/đánh đổi/phương án thay thế của **D-P02-01..11** xem [ARCHITECTURE_DECISIONS.md](./docs/P02/ARCHITECTURE_DECISIONS.md).
 > Chi tiết Design System của **D22–D28** xem [DESIGN_SYSTEM.md](./docs/P03/DESIGN_SYSTEM.md), [DESIGN_TOKENS.md](./docs/P03/DESIGN_TOKENS.md), [COLOR_ACCESSIBILITY_AUDIT.md](./docs/P03/COLOR_ACCESSIBILITY_AUDIT.md).
@@ -70,6 +74,7 @@
 > Chi tiết hiện thực UI của **D34–D41** xem [docs/P05/](./docs/P05/): [IMPLEMENTATION_REPORT.md](./docs/P05/IMPLEMENTATION_REPORT.md), [COMPONENT_CATALOG.md](./docs/P05/COMPONENT_CATALOG.md), [APPLICATION_SHELL.md](./docs/P05/APPLICATION_SHELL.md), [RESPONSIVE_IMPLEMENTATION.md](./docs/P05/RESPONSIVE_IMPLEMENTATION.md), [ACCESSIBILITY_REPORT.md](./docs/P05/ACCESSIBILITY_REPORT.md), [TEST_REPORT.md](./docs/P05/TEST_REPORT.md).
 > Chi tiết nền tảng dữ liệu của **D42–D50** xem [docs/P06/](./docs/P06/): [DATABASE_IMPLEMENTATION.md](./docs/P06/DATABASE_IMPLEMENTATION.md), [PRISMA_SCHEMA_GUIDE.md](./docs/P06/PRISMA_SCHEMA_GUIDE.md), [MIGRATION_GUIDE.md](./docs/P06/MIGRATION_GUIDE.md), [SEED_GUIDE.md](./docs/P06/SEED_GUIDE.md), [REPOSITORY_ARCHITECTURE.md](./docs/P06/REPOSITORY_ARCHITECTURE.md), [DATABASE_SECURITY.md](./docs/P06/DATABASE_SECURITY.md), [TEST_REPORT.md](./docs/P06/TEST_REPORT.md).
 > Chi tiết module công thức của **D51–D58** xem [docs/P07/](./docs/P07/): [RECIPE_MODULE_ARCHITECTURE.md](./docs/P07/RECIPE_MODULE_ARCHITECTURE.md), [RECIPE_DOMAIN.md](./docs/P07/RECIPE_DOMAIN.md), [RECIPE_API_IMPLEMENTATION.md](./docs/P07/RECIPE_API_IMPLEMENTATION.md), [RECIPE_FRONTEND.md](./docs/P07/RECIPE_FRONTEND.md), [RECIPE_MEDIA.md](./docs/P07/RECIPE_MEDIA.md), [RECIPE_AUTHORIZATION.md](./docs/P07/RECIPE_AUTHORIZATION.md), [RECIPE_CONTENT_POLICY.md](./docs/P07/RECIPE_CONTENT_POLICY.md), [TEST_REPORT.md](./docs/P07/TEST_REPORT.md).
+> Chi tiết P07.1 của **D59–D62** xem [docs/P07_1/](./docs/P07_1/): [INTEGRATION_AUDIT.md](./docs/P07_1/INTEGRATION_AUDIT.md), [AUTHENTICATION_SCOPE.md](./docs/P07_1/AUTHENTICATION_SCOPE.md), [DATABASE_CLASSIFICATION.md](./docs/P07_1/DATABASE_CLASSIFICATION.md), [COOKIE_FAVORITES.md](./docs/P07_1/COOKIE_FAVORITES.md), [EXTERNAL_VERIFICATION.md](./docs/P07_1/EXTERNAL_VERIFICATION.md), [E2E_VERIFICATION.md](./docs/P07_1/E2E_VERIFICATION.md). Checkpoint: [docs/checkpoints/P07_1_CHECKPOINT.md](./docs/checkpoints/P07_1_CHECKPOINT.md).
 
 ## Quyết định còn để mở (cần xác minh trước khi áp dụng)
 

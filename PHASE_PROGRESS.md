@@ -1,7 +1,7 @@
 # PHASE PROGRESS — WALE COOKING
 
 > Theo dõi tiến độ theo phase. Mỗi phase chỉ triển khai đúng phạm vi của nó.
-> Cập nhật: 2026-11-28 (P07).
+> Cập nhật: 2026-11-28 (P07.1).
 
 | Phase | Tên | Phạm vi | Trạng thái |
 | --- | --- | --- | --- |
@@ -14,6 +14,7 @@
 | P05 | Application Foundation & Shared UI System | (A) Nền tảng + Shared UI Components (tokens/global styles, basic, form, navigation/feedback, cooking-specific); (B) Application Shell (Root/Public/Auth/Admin layout, Header, Navigation, MobileMenu, Footer); trang kiểm tra dev-only; 6 tài liệu `docs/P05/`; 60 unit test | ✅ Hoàn thành |
 | P06 | Database Foundation | Prisma schema theo P02 (22 enum/57 model, 58 bảng), Prisma client singleton, kiểm tra env, migration baseline tái lập (`20261127175936_init`), seed idempotent (taxonomy/unit/equipment/ingredient), repository + service + validation + authorization; 7 tài liệu `docs/P06/`; 78 unit + 28 integration test | ✅ Hoàn thành |
 | P07 | Recipe Module | Domain công thức + CRUD/workflow (draft→in_review→published→archived, xóa mềm), API `/api/v1/recipes*` + `/api/v1/admin/recipes` + `/api/v1/media*` theo contract P02, media adapter (R2 mục tiêu/local dev), frontend listing/detail + quản trị create/edit tái sử dụng component P05, authorization tập trung, transaction; 8 tài liệu `docs/P07/`; 124 unit + 50 integration test | ✅ Hoàn thành |
+| P07.1 | Integration Verification & Blocker Closure | Audit tích hợp thực tế; điều chỉnh phạm vi theo mô hình **không tài khoản khách** (bỏ `/tai-khoan`); giữ Auth.js chỉ cho admin; **module yêu thích bằng cookie** (HttpOnly + Server Actions, version, giới hạn 50); phân loại bảng DB + ADR (không drop); xác minh Neon/R2 → **External Verification Pending**; 6 tài liệu `docs/P07_1/` + checkpoint; thêm 29 unit test (module cookie) | ✅ Hoàn thành (trong giới hạn môi trường) |
 
 ## Sản phẩm bàn giao theo phase
 
@@ -122,6 +123,17 @@
 - Tạo component: `components/admin/{recipe-form,recipe-status-actions,admin-access-notice}.tsx`, `components/recipe/recipe-filters.tsx`
 - Tạo test: `tests/lib/recipe-validation.test.ts`, `tests/lib/recipe.presentation.test.ts`, `tests/components/{recipe-filters,recipe-form}.test.tsx`, `tests/integration/{recipe.repository,recipe.service}.test.ts`
 - Tạo `docs/P07/`: `RECIPE_MODULE_ARCHITECTURE.md`, `RECIPE_DOMAIN.md`, `RECIPE_API_IMPLEMENTATION.md`, `RECIPE_FRONTEND.md`, `RECIPE_MEDIA.md`, `RECIPE_AUTHORIZATION.md`, `RECIPE_CONTENT_POLICY.md`, `TEST_REPORT.md`
+- Cập nhật `CURRENT_STATUS.md`, `PHASE_PROGRESS.md`, `DECISIONS.md`, `BLOCKERS.md`
+
+### P07.1
+- Tạo `lib/favorites/cookie.ts` (module thuần: version, dedupe, giới hạn 50, xử lý cookie hỏng/quá lớn/version lạ), `lib/favorites/server.ts` (đọc/ghi cookie HttpOnly), `app/actions/favorites.ts` (Server Actions add/remove/toggle/clear)
+- Tạo component: `components/recipe/{favorite-button,share-recipe-button,clear-favorites-button}.tsx`; sửa `recipe-card.tsx` (thêm `favoriteSlot`), `components/recipe/index.ts` (export)
+- Rewrite `app/(public)/yeu-thich/page.tsx` (danh sách yêu thích thật, chỉ công thức published); tích hợp nút yêu thích vào `cong-thuc/page.tsx` + `[slug]/page.tsx`
+- Bỏ khái niệm **tài khoản khách**: xóa `app/(public)/tai-khoan/page.tsx`; sửa `site-header.tsx`, `mobile-menu.tsx`, `lib/constants/navigation.ts`; viết lại `app/(auth)/dang-nhap/page.tsx` thành cổng đăng nhập quản trị
+- Thêm `listPublicSummariesBySlugs` (repository interface + Prisma adapter) và `getPublicSummariesBySlugs` (service)
+- Tạo `tests/lib/favorites.test.ts` (29 test); cập nhật `vitest` không đổi cấu hình
+- Tạo `docs/P07_1/`: `INTEGRATION_AUDIT.md`, `AUTHENTICATION_SCOPE.md`, `DATABASE_CLASSIFICATION.md`, `COOKIE_FAVORITES.md`, `EXTERNAL_VERIFICATION.md`, `E2E_VERIFICATION.md`
+- Tạo `docs/checkpoints/P07_1_CHECKPOINT.md`
 - Cập nhật `CURRENT_STATUS.md`, `PHASE_PROGRESS.md`, `DECISIONS.md`, `BLOCKERS.md`
 
 ## Ràng buộc xuyên suốt

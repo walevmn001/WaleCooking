@@ -266,6 +266,12 @@ export interface RecipeRepository {
 
   findDetailBySlug(slug: string, locale: string): Promise<RecipeDetailDto | null>;
   findDetailById(id: string, locale: string): Promise<RecipeDetailDto | null>;
+
+  /**
+   * Tóm tắt công thức công khai theo danh sách slug (P07.1 §7.1.4 — yêu thích cookie).
+   * CHỈ trả công thức `published`; slug không tồn tại/không công khai bị bỏ qua.
+   */
+  listPublicSummariesBySlugs(slugs: string[], locale: string): Promise<RecipeSummaryDto[]>;
   findIdBySlug(slug: string): Promise<SlugLookup | null>;
   slugExists(slug: string, exceptId?: string): Promise<boolean>;
 
