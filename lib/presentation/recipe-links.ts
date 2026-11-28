@@ -70,11 +70,13 @@ export function parseRecipeListParams(searchParams: RawSearchParams = {}): Recip
 
 /**
  * Dựng href cho danh sách công thức. Bỏ các giá trị mặc định (sort "newest", page 1)
- * để URL gọn. `overrides` ghi đè lên `params` hiện tại.
+ * để URL gọn. `overrides` ghi đè lên `params` hiện tại. `basePath` cho phép dùng lại
+ * helper ở trang tìm kiếm (`/tim-kiem`) mà không đổi mặc định `/cong-thuc`.
  */
 export function buildRecipeListHref(
   params: RecipeListParams = {},
   overrides: Partial<RecipeListParams> = {},
+  basePath: string = RECIPE_LIST_BASE,
 ): string {
   const merged: RecipeListParams = { ...params, ...overrides };
   const search = new URLSearchParams();
@@ -89,7 +91,7 @@ export function buildRecipeListHref(
   if (merged.page && merged.page > 1) search.set("page", String(merged.page));
 
   const qs = search.toString();
-  return qs ? `${RECIPE_LIST_BASE}?${qs}` : RECIPE_LIST_BASE;
+  return qs ? `${basePath}?${qs}` : basePath;
 }
 
 /** Đường dẫn trang chi tiết công thức. */

@@ -5,6 +5,7 @@ import {
   listRecipesQuerySchema,
   recipeIngredientInputSchema,
   recipeStepInputSchema,
+  sanitizeRecipeListQuery,
   updateRecipeSchema,
 } from "@/lib/validation/recipe";
 
@@ -174,5 +175,32 @@ describe("P07 — listRecipesQuerySchema", () => {
 
   it("từ chối difficulty không hợp lệ", () => {
     expect(listRecipesQuerySchema.safeParse({ difficulty: "extreme" }).success).toBe(false);
+  });
+});
+
+describe("P15.3 — sanitizeRecipeListQuery (URL tìm kiếm không hợp lệ)", () => {
+  it("giữ nguyên tham số khi toàn bộ hợp lệ", () => {
+    const raw = { q: "phở", difficulty: "hard", sort: "az", maxMinutes: "30", page: "2" };
+    expect(sanitizeRecipeListQuery(raw)).toBe(raw);
+  });
+
+  it("loại bỏ trường sai nhưng giữ trường hợp lệ còn lại", () => {
+    const cleaned = sanitizeRecipeListQuery({
+      q: "phở",
+      difficulty: "extreme",
+      sort: "az",
+      maxMinutes: "abc",
+      page: "0",
+    });
+    expect(cleaned).toEqual({ q: "phở", sort: "az" });
+  });
+
+  it("không ném lỗi với tham số rỗng hoàn toàn", () => {
+    expect(() => sanitizeRecipeListQuery({})).not.toThrow();
+    expect(sanitizeRecipeListQuery({})).toEqual({});
+  });
+
+  it("loại bỏ maxMinutes vượt giới hạn cho phép", () => {
+    expect(sanitizeRecipeListQuery({ maxMinutes: "999999" })).toEqual({});
   });
 });

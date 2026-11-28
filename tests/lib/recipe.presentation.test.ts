@@ -208,6 +208,14 @@ describe("P07 — recipe-links", () => {
     expect(buildRecipeListHref({ page: 5 }, { page: undefined })).toBe("/cong-thuc");
   });
 
+  it("buildRecipeListHref dùng basePath tùy chỉnh (trang tìm kiếm /tim-kiem)", () => {
+    expect(buildRecipeListHref({ q: "pho", foodType: "mon-nuoc" }, {}, "/tim-kiem")).toBe(
+      "/tim-kiem?q=pho&foodType=mon-nuoc",
+    );
+    expect(buildRecipeListHref({}, { page: 2 }, "/tim-kiem")).toBe("/tim-kiem?page=2");
+    expect(buildRecipeListHref({ sort: "newest" }, {}, "/tim-kiem")).toBe("/tim-kiem");
+  });
+
   it("recipeDetailHref", () => {
     expect(recipeDetailHref("pho-bo")).toBe("/cong-thuc/pho-bo");
   });

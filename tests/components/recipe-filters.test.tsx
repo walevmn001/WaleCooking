@@ -48,3 +48,51 @@ describe("P07 — RecipeFilters", () => {
     expect(push).toHaveBeenCalledWith("/cong-thuc?foodType=mon-nuoc&cuisine=viet-nam");
   });
 });
+
+describe("P15.3 — RecipeFilters trên trang tìm kiếm", () => {
+  it("dùng basePath tùy chỉnh khi điều hướng (/tim-kiem)", () => {
+    render(
+      <RecipeFilters
+        foodTypes={foodTypes}
+        cuisines={cuisines}
+        params={{}}
+        basePath="/tim-kiem"
+      />,
+    );
+    fireEvent.change(screen.getByLabelText("Độ khó"), { target: { value: "hard" } });
+    expect(push).toHaveBeenCalledWith("/tim-kiem?difficulty=hard");
+  });
+
+  it("hiển thị và áp bộ lọc đặc điểm món (dietary) khi có dữ liệu", () => {
+    const dietaryPreferences = [{ value: "vegetarian", label: "Món chay" }];
+    render(
+      <RecipeFilters
+        foodTypes={foodTypes}
+        cuisines={cuisines}
+        dietaryPreferences={dietaryPreferences}
+        params={{}}
+        basePath="/tim-kiem"
+      />,
+    );
+    fireEvent.change(screen.getByLabelText("Đặc điểm món"), { target: { value: "vegetarian" } });
+    expect(push).toHaveBeenCalledWith("/tim-kiem?dietary=vegetarian");
+  });
+
+  it("ẩn ô đặc điểm món khi không truyền danh sách", () => {
+    render(<RecipeFilters foodTypes={foodTypes} cuisines={cuisines} params={{}} />);
+    expect(screen.queryByLabelText("Đặc điểm món")).not.toBeInTheDocument();
+  });
+
+  it("xoá bộ lọc quay về basePath của trang tìm kiếm", () => {
+    render(
+      <RecipeFilters
+        foodTypes={foodTypes}
+        cuisines={cuisines}
+        params={{ q: "pho" }}
+        basePath="/tim-kiem"
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Xoá bộ lọc" }));
+    expect(push).toHaveBeenCalledWith("/tim-kiem");
+  });
+});

@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils/cn";
 import {
   buildRecipeListHref,
+  RECIPE_LIST_BASE,
   type RecipeListParams,
 } from "@/lib/presentation/recipe-links";
 
@@ -24,8 +25,12 @@ export interface RecipeFiltersProps {
   /** Trục khám phá (P08 §P08.2) — tùy chọn, bỏ trống thì ẩn ô lọc tương ứng. */
   mealTypes?: FilterOption[];
   cookingMethods?: FilterOption[];
+  /** Đặc điểm món (dietary_preference) — tùy chọn, bỏ trống thì ẩn ô lọc. */
+  dietaryPreferences?: FilterOption[];
   /** Giá trị lọc hiện tại (từ URL). */
   params: RecipeListParams;
+  /** Đường dẫn cơ sở khi điều hướng (mặc định `/cong-thuc`; trang tìm kiếm dùng `/tim-kiem`). */
+  basePath?: string;
   className?: string;
 }
 
@@ -60,7 +65,9 @@ export function RecipeFilters({
   cuisines,
   mealTypes,
   cookingMethods,
+  dietaryPreferences,
   params,
+  basePath = RECIPE_LIST_BASE,
   className,
 }: RecipeFiltersProps) {
   const router = useRouter();
@@ -71,6 +78,7 @@ export function RecipeFilters({
   const [cuisine, setCuisine] = useState(params.cuisine ?? "");
   const [mealType, setMealType] = useState(params.mealType ?? "");
   const [cookingMethod, setCookingMethod] = useState(params.cookingMethod ?? "");
+  const [dietary, setDietary] = useState(params.dietary ?? "");
   const [maxMinutes, setMaxMinutes] = useState(params.maxMinutes ? String(params.maxMinutes) : "");
   const [difficulty, setDifficulty] = useState(params.difficulty ?? "");
   const [sort, setSort] = useState(params.sort ?? "newest");
@@ -81,6 +89,7 @@ export function RecipeFilters({
       params.cuisine ||
       params.mealType ||
       params.cookingMethod ||
+      params.dietary ||
       params.maxMinutes ||
       params.difficulty ||
       (params.sort && params.sort !== "newest"),
@@ -93,12 +102,13 @@ export function RecipeFilters({
       cuisine: cuisine || undefined,
       mealType: mealType || undefined,
       cookingMethod: cookingMethod || undefined,
+      dietary: dietary || undefined,
       maxMinutes: maxMinutes ? Number.parseInt(maxMinutes, 10) : undefined,
       difficulty: difficulty || undefined,
       sort: sort !== "newest" ? sort : undefined,
       ...overrides,
     };
-    startTransition(() => router.push(buildRecipeListHref(merged)));
+    startTransition(() => router.push(buildRecipeListHref(merged, {}, basePath)));
   }
 
   function reset() {
@@ -107,10 +117,11 @@ export function RecipeFilters({
     setCuisine("");
     setMealType("");
     setCookingMethod("");
+    setDietary("");
     setMaxMinutes("");
     setDifficulty("");
     setSort("newest");
-    startTransition(() => router.push("/cong-thuc"));
+    startTransition(() => router.push(basePath));
   }
 
   return (
@@ -188,6 +199,22 @@ export function RecipeFilters({
                 go({ cookingMethod: value || undefined, page: undefined });
               }}
               options={[{ value: "", label: "Tất cả" }, ...cookingMethods]}
+              disabled={pending}
+            />
+          </label>
+        ) : null}
+
+        {dietaryPreferences && dietaryPreferences.length > 0 ? (
+          <label className="flex flex-col gap-1.5">
+            <span className="text-label text-ink">Đặc điểm món</span>
+            <Select
+              value={dietary}
+              onChange={(e) => {
+                const value = e.target.value;
+                setDietary(value);
+                go({ dietary: value || undefined, page: undefined });
+              }}
+              options={[{ value: "", label: "Tất cả" }, ...dietaryPreferences]}
               disabled={pending}
             />
           </label>

@@ -161,6 +161,29 @@ export const listRecipesQuerySchema = paginationSchema.extend({
   maxMinutes: z.coerce.number().int().min(1).max(28800).optional(),
 });
 
+/** Tham số truy vấn thô từ URL (giá trị chuỗi hoặc mảng chuỗi). */
+export type RawQueryParams = Record<string, string | string[] | undefined>;
+
+/**
+ * Loại bỏ tham số truy vấn KHÔNG hợp lệ trước khi truy vấn công khai (FR-05, P15.3).
+ *
+ * URL có thể bị người dùng sửa; một tham số sai (vd `difficulty=xyz`, `page=abc`)
+ * KHÔNG được làm hỏng trang. Dùng chính `listRecipesQuerySchema` (giữ nguyên
+ * validation hiện tại): nếu toàn bộ hợp lệ thì giữ nguyên; nếu có trường sai thì
+ * chỉ loại các trường đó và giữ lại phần còn lại.
+ */
+export function sanitizeRecipeListQuery(raw: RawQueryParams): RawQueryParams {
+  const result = listRecipesQuerySchema.safeParse(raw);
+  if (result.success) return raw;
+
+  const invalid = new Set(result.error.issues.map((issue) => String(issue.path[0] ?? "")));
+  const cleaned: RawQueryParams = {};
+  for (const [key, value] of Object.entries(raw)) {
+    if (!invalid.has(key)) cleaned[key] = value;
+  }
+  return cleaned;
+}
+
 export const listMediaQuerySchema = paginationSchema;
 
 /** Truy vấn "tìm món theo nguyên liệu người dùng đang có" (P10.3). */
