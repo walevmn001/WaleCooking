@@ -14,7 +14,7 @@
 | P12.2 | Database readiness (Neon) | ✅ Hoàn thành (Neon kết nối: BLOCKED) — [DATABASE_READINESS.md](../P12/DATABASE_READINESS.md) · commit `0c05a8e` |
 | P12.3 | Storage production readiness | ✅ Hoàn thành (R2 e2e: BLOCKED) — [STORAGE_READINESS.md](../P12/STORAGE_READINESS.md) · commit `5fe16be` |
 | P12.4 | Playwright browser automation | ✅ Hoàn thành (28/28 PASS; Admin login thật: BLOCKED) — [PLAYWRIGHT_SETUP.md](../P12/PLAYWRIGHT_SETUP.md) · [E2E_TEST_REPORT.md](../P12/E2E_TEST_REPORT.md) |
-| P12.5 | Responsive & UX verification | ⏳ Chờ |
+| P12.5 | Responsive & UX verification | ✅ Hoàn thành (14/14 test PASS) — [RESPONSIVE_UX_REPORT.md](../P12/RESPONSIVE_UX_REPORT.md) |
 | P12.6 | Vercel deployment verification | ⏳ Chờ |
 | P12.7 | Documentation & final checkpoint | ⏳ Chờ |
 
