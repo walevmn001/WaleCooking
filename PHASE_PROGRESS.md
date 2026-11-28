@@ -1,7 +1,7 @@
 # PHASE PROGRESS — WALE COOKING
 
 > Theo dõi tiến độ theo phase. Mỗi phase chỉ triển khai đúng phạm vi của nó.
-> Cập nhật: 2026-11-28 (P08).
+> Cập nhật: 2026-11-28 (P09).
 
 | Phase | Tên | Phạm vi | Trạng thái |
 | --- | --- | --- | --- |
@@ -16,6 +16,7 @@
 | P07 | Recipe Module | Domain công thức + CRUD/workflow (draft→in_review→published→archived, xóa mềm), API `/api/v1/recipes*` + `/api/v1/admin/recipes` + `/api/v1/media*` theo contract P02, media adapter (R2 mục tiêu/local dev), frontend listing/detail + quản trị create/edit tái sử dụng component P05, authorization tập trung, transaction; 8 tài liệu `docs/P07/`; 124 unit + 50 integration test | ✅ Hoàn thành |
 | P07.1 | Integration Verification & Blocker Closure | Audit tích hợp thực tế; điều chỉnh phạm vi theo mô hình **không tài khoản khách** (bỏ `/tai-khoan`); giữ Auth.js chỉ cho admin; **module yêu thích bằng cookie** (HttpOnly + Server Actions, version, giới hạn 50); phân loại bảng DB + ADR (không drop); xác minh Neon/R2 → **External Verification Pending**; 6 tài liệu `docs/P07_1/` + checkpoint; thêm 29 unit test (module cookie) | ✅ Hoàn thành (trong giới hạn môi trường) |
 | P08 | Taxonomy & Recipe Discovery | Hệ thống phân loại & khám phá công thức: **6 trục khám phá** (nhóm món/ẩm thực/bữa ăn/phương pháp/đặc điểm/nguyên liệu) trên taxonomy P06 (không thêm cột/model); **Recipe Discovery** (lọc/tìm/phân trang/sắp xếp chỉ theo dữ liệu thật); **trang danh mục công khai** (`/danh-muc*`, breadcrumb, SEO, JSON-LD); **quản trị taxonomy** (`/admin/danh-muc*` + API `/api/v1/admin/taxonomy*`, xoá có điều kiện); **Recipe UX foundation**; 6 tài liệu `docs/P08/` + checkpoint; thêm 46 unit test | ✅ Hoàn thành (trong giới hạn môi trường) |
+| P09 | Cooking Experience | Không gian hỗ trợ nấu trên trang công thức: **Audit dữ liệu** công thức; **Cooking Mode** (chế độ nấu toàn màn hình, focus trap, từng bước); **Portion Scaling** (nhân định lượng theo khẩu phần, không đổi dữ liệu gốc, không quy đổi đơn vị); **Ingredient Checklist** (tick/tiến độ/reset); **lưu tiến độ cục bộ** (`localStorage` có version — không tài khoản khách, không DB); component tái sử dụng; 5 tài liệu `docs/P09/` + checkpoint; thêm 50 unit test | ✅ Hoàn thành (trong giới hạn môi trường) |
 
 ## Sản phẩm bàn giao theo phase
 
@@ -152,6 +153,15 @@
 - Tạo `docs/checkpoints/P08_CHECKPOINT.md`
 - Cập nhật `CURRENT_STATUS.md`, `PHASE_PROGRESS.md`, `DECISIONS.md`, `BLOCKERS.md`
 
+### P09
+- Tạo logic thuần `lib/cooking/{portion,state}.ts` (nhân khẩu phần + trạng thái phiên nấu/checklist, có `version`, `localStorage` an toàn SSR)
+- Tạo UI `components/cooking/{cooking-experience,cooking-mode,cooking-progress,ingredient-checklist,portion-selector,cooking-exit-confirmation,index}.tsx`
+- Sửa `components/recipe/types.ts` (thêm `IngredientQuantityData` + `quantityData`, `imageUrl`, `imageAlt` — optional); `lib/presentation/recipe-view.ts` (điền `quantityData` + ảnh bước); `app/(public)/cong-thuc/[slug]/page.tsx` (dùng `CookingExperience`)
+- Tạo test: `tests/lib/cooking.portion.test.ts` (21), `tests/lib/cooking.state.test.ts` (18), `tests/components/cooking.test.tsx` (11) — **50 unit test**
+- Tạo `docs/P09/`: `RECIPE_DATA_AUDIT.md`, `COOKING_MODE.md`, `PORTION_SCALING.md`, `INGREDIENT_CHECKLIST.md`, `TEST_REPORT.md`
+- Tạo `docs/checkpoints/P09_CHECKPOINT.md`
+- Cập nhật `CURRENT_STATUS.md`, `PHASE_PROGRESS.md`, `DECISIONS.md`, `BLOCKERS.md`
+
 ## Ràng buộc xuyên suốt
 - Chỉ dùng 1 agent, không tạo sub-agent.
 - Không code website / không tạo database / không triển khai backend trong P00, P00-FIX & P01; P02 thiết kế kiến trúc/schema/API nhưng **không viết code ứng dụng**; P03 chỉ xây **Design System + đặc tả giao diện**, P04 chỉ tạo **tài nguyên nhận diện (SVG) + quy chuẩn**, cả hai **không dựng UI/không triển khai website**. **P05 mới dựng UI thật** (Shared UI Components + Application Shell) nhưng **không** kết nối database/Auth/R2, **không** triển khai chức năng module (route chức năng là placeholder).
@@ -160,4 +170,5 @@
 - **P06** chỉ triển khai **nền tảng dữ liệu** (Prisma/migration/seed/repository/service/validation/authorization); **không** triển khai đăng nhập thật (Auth.js) và **không** kết nối Neon/R2 thật khi chưa có credentials; **không** giả lập người dùng đã đăng nhập (`getCurrentActor()` trả `null`); **không** tạo công thức giả như nội dung đã xuất bản.
 - **P07** chỉ triển khai **module Recipe** trên nền dữ liệu P06, **tái sử dụng** component P05 (không viết lại UI dùng chung); UI **không** gọi Prisma trực tiếp; quyền kiểm ở **server** (RBAC tập trung, không hardcode role); Auth.js vẫn **chưa nối** → mọi thao tác ghi trả **401**, **không** giả lập người dùng; media chạy **local provider** khi chưa có credentials R2 (R2 adapter đã hoàn thiện nhưng **chưa** xác minh kết nối thật); nội dung công thức trong test là **fixture**, **không** tuyên bố có công thức thật đã xuất bản; **không** tự chuyển sang P08.
 - **P08** chỉ triển khai **phân loại & khám phá** trên taxonomy P06 + module Recipe P07, **không** thêm model/cột taxonomy (D62/D63), **không** tạo taxonomy trùng, **không** tạo bộ lọc cho dữ liệu chưa có (D64); xoá danh mục **có điều kiện** (ưu tiên lưu trữ — D65); **chỉ** Admin quản trị taxonomy (401 khi Auth.js chưa nối, kiểm quyền ở server); **không** mở rộng sang cộng đồng/tài khoản khách/chatbot; **không** triển khai P09.
+- **P09** chỉ triển khai **trải nghiệm nấu** trên trang chi tiết công thức (Cooking Mode/Portion Scaling/Checklist), tận dụng shared UI P05 + view-model P07; **không** thêm schema/migration (D70); **không** dùng `CookingSession`/`CookingProgress` (yêu cầu `userId`) → lưu **cục bộ** `localStorage` có version (D67); Portion Scaling **chỉ nhân số, giữ nguyên đơn vị** — **không** quy đổi khối lượng↔thể tích (D68), **không** sửa dữ liệu công thức gốc; **không** bịa hướng dẫn/định lượng/nhiệt độ/thời gian; **không** tài khoản khách, **không** lưu dữ liệu nhạy cảm; **không** triển khai P10.
 - Chỉ commit file thuộc phạm vi phase. P00/P00-FIX/P01 chỉ commit local; P02 trở đi được phép đưa checkpoint lên `origin/main` một cách an toàn (không force-push, không rewrite lịch sử).

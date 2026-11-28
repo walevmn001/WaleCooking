@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
+import { CookingExperience } from "@/components/cooking/cooking-experience";
 import { Container } from "@/components/layout/container";
 import { Breadcrumb } from "@/components/navigation/breadcrumb";
 import { AllergenBadges } from "@/components/recipe/allergen-badges";
 import { CookingStepCard } from "@/components/recipe/cooking-step-card";
 import { FavoriteButton } from "@/components/recipe/favorite-button";
-import { IngredientList } from "@/components/recipe/ingredient-row";
 import { NutritionSummary } from "@/components/recipe/nutrition-summary";
 import {
   CookingTime,
@@ -172,18 +172,18 @@ export default async function RecipeDetailPage({ params }: RecipeDetailPageProps
             <h2 id="ingredients-heading" className="text-h2 text-ink">
               Nguyên liệu
             </h2>
-            {recipe.ingredients.length > 0 ? (
-              <Card>
-                <CardBody>
-                  <IngredientList
-                    ingredients={recipe.ingredients}
-                    aria-label={`Nguyên liệu cho ${recipe.title}`}
-                  />
-                </CardBody>
-              </Card>
-            ) : (
-              <p className="text-body text-ink-muted">Chưa có thông tin nguyên liệu.</p>
-            )}
+            {/* P09 — chọn khẩu phần + checklist nguyên liệu (định lượng cập nhật theo khẩu phần). */}
+            <Card>
+              <CardBody>
+                <CookingExperience
+                  slug={dto.slug}
+                  title={recipe.title}
+                  baseServings={dto.baseServings}
+                  ingredients={recipe.ingredients}
+                  steps={recipe.steps}
+                />
+              </CardBody>
+            </Card>
           </section>
 
           <section aria-labelledby="steps-heading" className="flex flex-col gap-4">

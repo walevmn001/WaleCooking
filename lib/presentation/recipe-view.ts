@@ -179,17 +179,27 @@ export function toRecipeSummary(dto: RecipeSummaryDto): RecipeSummary {
 }
 
 export function toRecipeIngredient(dto: RecipeIngredientDto): RecipeIngredient {
+  const unit = dto.unitSymbol ?? dto.unitName ?? null;
   return {
     id: dto.id,
     name: dto.displayName,
     amount: formatIngredientAmount(dto),
     note: dto.preparationNote ?? undefined,
     optional: !dto.isRequired,
+    // Số gốc + đơn vị để client nhân theo khẩu phần (P09 §P09.3) — không hiển thị trực tiếp.
+    quantityData: {
+      type: dto.quantityType,
+      numeric: dto.quantityNumeric,
+      numericMax: dto.quantityNumericMax,
+      text: dto.quantityText,
+      unit,
+    },
   };
 }
 
 export function toRecipeStep(dto: RecipeStepDto): RecipeStep {
   const durationSeconds = dto.timers[0]?.durationSeconds;
+  const image = dto.images[0];
   return {
     id: dto.id,
     order: dto.stepNo,
@@ -200,6 +210,8 @@ export function toRecipeStep(dto: RecipeStepDto): RecipeStep {
         ? Math.max(1, Math.round(durationSeconds / 60))
         : undefined,
     tip: dto.tip ?? undefined,
+    imageUrl: image?.url ?? null,
+    imageAlt: image?.altText ?? `Bước ${dto.stepNo}`,
   };
 }
 

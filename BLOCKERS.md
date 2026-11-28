@@ -1,7 +1,7 @@
 # BLOCKERS — WALE COOKING
 
 > Các vấn đề còn tồn tại hoặc cần xác minh. Ghi rõ thay vì tự suy đoán.
-> Cập nhật: 2026-11-28 (P08).
+> Cập nhật: 2026-11-28 (P09).
 
 | # | Blocker | Mức độ | Trạng thái | Ghi chú |
 | --- | --- | --- | --- | --- |
@@ -37,6 +37,9 @@
 | B-P08-02 | **Chưa kiểm trang danh mục trên trình duyệt thật** (responsive, SEO, structured data) | Trung bình | **Còn mở** | Không có browser headless → chưa kiểm responsive thực tế, canonical/JSON-LD render, a11y (axe/Lighthouse). Kế thừa B-P07-04. Xem [CATEGORY_PAGES.md](./docs/P08/CATEGORY_PAGES.md) §7 |
 | B-P08-03 | **Chưa xác minh phân quyền quản trị taxonomy qua HTTP phiên thật** | Trung bình | **Còn mở** | Auth.js chưa nối → 401/403 mới kiểm ở tầng service (unit). Kế thừa B-P07_1-03. Xem [ADMIN_TAXONOMY.md](./docs/P08/ADMIN_TAXONOMY.md) §2 |
 | B-P08-04 | **Chưa có ảnh đại diện/SEO cho danh mục** | Thấp | **Còn mở (backlog)** | Schema taxonomy chưa có cột SEO/ảnh (theo **D62/ADR-P07_1-02**); P08 **không** thêm cột. Ghi backlog cho phase sau |
+| B-P09-01 | **Chưa chạy E2E/integration cho luồng nấu** | Trung bình | **Còn mở — External Verification Pending** | Không có browser/PostgreSQL → luồng Cooking Mode/Portion Scaling/Checklist mới kiểm ở mức unit/component (jsdom). Kịch bản E2E (đổi khẩu phần → đánh dấu → mở chế độ nấu → tải lại → khôi phục) chưa chạy thật. Xem [TEST_REPORT.md](./docs/P09/TEST_REPORT.md) §4 |
+| B-P09-02 | **Chưa kiểm a11y/touch trên thiết bị thật khi đứng bếp** | Trung bình | **Còn mở** | Chế độ nấu nhắm tới điện thoại (nút lớn, tương phản, focus, khóa màn hình) nhưng chưa chạy axe/screen reader/browser thật. Kế thừa B-P07-04/B-P08-02. Xem [COOKING_MODE.md](./docs/P09/COOKING_MODE.md) §7/§9 |
+| B-P09-03 | **Tiến độ nấu lưu cục bộ — không đồng bộ giữa thiết bị** | Thấp | **Chấp nhận (theo thiết kế — D67)** | `localStorage` theo từng trình duyệt/thiết bị; xóa dữ liệu trình duyệt hoặc chế độ riêng tư → không khôi phục được. Đúng với mô hình **không tài khoản khách**; ghi nhận để minh bạch |
 
 ## Nội dung còn chờ xác minh (không phải blocker cứng)
 
