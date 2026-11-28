@@ -11,8 +11,8 @@
 
 | Sub-phase | Nội dung | Trạng thái |
 |---|---|---|
-| P13.1.1 | Audit trạng thái thực tế | ✅ Hoàn thành — [P13.1_AUDIT.md](../P13/P13.1_AUDIT.md) |
-| P13.1.2 | Neon configuration (`DATABASE_URL`/`DIRECT_URL`) | ⏳ Chờ |
+| P13.1.1 | Audit trạng thái thực tế | ✅ Hoàn thành — [P13.1_AUDIT.md](../P13/P13.1_AUDIT.md) · `eb0034c` |
+| P13.1.2 | Neon configuration (`DATABASE_URL`/`DIRECT_URL`) | ✅ Hoàn thành — cấu hình đã đúng, không cần sửa; bổ sung test env (6/6 PASS) |
 | P13.1.3 | Database connectivity | ⏳ Chờ |
 | P13.1.4 | Migration deployment | ⏳ Chờ |
 | P13.1.5 | Integration verification | ⏳ Chờ |
