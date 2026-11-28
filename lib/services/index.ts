@@ -20,3 +20,4 @@ export type {
 export { MediaService, mediaService, buildStorageKey } from "./media.service";
 export type { UploadMediaInput } from "./media.service";
 export { ImportService } from "./import.service";
+export type { ImportPipelineDeps } from "./import.service";

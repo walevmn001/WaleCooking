@@ -41,7 +41,14 @@ export interface ImportJobDto {
   updatedAt: Date;
 }
 
-/** Một URL trong một job. */
+/**
+ * Một URL trong một job.
+ *
+ * I2 (D10) mở rộng thêm các trường vòng đời để API/admin hiển thị tiến độ mà
+ * KHÔNG cần đổi schema (đều là cột đã có ở `ImportJobItem`):
+ * `processingStage`, `leaseExpiresAt`, `workerId`, `lastError`, `extractionId`,
+ * `duplicateOfItemId`. `lastError` khi trả client PHẢI đã được làm sạch.
+ */
 export interface ImportJobItemDto {
   id: string;
   jobId: string;
@@ -50,8 +57,14 @@ export interface ImportJobItemDto {
   normalizedUrl: string;
   idempotencyKey: string;
   status: ImportJobItemStatus;
+  processingStage: string | null;
   attempts: number;
   maxAttempts: number;
+  leaseExpiresAt: Date | null;
+  workerId: string | null;
+  lastError: string | null;
+  extractionId: string | null;
+  duplicateOfItemId: string | null;
   recipeId: string | null;
   createdAt: Date;
   updatedAt: Date;
@@ -81,6 +94,11 @@ export interface ImportRepository {
   findJobById(id: string): Promise<ImportJobDto | null>;
   createJob(input: CreateImportJobInput): Promise<ImportJobDto>;
   findItemById(id: string): Promise<ImportJobItemDto | null>;
+  /**
+   * Tìm item theo khoá chống trùng `(jobId, idempotencyKey)` — phục vụ thêm URL
+   * idempotent (I2.2). Đối chiếu unique `@@unique([jobId, idempotencyKey])` ở schema I1.
+   */
+  findItemByJobAndKey(jobId: string, idempotencyKey: string): Promise<ImportJobItemDto | null>;
   listItemsByJob(jobId: string): Promise<ImportJobItemDto[]>;
   createItem(input: CreateImportJobItemInput): Promise<ImportJobItemDto>;
   findSourceByDomain(domain: string): Promise<ImportSourceDto | null>;

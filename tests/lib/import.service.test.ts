@@ -44,6 +44,17 @@ class FakeImportRepository implements ImportRepository {
     return this.items.get(id) ?? null;
   }
 
+  async findItemByJobAndKey(
+    jobId: string,
+    idempotencyKey: string,
+  ): Promise<ImportJobItemDto | null> {
+    return (
+      [...this.items.values()].find(
+        (item) => item.jobId === jobId && item.idempotencyKey === idempotencyKey,
+      ) ?? null
+    );
+  }
+
   async listItemsByJob(jobId: string): Promise<ImportJobItemDto[]> {
     return [...this.items.values()].filter((item) => item.jobId === jobId);
   }
@@ -59,8 +70,14 @@ class FakeImportRepository implements ImportRepository {
       normalizedUrl: input.normalizedUrl,
       idempotencyKey: input.idempotencyKey,
       status: "queued",
+      processingStage: null,
       attempts: 0,
       maxAttempts: 3,
+      leaseExpiresAt: null,
+      workerId: null,
+      lastError: null,
+      extractionId: null,
+      duplicateOfItemId: null,
       recipeId: null,
       createdAt: now,
       updatedAt: now,
