@@ -14,6 +14,12 @@ next-env.d.ts
 # testing / coverage
 /coverage
 
+# playwright (E2E) — đầu ra tạm, không commit
+/test-results
+/playwright-report
+/blob-report
+/.playwright
+
 # local media storage (dev/test only — LocalStorageAdapter)
 /.media-local/
 

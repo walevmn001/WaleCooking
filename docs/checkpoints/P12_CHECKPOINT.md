@@ -12,8 +12,8 @@
 |---|---|---|
 | P12.1 | Audit trạng thái thực tế | ✅ Hoàn thành — [DEPLOYMENT_AUDIT.md](../P12/DEPLOYMENT_AUDIT.md) · commit `ce8d4fc` |
 | P12.2 | Database readiness (Neon) | ✅ Hoàn thành (Neon kết nối: BLOCKED) — [DATABASE_READINESS.md](../P12/DATABASE_READINESS.md) · commit `0c05a8e` |
-| P12.3 | Storage production readiness | ✅ Hoàn thành (R2 e2e: BLOCKED) — [STORAGE_READINESS.md](../P12/STORAGE_READINESS.md) |
-| P12.4 | Playwright browser automation | ⏳ Chờ |
+| P12.3 | Storage production readiness | ✅ Hoàn thành (R2 e2e: BLOCKED) — [STORAGE_READINESS.md](../P12/STORAGE_READINESS.md) · commit `5fe16be` |
+| P12.4 | Playwright browser automation | ✅ Hoàn thành (28/28 PASS; Admin login thật: BLOCKED) — [PLAYWRIGHT_SETUP.md](../P12/PLAYWRIGHT_SETUP.md) · [E2E_TEST_REPORT.md](../P12/E2E_TEST_REPORT.md) |
 | P12.5 | Responsive & UX verification | ⏳ Chờ |
 | P12.6 | Vercel deployment verification | ⏳ Chờ |
 | P12.7 | Documentation & final checkpoint | ⏳ Chờ |
@@ -46,7 +46,7 @@
 | Audit repo & Git | **PASS** |
 | Database readiness (Neon) | **BLOCKED** (chưa có credentials/DB trong sandbox) — sẽ làm tối đa phần code |
 | Storage readiness | **PENDING** (chưa có R2 credentials) |
-| Playwright E2E | **PENDING** (sẽ thiết lập + chạy trong sandbox) |
+| Playwright E2E | **PASS** (28/28) — Admin login thật & RBAC: **BLOCKED** (Auth.js chưa nối) |
 | Responsive verification | **PENDING** |
 | Vercel deployment | **BLOCKED** (không có quyền truy cập) |
 

@@ -20,6 +20,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:integration": "vitest run --config vitest.integration.config.ts",
+    "e2e": "playwright test",
+    "e2e:seed": "tsx tests/e2e/seed-e2e.ts",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
@@ -43,6 +45,7 @@
   },
   "devDependencies": {
     "@eslint/js": "9.39.5",
+    "@playwright/test": "1.56.1",
     "@tailwindcss/postcss": "4.3.5",
     "@testing-library/jest-dom": "6.10.0",
     "@testing-library/react": "16.3.3",
