@@ -1,7 +1,7 @@
 # BLOCKERS — WALE COOKING
 
 > Các vấn đề còn tồn tại hoặc cần xác minh. Ghi rõ thay vì tự suy đoán.
-> Cập nhật: 2026-11-28 (P10).
+> Cập nhật: 2026-11-28 (P11).
 
 | # | Blocker | Mức độ | Trạng thái | Ghi chú |
 | --- | --- | --- | --- | --- |
@@ -41,8 +41,13 @@
 | B-P09-02 | **Chưa kiểm a11y/touch trên thiết bị thật khi đứng bếp** | Trung bình | **Còn mở** | Chế độ nấu nhắm tới điện thoại (nút lớn, tương phản, focus, khóa màn hình) nhưng chưa chạy axe/screen reader/browser thật. Kế thừa B-P07-04/B-P08-02. Xem [COOKING_MODE.md](./docs/P09/COOKING_MODE.md) §7/§9 |
 | B-P09-03 | **Tiến độ nấu lưu cục bộ — không đồng bộ giữa thiết bị** | Thấp | **Chấp nhận (theo thiết kế — D67)** | `localStorage` theo từng trình duyệt/thiết bị; xóa dữ liệu trình duyệt hoặc chế độ riêng tư → không khôi phục được. Đúng với mô hình **không tài khoản khách**; ghi nhận để minh bạch |
 | B-P10-01 | **Chưa kiểm đồng hồ trên thiết bị thật khi đứng bếp** (khoá màn hình, throttle, âm thanh, Notification) | Trung bình | **Còn mở — External Verification Pending** | Không có trình duyệt/thiết bị thật → chưa kiểm: tab bị ẩn/throttle, khoá màn hình điện thoại khi đồng hồ đang chạy, phát âm thanh (Web Audio), Notification API thực, rung thiết bị. Đã thiết kế đúng nguyên tắc `deadline` (D71) + có fallback trong trang. Kế thừa B-P07-04/B-P08-02/B-P09-02. Xem [MULTI_TIMER.md](./docs/P10/MULTI_TIMER.md) §8 |
-| B-P10-02 | **Chưa chạy integration test P10.3 (tìm món theo nguyên liệu)** | Trung bình | **Còn mở — External Verification Pending** | Đã viết `tests/integration/kitchen.ingredient-match.test.ts` (4 test) nhưng sandbox **không có PostgreSQL** (`TEST_DATABASE_URL`) → chưa thực thi; file đã qua typecheck/lint. Logic khớp ở tầng miền được phủ đầy đủ bằng unit test. Xem [TEST_REPORT.md](./docs/P10/TEST_REPORT.md) §3 |
+| B-P10-02 | **Chưa chạy integration test P10.3 (tìm món theo nguyên liệu)** | Trung bình | **ĐÃ GIẢI QUYẾT (P11)** | `tests/integration/kitchen.ingredient-match.test.ts` (4 test) đã **chạy thành công trên PostgreSQL thật** trong P11 (59/59 integration test pass). |
 | B-P10-03 | **Chưa đối chiếu hệ số quy đổi với dụng cụ đo vật lý** | Thấp | **Chấp nhận (theo thiết kế)** | Hệ số dựa trên định nghĩa chuẩn (SI / US customary / avoirdupois) đã ghi nguồn trong `UNIT_DEFINITIONS`; **không** áp dụng tỷ trọng nguyên liệu. Chưa đối chiếu cân/ca đong thực tế — nằm ngoài phạm vi môi trường sandbox. Xem [UNIT_CONVERTER.md](./docs/P10/UNIT_CONVERTER.md) §7 |
+| B-P11-01 | **Chưa kiểm hiển thị thực tế 6 viewport** (320–1920) trên trình duyệt/thiết bị thật | Trung bình | **Còn mở — External Verification Pending** | Sandbox không có browser/thiết bị → chưa kiểm tràn ngang, dialog vượt màn hình, kích thước nút, khoảng cách. Cơ sở responsive đã xác minh ở mức mã/token P03. Xem [MOBILE_UX_AUDIT.md](./docs/P11/MOBILE_UX_AUDIT.md) §1 |
+| B-P11-02 | **Chưa chạy E2E/axe/Lighthouse/screen reader** (a11y/runtime/perf thực) | Trung bình | **Còn mở — External Verification Pending** | Không có browser headless → chưa đo bundle size/CWV, chưa axe/screen reader/zoom 200%, chưa kiểm rich results Google. Kế thừa B-P05-01/B-P07-04/B-P08-02. Xem [MANUAL_VERIFICATION_CHECKLIST.md](./docs/P11/MANUAL_VERIFICATION_CHECKLIST.md) |
+| B-P11-03 | **Chưa kiểm timer nền trên thiết bị thật** (khóa màn hình/chuyển app/rung/âm thanh/Notification) | Trung bình | **Còn mở — External Verification Pending** | Kế thừa B-P10-01. Đã thiết kế đúng nguyên tắc `deadline` (D71) + không xin quyền/âm thanh ngoài ý muốn. Xem [SMART_KITCHEN_VERIFICATION.md](./docs/P11/SMART_KITCHEN_VERIFICATION.md) §1.2 |
+
+**Ghi chú P11:** 3 lỗi Medium phát hiện & **đã sửa** trong P11 — soft-404 (BUG-01), thiếu sitemap/robots (BUG-02), thiếu security headers + lộ `X-Powered-By` (BUG-03). Chi tiết: [BUG_FIX_REPORT.md](./docs/P11/BUG_FIX_REPORT.md).
 
 ## Nội dung còn chờ xác minh (không phải blocker cứng)
 

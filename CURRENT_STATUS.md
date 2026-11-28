@@ -1,10 +1,10 @@
 # CURRENT STATUS — WALE COOKING
 
-> Cập nhật: 2026-11-28 (P10).
+> Cập nhật: 2026-11-28 (P11).
 
 ## Tóm tắt
 - **Sản phẩm:** WALE COOKING — website cá nhân chuyên công thức & hỗ trợ nấu ăn (**Recipe-focused Cooking Assistant**; tiếng Việt, sẵn sàng i18n EN). **Không** mạng xã hội, **không** cộng đồng, **không** tài khoản khách truy cập.
-- **Phase hiện tại:** hoàn thành **P00**, **P00-FIX**, **P01**, **P02**, **P03**, **P04**, **P05**, **P06**, **P07**, **P07.1**, **P08**, **P09** và **P10** — **dừng theo yêu cầu** (prompt chỉ định triển khai P09 + P10).
+- **Phase hiện tại:** hoàn thành **P00**, **P00-FIX**, **P01**, **P02**, **P03**, **P04**, **P05**, **P06**, **P07**, **P07.1**, **P08**, **P09**, **P10** và **P11** — **P11 là phase ổn định & hoàn thiện** (không thêm tính năng mới). **Không** triển khai P12.
 - **Đã hoàn thiện P00:** khảo sát thực tế + tài liệu định hướng + đề xuất công nghệ.
 - **Đã hoàn thiện P00-FIX:** đồng bộ thương hiệu sang WALE COOKING, bổ sung đầy đủ 20 nhóm chức năng, chuẩn hóa 7 trục phân loại, cập nhật tài liệu trạng thái.
 - **Đã hoàn thiện P01:** bộ đặc tả sản phẩm có thể triển khai — PRD, Product Constitution, personas, user journeys, đặc tả 20 nhóm chức năng, quy tắc nghiệp vụ, NFR đo lường được, phạm vi MVP và tiêu chí nghiệm thu.
@@ -18,11 +18,12 @@
 - **Đã hoàn thiện P08:** **Taxonomy & Recipe Discovery** — (1) **6 trục khám phá** (`food_type`/`cuisine`/`meal_type`/`cooking_method`/`dietary_preference`/`ingredient_category`) tận dụng taxonomy P06, **không** thêm model/cột (D62/D63); metadata trục trong `lib/constants/taxonomy.ts`, **term là dữ liệu DB**; (2) **Recipe Discovery** — bộ lọc khám phá (mealType/cookingMethod/dietary/ingredient/ingredientCategory/maxMinutes) chỉ dựa trên dữ liệu thật, tái dùng `listPublic` (D64/D66); `listPublicForCategory` cho trang danh mục; (3) **trang danh mục công khai** `/danh-muc`, `/danh-muc/{segment}` (SSG 6 trục), `/danh-muc/{segment}/{slug}` — breadcrumb, phân trang, canonical, JSON-LD BreadcrumbList; (4) **quản trị taxonomy** `/admin/danh-muc*` + API `POST/PATCH/DELETE /api/v1/admin/taxonomy*` — chỉ Admin, **xoá có điều kiện** (chặn khi còn công thức/term con, ưu tiên lưu trữ — D65); (5) **Recipe UX foundation** (badge phân loại có liên kết, nút yêu thích/chia sẻ). **Kiểm chứng:** `typecheck` 0 lỗi · `lint` 0 lỗi · **199/199 unit test** (24 file, +46 test P08) · `build` **34 route** (thêm `/danh-muc*`, `/admin/danh-muc*`, `/api/v1/admin/taxonomy*`). **Chưa xác minh:** integration test taxonomy (không có PostgreSQL), E2E/response/a11y (không có browser), Auth.js HTTP. Tài liệu `docs/P08/` + `docs/checkpoints/P08_CHECKPOINT.md`.
 - **Đã hoàn thiện P09:** **Cooking Experience** — (1) **P09.1 Audit dữ liệu** công thức → quyết định thiết kế (D67–D70); (2) **Cooking Mode** — chế độ nấu toàn màn hình (portal, focus trap, đóng bằng Esc + xác nhận), tập trung từng bước, ảnh/mẹo/thời lượng, xem lại danh sách bước, không sinh/đổi thứ tự bước; (3) **Portion Scaling** — nhân định lượng theo khẩu phần (`định lượng mới = gốc × mới/gốc`), điều khiển tăng/giảm + nhập trực tiếp + khôi phục, **chỉ nhân số — giữ nguyên đơn vị** (không quy đổi mass↔volume — D68), không đổi dữ liệu gốc; (4) **Ingredient Checklist** — tick/tiến độ (chữ + số)/reset, dùng định lượng sau khi đổi khẩu phần; (5) **lưu tiến độ cục bộ** `localStorage` có `version` (không tài khoản khách, không DB — D67), xử lý JSON hỏng/slug khác/kẹp `stepIndex`/lọc id; component tái sử dụng `CookingModeLayout`/`CookingStepCard`(dùng lại)/`CookingProgress`/`IngredientChecklist`/`PortionSelector`/`CookingExitConfirmation`. **Kiểm chứng:** `typecheck` 0 lỗi · `lint` 0 lỗi · **249/249 unit test** (27 file, +50 test P09) · `build` thành công (không thêm route; đặt `DATABASE_URL` placeholder). **Chưa xác minh:** E2E/thiết bị thật, integration (P09 không thêm logic server/schema). Tài liệu `docs/P09/` + `docs/checkpoints/P09_CHECKPOINT.md`.
 - **Đã hoàn thiện P10:** **Smart Kitchen Tools** — (1) **P10.1 Multi Timer** — nhiều đồng hồ cùng lúc (tạo/đặt tên/bắt đầu/tạm dừng/tiếp tục/đặt lại/xoá/cảnh báo hết giờ), **nguồn sự thật là `deadline` (epoch ms)** — `setInterval` chỉ re-render (đúng khi tab ẩn/khoá màn hình), tạm dừng chốt `pausedRemaining`, lưu **cục bộ** `localStorage` (`wale_timers_v1`, có `version`, khôi phục khi tải lại), cảnh báo 4 kênh (banner / Web Audio mở khoá qua tương tác / Notification API xin quyền khi người dùng bấm / rung thiết bị), **không** xin quyền không liên quan; (2) **P10.2 Unit Converter** — khối lượng (SI/avoirdupois), thể tích (US customary + **metric cup** 250 ml), nhiệt độ; **chỉ quy đổi khi có hệ số xác định**, **không** quy đổi mass↔volume/giữa đơn vị đếm, `convertUnit` không ném lỗi, logic **tách khỏi UI**; (3) **P10.3 Ingredient-Based Discovery** — tìm món theo nguyên liệu đang có: chuẩn hoá bỏ dấu + loại trùng + so khớp tên/slug, điểm phù hợp (`matched`/`coverage`/`missingRequired`) trên **dữ liệu thật**, **không** AI, **không** tự tạo công thức; (4) **P10.4 UI** — khu vực `/cong-cu` (hub + 3 công cụ) + **8 component** tái sử dụng (`MultiTimer`/`TimerCard`/`TimerForm`/`UnitConverter`/`IngredientSearch`/`IngredientChip`/`RecipeMatchCard`/`MissingIngredients`), tận dụng P05 + Recipe Discovery P08 (D74). **Kiểm chứng:** `typecheck` 0 lỗi · `lint` 0 lỗi · **337/337 unit test** (31 file, **+88 test P10**) · `build` thành công (thêm `/cong-cu*` + `/api/v1/kitchen/ingredient-match`; `DATABASE_URL` placeholder). **Chưa xác minh:** integration P10.3 (không có PostgreSQL), E2E/thiết bị thật (khoá màn hình/throttle/âm thanh/Notification). Tài liệu `docs/P10/` + `docs/checkpoints/P10_CHECKPOINT.md`.
+- **Đã hoàn thiện P11:** **Real-World Verification & UX Polish** (phase ổn định & hoàn thiện — **không** thêm tính năng mới) — (1) **P11.1 Full Project Audit** 16 khu vực (Foundation/Database/Recipe/Admin/Media/Taxonomy/Discovery/Favorites/Cooking/Portion/Checklist/Multi Timer/Unit Converter/Ingredient Discovery/SEO/Responsive) + phân loại Critical/High/Medium/Low; (2) **P11.2–P11.4** xác minh luồng khách & quản trị (HTTP thật), trải nghiệm nấu & công cụ nhà bếp (bảng ca kiểm thử Portion Scaling + Unit Converter); (3) **P11.5–P11.6** audit mobile/SEO/performance/security; (4) **P11.9 sửa 3 lỗi Medium**: **BUG-01** soft-404 (xóa 3 `loading.tsx` tạo Suspense boundary → route động trả **404** đúng), **BUG-02** thêm `app/sitemap.ts` + `app/robots.ts` (trước đây 404), **BUG-03** thêm security headers + ẩn `X-Powered-By`; (5) **P11.7** chạy lại toàn bộ test. **Kiểm chứng:** `typecheck` 0 lỗi · `lint` 0 lỗi · **337/337 unit test** (31 file) · **59/59 integration test** (9 file — PostgreSQL thật, gồm `kitchen.ingredient-match` **khắc phục B-P10-02**) · `build` thành công **42 route** (có `/sitemap.xml`, `/robots.txt`). **Chưa xác minh (External Verification Pending):** hiển thị thực tế 6 viewport, E2E/axe/Lighthouse/screen reader, timer nền (khóa màn hình/chuyển app), đăng nhập admin thật (Auth.js chưa nối). 10 tài liệu `docs/P11/` + `docs/checkpoints/P11_CHECKPOINT.md`.
 
 ## Git
 | Mục | Giá trị |
 | --- | --- |
-| Branch hiện tại | `trae/agent-8KQLUd` (đồng bộ `origin/main`) |
+| Branch hiện tại | `trae/agent-1nGkPH` (đồng bộ `origin/main`) |
 | Remote | `origin` → `https://github.com/walevmn001/WaleCooking` |
 | Commit P00 | `a7c3ee5` — docs(P00): khảo sát dự án, xác lập yêu cầu và checkpoint nền tảng |
 | Commit P00-FIX | `59ca67a` — docs(P00-FIX): đồng bộ thương hiệu WALE COOKING và hoàn thiện phạm vi sản phẩm |
@@ -36,9 +37,10 @@
 | Commit P07.1 | `4c88ed6` — feat(P07.1): điều chỉnh phạm vi không tài khoản khách + yêu thích bằng cookie |
 | Commit P08 | `ca1b4e9` — feat(P08): taxonomy & khám phá công thức (danh mục, bộ lọc, quản trị) |
 | Commit P09 | `c8f9b91` — feat(P09): cooking experience — chế độ nấu, khẩu phần, checklist |
-| Commit P10 | *(commit chứa tài liệu này — xem `git log -1`)* — feat(P10): công cụ nhà bếp — đồng hồ, quy đổi đơn vị, tìm món theo nguyên liệu |
-| Working tree | Sạch sau khi commit P10 |
-| `origin/main` | `c8f9b91` (P09) trước P10; cập nhật checkpoint P10 sau khi push (xem báo cáo push) |
+| Commit P10 | `be41af1` — feat(P10): công cụ nhà bếp — đồng hồ, quy đổi đơn vị, tìm món theo nguyên liệu |
+| Commit P11 | *(commit chứa tài liệu này — xem `git log -1`)* — fix(P11): kiểm thử thực tế & hoàn thiện — sửa soft-404, bổ sung sitemap/robots, security headers |
+| Working tree | Sạch sau khi commit P11 |
+| `origin/main` | `be41af1` (P10) trước P11; cập nhật checkpoint P11 sau khi push (xem báo cáo push) |
 
 ## Kiến trúc đã chốt (không thay đổi)
 - Stack lớp rời: **Next.js + Prisma + Neon PostgreSQL + Auth.js + Cloudflare R2**.
@@ -197,6 +199,17 @@
 
 **Kiểm thử:** `tests/lib/kitchen/{timers(31),units(23),ingredient-match(17)}.test.ts` + `tests/components/kitchen.test.tsx` (17) — **88 unit** + `tests/integration/kitchen.ingredient-match.test.ts` (4 — chưa chạy, thiếu DB). Tổng toàn bộ **337 unit test** (31 file).
 
+## Sản phẩm bàn giao P11 (`docs/P11/` + mã nguồn)
+**Tài liệu (`docs/P11/`):** `FULL_PROJECT_AUDIT.md` · `USER_FLOW_VERIFICATION.md` · `COOKING_FEATURE_VERIFICATION.md` · `SMART_KITCHEN_VERIFICATION.md` · `MOBILE_UX_AUDIT.md` · `SEO_PERFORMANCE_AUDIT.md` · `SECURITY_AUDIT.md` · `BUG_FIX_REPORT.md` · `TEST_REPORT.md` · `MANUAL_VERIFICATION_CHECKLIST.md` + checkpoint `docs/checkpoints/P11_CHECKPOINT.md`.
+
+**Xóa (FIX-A — sửa soft-404):** `app/loading.tsx`, `app/(public)/cong-thuc/loading.tsx`, `app/(public)/cong-thuc/[slug]/loading.tsx`.
+
+**Thêm mới (FIX-B — SEO):** `app/sitemap.ts` (chỉ nội dung công khai; try/catch quanh DB), `app/robots.ts` (chặn `/admin`,`/api/`,`/dev/`).
+
+**Sửa đổi:** `next.config.ts` (FIX-C — security headers + ẩn `X-Powered-By`); `app/(public)/cong-thuc/page.tsx` (cập nhật chú thích).
+
+**Không** thêm schema/migration/dependency; **không** đổi design system/kiến trúc.
+
 ## Việc còn chờ xác minh
 - **B5:** repo là shallow clone (ảnh hưởng thấp).
 - **B6:** chưa có tài khoản/môi trường triển khai (Neon, R2, Vercel/Cloudflare…).
@@ -225,16 +238,19 @@
 - **B-P08-03:** chưa xác minh **phân quyền quản trị taxonomy qua HTTP phiên thật** (Auth.js chưa nối).
 - **B-P08-04:** chưa có **ảnh đại diện/SEO cho danh mục** (schema chưa có cột — ghi backlog).
 - **B-P10-01:** chưa kiểm **đồng hồ đếm ngược trên thiết bị thật khi đứng bếp** (tab ẩn/throttle, khoá màn hình, phát âm thanh, Notification API, rung) — External Verification Pending.
-- **B-P10-02:** chưa chạy **integration test P10.3 (tìm món theo nguyên liệu)** — đã viết, sandbox không có PostgreSQL (External Verification Pending).
+- **B-P10-02:** chưa chạy **integration test P10.3 (tìm món theo nguyên liệu)** → **ĐÃ GIẢI QUYẾT (P11)** — `tests/integration/kitchen.ingredient-match.test.ts` (4 test) đã **chạy thành công trên PostgreSQL thật** trong P11 (59/59 integration test pass).
 - **B-P10-03:** chưa **đối chiếu hệ số quy đổi với dụng cụ đo vật lý** (hệ số theo định nghĩa chuẩn đã ghi nguồn; không áp dụng tỷ trọng nguyên liệu) — chấp nhận theo thiết kế.
+- **B-P11-01:** chưa kiểm **hiển thị thực tế 6 viewport** (320–1920) trên trình duyệt/thiết bị thật (tràn ngang, dialog, kích thước nút) — External Verification Pending.
+- **B-P11-02:** chưa chạy **E2E/axe/Lighthouse/screen reader** (a11y/runtime/perf thực) — không có browser headless.
+- **B-P11-03:** chưa kiểm **timer nền trên thiết bị thật** (khóa màn hình/chuyển app/rung/âm thanh/Notification) — kế thừa B-P10-01.
 - Hạn mức gói miễn phí đã ghi theo thời điểm **11/2026** — cần kiểm tra lại trước khi deploy.
 
 ## Phase tiếp theo
-- **P09 và P10 hoàn thành** (trong giới hạn môi trường). Theo yêu cầu người dùng, **dừng tại đây — không triển khai P11.**
-- Các hạng mục "External Verification Pending" (Neon/R2/Auth.js/E2E, integration test taxonomy + tìm món theo nguyên liệu, đồng hồ trên thiết bị thật) tiếp tục theo dõi ở `BLOCKERS.md`.
+- **P11 hoàn thành** (trong giới hạn môi trường) — phase ổn định & hoàn thiện: audit P00–P10, sửa 3 lỗi Medium (soft-404, sitemap/robots, security headers), chạy lại toàn bộ test (337 unit + 59 integration + build 42 route). Theo yêu cầu người dùng, **dừng tại đây — không triển khai P12.**
+- Các hạng mục "External Verification Pending" (Neon/R2/Auth.js/E2E, hiển thị đa viewport, timer thiết bị thật) tiếp tục theo dõi ở `BLOCKERS.md`.
 - **Backlog định hướng tương lai** (chưa triển khai): thực đơn theo ngày; bộ lọc theo thời gian/độ khó; hướng dẫn sơ chế & bảo quản; danh sách đi chợ; đồng bộ tiến độ nấu giữa thiết bị.
 
 ## Tham chiếu
 - [PHASE_PROGRESS.md](./PHASE_PROGRESS.md) · [DECISIONS.md](./DECISIONS.md) · [BLOCKERS.md](./BLOCKERS.md)
-- Checkpoint: [docs/checkpoints/P07_1_CHECKPOINT.md](./docs/checkpoints/P07_1_CHECKPOINT.md) · [docs/checkpoints/P08_CHECKPOINT.md](./docs/checkpoints/P08_CHECKPOINT.md) · [docs/checkpoints/P09_CHECKPOINT.md](./docs/checkpoints/P09_CHECKPOINT.md) · [docs/checkpoints/P10_CHECKPOINT.md](./docs/checkpoints/P10_CHECKPOINT.md)
-- Tài liệu P00: [docs/P00](./docs/P00/) · P01: [docs/P01](./docs/P01/) · P02: [docs/P02](./docs/P02/) · P03: [docs/P03](./docs/P03/) · P04: [docs/P04](./docs/P04/) · P05: [docs/P05](./docs/P05/) · P06: [docs/P06](./docs/P06/) · P07: [docs/P07](./docs/P07/) · P07.1: [docs/P07_1](./docs/P07_1/) · P08: [docs/P08](./docs/P08/) · P09: [docs/P09](./docs/P09/) · P10: [docs/P10](./docs/P10/)
+- Checkpoint: [docs/checkpoints/P07_1_CHECKPOINT.md](./docs/checkpoints/P07_1_CHECKPOINT.md) · [docs/checkpoints/P08_CHECKPOINT.md](./docs/checkpoints/P08_CHECKPOINT.md) · [docs/checkpoints/P09_CHECKPOINT.md](./docs/checkpoints/P09_CHECKPOINT.md) · [docs/checkpoints/P10_CHECKPOINT.md](./docs/checkpoints/P10_CHECKPOINT.md) · [docs/checkpoints/P11_CHECKPOINT.md](./docs/checkpoints/P11_CHECKPOINT.md)
+- Tài liệu P00: [docs/P00](./docs/P00/) · P01: [docs/P01](./docs/P01/) · P02: [docs/P02](./docs/P02/) · P03: [docs/P03](./docs/P03/) · P04: [docs/P04](./docs/P04/) · P05: [docs/P05](./docs/P05/) · P06: [docs/P06](./docs/P06/) · P07: [docs/P07](./docs/P07/) · P07.1: [docs/P07_1](./docs/P07_1/) · P08: [docs/P08](./docs/P08/) · P09: [docs/P09](./docs/P09/) · P10: [docs/P10](./docs/P10/) · P11: [docs/P11](./docs/P11/)

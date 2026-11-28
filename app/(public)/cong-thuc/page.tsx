@@ -30,7 +30,8 @@ interface RecipesPageProps {
  *
  * - CHỈ hiển thị công thức `published` (service đảm bảo — BR-13).
  * - Lọc/tìm kiếm qua query string; phân trang phía server.
- * - Có trạng thái rỗng, lỗi và đang tải (loading.tsx cùng thư mục).
+ * - Có trạng thái rỗng và lỗi. (P11: bỏ `loading.tsx` để tránh soft-404 —
+ *   Suspense boundary khiến `notFound()` của route con trả HTTP 200 thay vì 404.)
  */
 export default async function RecipesPage({ searchParams }: RecipesPageProps) {
   const rawParams = await searchParams;
