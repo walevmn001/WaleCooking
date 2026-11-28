@@ -1,10 +1,10 @@
 # CURRENT STATUS — WALE COOKING
 
-> Cập nhật: 2026-11-28 (P15).
+> Cập nhật: 2026-11-28 (P16).
 
 ## Tóm tắt
 - **Sản phẩm:** WALE COOKING — website cá nhân chuyên công thức & hỗ trợ nấu ăn (**Recipe-focused Cooking Assistant**; tiếng Việt, sẵn sàng i18n EN). **Không** mạng xã hội, **không** cộng đồng, **không** tài khoản khách truy cập.
-- **Phase hiện tại:** hoàn thành **P00**, **P00-FIX**, **P01**, **P02**, **P03**, **P04**, **P05**, **P06**, **P07**, **P07.1**, **P08**, **P09**, **P10**, **P11**, **P12**, **P13.1** (Neon PostgreSQL), **P14** (feature roadmap audit) và **P15** (Public Discovery Completion — trang chủ FR-01 + tìm kiếm công khai FR-05). **P16+ chưa bắt đầu** (chờ quyết định chủ dự án).
+- **Phase hiện tại:** hoàn thành **P00**, **P00-FIX**, **P01**, **P02**, **P03**, **P04**, **P05**, **P06**, **P07**, **P07.1**, **P08**, **P09**, **P10**, **P11**, **P12**, **P13.1** (Neon PostgreSQL), **P14** (feature roadmap audit), **P15** (Public Discovery Completion — trang chủ FR-01 + tìm kiếm công khai FR-05) và **P16** (Recipe Discovery & Importer Architecture Design — thiết kế kiến trúc, **không** triển khai code). **P17+ chưa bắt đầu** (chờ quyết định chủ dự án).
 - **Đã hoàn thiện P00:** khảo sát thực tế + tài liệu định hướng + đề xuất công nghệ.
 - **Đã hoàn thiện P00-FIX:** đồng bộ thương hiệu sang WALE COOKING, bổ sung đầy đủ 20 nhóm chức năng, chuẩn hóa 7 trục phân loại, cập nhật tài liệu trạng thái.
 - **Đã hoàn thiện P01:** bộ đặc tả sản phẩm có thể triển khai — PRD, Product Constitution, personas, user journeys, đặc tả 20 nhóm chức năng, quy tắc nghiệp vụ, NFR đo lường được, phạm vi MVP và tiêu chí nghiệm thu.
@@ -23,6 +23,7 @@
 - **Đã hoàn thiện P13.1:** **Neon PostgreSQL Production Integration** (tiếp nối P12; **1 AI Agent**, không sub-agent; **không** thêm tính năng, **không** đổi schema/kiến trúc; **không** triển khai R2/Auth.js) — (1) **P13.1.1** audit (`docs/P13/P13.1_AUDIT.md`); (2) **P13.1.2** kiểm cấu hình Neon: `prisma/schema.prisma` (`url=env("DATABASE_URL")` POOLED + `directUrl=env("DIRECT_URL")` DIRECT) + `lib/config/env.ts` **đã đúng**, **không cần sửa mã**; bổ sung `tests/lib/config/env.test.ts` (**6 test**); (3) **P13.1.3** kết nối: thêm `scripts/verify-db.ts` (chỉ đọc, không lộ secret) — chạy thực tế trên PostgreSQL 16.15 local **PASS**; **Neon thật BLOCKED** (sandbox không có credentials); (4) **P13.1.4** migration: `prisma migrate status` OK, `prisma migrate deploy` trên **DB trống mới `wale_p13`** → áp `20261127175936_init`, **58 bảng**; **Neon BLOCKED**; **không** dùng `db push`/`migrate reset`; (5) **P13.1.5** kiểm chứng: `typecheck`/`lint` 0 lỗi · **343/343 unit** (32 file) · **59/59 integration** (9 file) · `build` **PASS** (không cần `DATABASE_URL`); (6) **P13.1.6** tài liệu + checkpoint. **BLOCKED (thiếu môi trường):** kết nối Neon thật, `migrate deploy`/seed/xác minh CRUD trên Neon. Tài liệu `docs/P13/` + `docs/checkpoints/P13_CHECKPOINT.md`.
 - **Đã hoàn thiện P14:** **Feature Roadmap Audit & Next Feature Selection** (phase **audit**, không triển khai code) — đối chiếu PRD/P01 với source code thực tế; phân loại **20/20 nhóm chức năng** (DONE **8** · PARTIAL **6** · MISSING **5** · DEFERRED **1**); ma trận hạ tầng (DONE 4 · BLOCKED 4 · MISSING 2); **technical debt** TD-01…TD-14; **feature roadmap** và chọn **P15 = Public Discovery Completion (FR-01 + FR-05)**. Tài liệu `docs/roadmap/P14_FEATURE_ROADMAP_AUDIT.md`.
 - **Đã hoàn thiện P15:** **Public Discovery Completion — Trang chủ (FR-01) & Tìm kiếm công khai (FR-05)** (1 AI Agent, không sub-agent; **không** thêm schema/migration; **không** FTS/autocomplete; **không** phụ thuộc Neon/R2) — (1) **P15.1** `lib/services/homepage.service.ts` — `HomepageService.load()` → `{ newest, categories }`: **món mới** `published` sắp theo `publishedAt` giảm dần + giới hạn 6, **danh mục** taxonomy khám phá thật; **tách lỗi độc lập** từng khối (khối lỗi → `null`, `console.error`, không nuốt lỗi), **không N+1** (`Promise.all`), tái sử dụng `recipeService.listPublic` + `taxonomyService.listDiscoveryGroups`; (2) **P15.2** `app/(public)/page.tsx` — thay landing P05 tĩnh bằng **trang chủ dữ liệu thật** (`force-dynamic`): Hero (WALE COOKING + CTA), **ô tìm kiếm** → `/tim-kiem?q=…` (`SearchForm`), khối **“Món mới”** (`RecipeCard`), **Khám phá danh mục** (taxonomy thật → `/danh-muc*`), **Lối vào công cụ**; khối rỗng bị **ẩn**, DB rỗng → `EmptyState` thân thiện; (3) **P15.3** `app/(public)/tim-kiem/page.tsx` — **thay hoàn toàn `PlaceholderPage`** bằng trang tìm kiếm công khai: nhận `q` + bộ lọc (`foodType`/`cuisine`/`difficulty`/`mealType`/`cookingMethod`/`dietary`/`maxMinutes`/`sort`), phân trang, **đồng bộ URL** (chia sẻ được), Empty/Error state, giữ nguyên validation (`sanitizeRecipeListQuery` loại trường sai thay vì lỗi server); (4) **P15.4** UX/trợ năng + mở rộng E2E (semantic heading, `aria-live` số kết quả thật, keyboard/focus, back/forward, 4 viewport); (5) **P15.5** kiểm chứng đầy đủ + tài liệu. **Kiểm chứng P15.5 (thực tế):** `typecheck` 0 lỗi · `lint` 0 lỗi · **363/363 unit** (34 file) · **59/59 integration** (9 file, PostgreSQL 16.15 local `wale_test`) · **52/52 E2E** (Chrome CDP + DB `wale_e2e`) · `build` PASS (26 trang tĩnh; `/` và `/tim-kiem` Dynamic). **14/14 Acceptance Criteria PASS**. Tài liệu `docs/checkpoints/P15.1…P15.4_CHECKPOINT.md` + `docs/checkpoints/P15_CHECKPOINT.md`.
+- **Đã hoàn thiện P16:** **Recipe Discovery & Importer Architecture Design** (phase **audit & thiết kế kiến trúc** — **KHÔNG** triển khai importer, **không** sửa `prisma/schema.prisma`/mã nguồn, **không** thêm dependency, **không** chạy migration/seed; **1 AI Agent**, không sub-agent) — (1) **P16.0** preflight & audit trạng thái thực tế; (2) **P16.1** `SOURCE_DISCOVERY_STRATEGY.md` — 9 phương thức discovery (D1–D9) + 5 tầng phân loại nguồn (discoverable/accessible/extractable/permitted/manual) + **Source Registry** (`ImportSource` + enum `support_status`) + phân tích robots.txt/ToS/copyright/attribution/rate limit/ảnh/opt-out; (3) **P16.2** `EXTRACTION_ENGINE.md` — pipeline **5 bậc E1–E5** (JSON-LD → metadata → site adapter → heuristic → AI), ánh xạ **21 trường** sang DTO thật, **trạng thái trường** `MISSING/UNREADABLE/CONFIRMED/DERIVED/CONFLICT` + bậc + bằng chứng, interface `RecipeExtractor`/`ExtractionEngine`, lưu raw; **không bịa/không quy đổi đơn vị**; (4) **P16.3** `VIETNAMESE_LOCALIZATION.md` — quy trình **7 bước**, lưu song song gốc↔Việt (`RecipeTranslationDraft`), **9 loại lỗi I1–I9**, **không** auto-publish; (5) **P16.4** `DUPLICATE_DETECTION.md` — **6 lớp kiểm** L1–L6, **4 nhãn** EXACT/LIKELY/SIMILAR/DIFFERENT, không tự xoá/ghi đè, quality score; (6) **P16.5** `BATCH_PROCESSING_ARCHITECTURE.md` — **DB-backed queue** + worker stateless + checkpoint/resume/retry/**idempotency**, **16 thành phần**, trần **500 item/đợt**, đánh giá Vercel Hobby (không chạy worker dài hạn); (7) **P16.6** `ADMIN_REVIEW_WORKFLOW.md` — tinh gọn **12→9 trạng thái**, 11 thao tác admin; (8) **P16.7** `DATABASE_DESIGN.md` + `API_DESIGN.md` — **6 entity mới** + **11 enum**, **10 endpoint admin**; (9) **P16.8** `SECURITY_LEGAL_RESOURCE_LIMITS.md` — SSRF/private IP/DNS rebinding/prompt injection, bản quyền & attribution, giới hạn tài nguyên/chi phí; (10) **P16.9** `IMPLEMENTATION_ROADMAP.md` — **11 phase I1–I11**, URL Import trước. Tổng **11 tài liệu `docs/P16/` + 11 checkpoint `docs/checkpoints/P16.*`**; **18/18 Acceptance Criteria PASS**. **Chưa** triển khai code/không sửa schema; blocker hạ tầng Auth.js (B-P06-02) là điều kiện tiên quyết của phase I1.
 
 > ⚠️ **Git preflight P15:** repo là **shallow clone 1 commit** ở trạng thái **đã gồm P15.1–P15.4** (`b8b96b3`, message `feat(P15.4)`); commit dự kiến `502a848` (P14) **không tồn tại** trong clone này. Working tree **sạch** → milestone còn lại **P15.5** đã hoàn tất; **không** reset/force-push/rewrite.
 
@@ -60,8 +61,19 @@
 | Commit P14 | `b8b96b3` (kế thừa) — docs(P14): audit lộ trình chức năng & định hướng P15+ |
 | Commit P15.1–P15.4 | `b8b96b3` — feat(P15.1–P15.4): truy vấn trang chủ, UI homepage, trang tìm kiếm công khai, UX/a11y |
 | Commit P15.5 | *(commit chứa tài liệu này — xem `git log -1`)* — docs(P15.5): kiểm chứng đầy đủ & checkpoint cuối P15 |
-| Working tree | Sạch sau khi commit P15.5 |
-| `origin/main` | `b8b96b3` trước P15.5; cập nhật sau khi push (xem báo cáo push) |
+| Commit P16.0 | `cc20ce3` — docs(p16): P16.0 audit trạng thái thực tế trước khi thiết kế Recipe Importer |
+| Commit P16.1 | `dcbf3ec` — docs(p16): P16.1 source discovery strategy & source registry |
+| Commit P16.2 | `4822771` — docs(p16): P16.2 recipe extraction engine design |
+| Commit P16.3 | `572b83a` — docs(p16): P16.3 vietnamese localization pipeline design |
+| Commit P16.4 | `f53b1c4` — docs(p16): P16.4 duplicate detection & data quality design |
+| Commit P16.5 | `db810e5` — docs(p16): P16.5 batch processing architecture design |
+| Commit P16.6 | `a9678f3` — docs(p16): P16.6 admin review workflow design |
+| Commit P16.7 | `b34d754` — docs(p16): P16.7 database & API design for importer |
+| Commit P16.8 | `19dcc31` — docs(p16): P16.8 security, legal & resource limits design |
+| Commit P16.9 | `e3e28a3` — docs(p16): P16.9 implementation roadmap design |
+| Commit P16 final | *(commit chứa tài liệu này — xem `git log -1`)* — docs(p16): P16 final report, checkpoint & status update |
+| Working tree | Sạch sau khi commit P16 final |
+| `origin/main` | `e3e28a3` trước commit final; cập nhật sau khi push (xem báo cáo push) |
 
 ## Kiến trúc đã chốt (không thay đổi)
 - Stack lớp rời: **Next.js + Prisma + Neon PostgreSQL + Auth.js + Cloudflare R2**.
@@ -261,6 +273,24 @@
 
 **BLOCKED (thiếu môi trường sandbox — không giả lập PASS):** kết nối Neon thật, `migrate deploy`/seed/xác minh CRUD trên Neon. Hướng dẫn thủ công ở [P13.1_NEON_INTEGRATION_REPORT.md](./docs/P13/P13.1_NEON_INTEGRATION_REPORT.md) §7.
 
+## Sản phẩm bàn giao P16 (`docs/P16/` + checkpoint — **tài liệu-only, không mã nguồn**)
+**Tài liệu thiết kế (`docs/P16/`, 11 file):** `SOURCE_DISCOVERY_STRATEGY.md` (P16.1) · `EXTRACTION_ENGINE.md` (P16.2) · `VIETNAMESE_LOCALIZATION.md` (P16.3) · `DUPLICATE_DETECTION.md` (P16.4) · `BATCH_PROCESSING_ARCHITECTURE.md` (P16.5) · `ADMIN_REVIEW_WORKFLOW.md` (P16.6) · `DATABASE_DESIGN.md` + `API_DESIGN.md` (P16.7) · `SECURITY_LEGAL_RESOURCE_LIMITS.md` (P16.8) · `IMPLEMENTATION_ROADMAP.md` (P16.9) · `P16_FINAL_REPORT.md` (báo cáo 12 mục).
+
+**Checkpoint (`docs/checkpoints/`, 11 file):** `P16.0_AUDIT.md` · `P16.1_CHECKPOINT.md` … `P16.9_CHECKPOINT.md` · `P16_CHECKPOINT.md`.
+
+**Nội dung cốt lõi:**
+- **Discovery:** 9 phương thức (D1–D9), 5 tầng phân loại nguồn, **Source Registry** (`ImportSource` + enum `support_status`), phân tích robots.txt/ToS/copyright/attribution/rate limit/ảnh/opt-out.
+- **Extraction:** pipeline **5 bậc E1–E5**, ánh xạ **21 trường** sang DTO thật, trạng thái trường `MISSING/UNREADABLE/CONFIRMED/DERIVED/CONFLICT`, interface adapter, lưu raw.
+- **Localization:** 7 bước, lưu song song gốc↔Việt, **9 loại lỗi I1–I9**, không auto-publish.
+- **Dedupe:** 6 lớp kiểm L1–L6, 4 nhãn EXACT/LIKELY/SIMILAR/DIFFERENT, không tự xoá/ghi đè, quality score.
+- **Batch:** DB-backed queue + worker stateless + checkpoint/resume/retry/idempotency, 16 thành phần, trần **500 item/đợt**.
+- **Admin review:** tinh gọn 12→9 trạng thái, 11 thao tác admin, chỉ admin.
+- **Database/API:** **6 entity mới** + **11 enum**; **10 endpoint admin**.
+- **Bảo mật/pháp lý:** SSRF/private IP/DNS rebinding, 8 bước kiểm tra URL, bản quyền & attribution, giới hạn tài nguyên/chi phí.
+- **Roadmap:** 11 phase nhỏ **I1–I11** (URL Import trước, Auto Discovery/batch 500 sau).
+
+**Không** sửa `prisma/schema.prisma`/mã nguồn; **không** thêm dependency; **không** chạy migration/seed/destructive; **không** secrets. **18/18 Acceptance Criteria PASS.**
+
 ## Việc còn chờ xác minh
 - **B5:** repo là shallow clone (ảnh hưởng thấp).
 - **B6:** chưa có tài khoản/môi trường triển khai (Neon, R2, Vercel/Cloudflare…).
@@ -301,12 +331,14 @@
 - Hạn mức gói miễn phí đã ghi theo thời điểm **11/2026** — cần kiểm tra lại trước khi deploy.
 
 ## Phase tiếp theo
-- **P12 hoàn thành** (trong giới hạn môi trường) — phase production-readiness & xác minh trình duyệt: audit P12.1, sửa **FIND-04** (Prisma lazy) + **FIND-07** (guard storage production), thiết lập **Playwright E2E** (42/42 PASS), responsive 4 viewport (14/14 PASS), xác minh build production không cần `DATABASE_URL`, tài liệu `docs/P12/`.
+- **P16 hoàn thành** (trong giới hạn môi trường) — phase **audit & thiết kế kiến trúc Recipe Importer**: 11 tài liệu `docs/P16/` + 11 checkpoint, **18/18 Acceptance Criteria PASS**. **Không** triển khai code/không sửa schema.
+- **Định hướng kế tiếp (chưa triển khai — chờ chủ dự án):** xây dựng **Recipe Importer** theo roadmap `docs/P16/IMPLEMENTATION_ROADMAP.md` (**11 phase I1–I11**); **MVP sớm nhất** I1 (hạ tầng/Auth/schema) → **I2 (Core URL Import)** → I6 (duyệt admin). **URL Import hoạt động ổn định trước**, rồi mới Auto Discovery (I8) & batch 500 (I7).
+- **Điều kiện tiên quyết của I1:** nối **Auth.js** (blocker **B-P06-02**) — hiện `getCurrentActor()` → `null`, mọi kiểm quyền chưa hoạt động thật.
 - **BLOCKED (thiếu môi trường)** — cần chủ dự án thao tác thủ công: chạy `prisma migrate deploy` trên Neon, cấu hình `R2_*` trên Vercel, kiểm tra deployment Vercel, nối Auth.js. Xem [MANUAL_VERIFICATION_CHECKLIST.md](./docs/P12/MANUAL_VERIFICATION_CHECKLIST.md).
 - Các hạng mục "External Verification Pending" (Neon/R2/Auth.js/Vercel, thiết bị thật, a11y chuyên sâu) tiếp tục theo dõi ở `BLOCKERS.md`.
 - **Backlog định hướng tương lai** (chưa triển khai): thực đơn theo ngày; bộ lọc theo thời gian/độ khó; hướng dẫn sơ chế & bảo quản; danh sách đi chợ; đồng bộ tiến độ nấu giữa thiết bị.
 
 ## Tham chiếu
 - [PHASE_PROGRESS.md](./PHASE_PROGRESS.md) · [DECISIONS.md](./DECISIONS.md) · [BLOCKERS.md](./BLOCKERS.md)
-- Checkpoint: [docs/checkpoints/P07_1_CHECKPOINT.md](./docs/checkpoints/P07_1_CHECKPOINT.md) · [docs/checkpoints/P08_CHECKPOINT.md](./docs/checkpoints/P08_CHECKPOINT.md) · [docs/checkpoints/P09_CHECKPOINT.md](./docs/checkpoints/P09_CHECKPOINT.md) · [docs/checkpoints/P10_CHECKPOINT.md](./docs/checkpoints/P10_CHECKPOINT.md) · [docs/checkpoints/P11_CHECKPOINT.md](./docs/checkpoints/P11_CHECKPOINT.md) · [docs/checkpoints/P12_CHECKPOINT.md](./docs/checkpoints/P12_CHECKPOINT.md) · [docs/checkpoints/P15_CHECKPOINT.md](./docs/checkpoints/P15_CHECKPOINT.md)
-- Tài liệu P00: [docs/P00](./docs/P00/) · P01: [docs/P01](./docs/P01/) · P02: [docs/P02](./docs/P02/) · P03: [docs/P03](./docs/P03/) · P04: [docs/P04](./docs/P04/) · P05: [docs/P05](./docs/P05/) · P06: [docs/P06](./docs/P06/) · P07: [docs/P07](./docs/P07/) · P07.1: [docs/P07_1](./docs/P07_1/) · P08: [docs/P08](./docs/P08/) · P09: [docs/P09](./docs/P09/) · P10: [docs/P10](./docs/P10/) · P11: [docs/P11](./docs/P11/) · P12: [docs/P12](./docs/P12/)
+- Checkpoint: [docs/checkpoints/P07_1_CHECKPOINT.md](./docs/checkpoints/P07_1_CHECKPOINT.md) · [docs/checkpoints/P08_CHECKPOINT.md](./docs/checkpoints/P08_CHECKPOINT.md) · [docs/checkpoints/P09_CHECKPOINT.md](./docs/checkpoints/P09_CHECKPOINT.md) · [docs/checkpoints/P10_CHECKPOINT.md](./docs/checkpoints/P10_CHECKPOINT.md) · [docs/checkpoints/P11_CHECKPOINT.md](./docs/checkpoints/P11_CHECKPOINT.md) · [docs/checkpoints/P12_CHECKPOINT.md](./docs/checkpoints/P12_CHECKPOINT.md) · [docs/checkpoints/P15_CHECKPOINT.md](./docs/checkpoints/P15_CHECKPOINT.md) · [docs/checkpoints/P16_CHECKPOINT.md](./docs/checkpoints/P16_CHECKPOINT.md)
+- Tài liệu P00: [docs/P00](./docs/P00/) · P01: [docs/P01](./docs/P01/) · P02: [docs/P02](./docs/P02/) · P03: [docs/P03](./docs/P03/) · P04: [docs/P04](./docs/P04/) · P05: [docs/P05](./docs/P05/) · P06: [docs/P06](./docs/P06/) · P07: [docs/P07](./docs/P07/) · P07.1: [docs/P07_1](./docs/P07_1/) · P08: [docs/P08](./docs/P08/) · P09: [docs/P09](./docs/P09/) · P10: [docs/P10](./docs/P10/) · P11: [docs/P11](./docs/P11/) · P12: [docs/P12](./docs/P12/) · P16: [docs/P16](./docs/P16/)
