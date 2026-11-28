@@ -25,9 +25,11 @@ export type { UnitDto, UnitConversionDto, UnitRepository } from "./unit.reposito
 export type {
   TaxonomyTypeDto,
   TaxonomyTermDto,
+  TaxonomyTermWithCountDto,
   TaxonomyRepository,
   ListTermsOptions,
   CreateTermInput,
+  UpdateTermInput,
 } from "./taxonomy.repository";
 export type {
   IngredientDto,

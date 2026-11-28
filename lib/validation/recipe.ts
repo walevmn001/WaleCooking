@@ -152,6 +152,13 @@ export const listRecipesQuerySchema = paginationSchema.extend({
   difficulty: difficultySchema.optional(),
   sort: recipeSortSchema.optional(),
   status: z.union([recipeStatusSchema, z.literal("any")]).optional(),
+  // Bộ lọc khám phá (P08 §P08.2) — chỉ dùng dữ liệu thật của công thức.
+  mealType: z.string().trim().max(200).optional(),
+  cookingMethod: z.string().trim().max(200).optional(),
+  dietary: z.string().trim().max(200).optional(),
+  ingredient: z.string().trim().max(200).optional(),
+  ingredientCategory: z.string().trim().max(200).optional(),
+  maxMinutes: z.coerce.number().int().min(1).max(28800).optional(),
 });
 
 export const listMediaQuerySchema = paginationSchema;

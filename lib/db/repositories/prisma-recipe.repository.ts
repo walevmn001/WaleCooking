@@ -103,10 +103,23 @@ export class PrismaRecipeRepository implements RecipeRepository {
   }
 
   private buildFilterWhere(filters: RecipeListFilters): Prisma.RecipeWhereInput {
+    // Mỗi term phân loại lọc riêng (AND) để hỗ trợ kết hợp nhiều trục.
+    const taxonomyAnd: Prisma.RecipeWhereInput[] = (filters.taxonomy ?? []).map((term) => ({
+      taxonomyTerms: { some: { term: { type: { code: term.typeCode }, slug: term.slug } } },
+    }));
+
     return {
       ...(filters.foodTypeSlug ? { foodTypeTerm: { slug: filters.foodTypeSlug } } : {}),
       ...(filters.cuisineSlug ? { cuisineTerm: { slug: filters.cuisineSlug } } : {}),
       ...(filters.difficulty ? { difficulty: filters.difficulty } : {}),
+      ...(filters.ingredientCategorySlug
+        ? { ingredients: { some: { ingredient: { category: { slug: filters.ingredientCategorySlug } } } } }
+        : {}),
+      ...(filters.ingredientSlug
+        ? { ingredients: { some: { ingredient: { slug: filters.ingredientSlug } } } }
+        : {}),
+      ...(filters.maxTotalMinutes != null ? { totalMinutes: { lte: filters.maxTotalMinutes } } : {}),
+      ...(taxonomyAnd.length > 0 ? { AND: taxonomyAnd } : {}),
       ...(filters.search
         ? {
             OR: [

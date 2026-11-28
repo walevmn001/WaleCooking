@@ -1,10 +1,10 @@
 # CURRENT STATUS — WALE COOKING
 
-> Cập nhật: 2026-11-28 (P07.1).
+> Cập nhật: 2026-11-28 (P08).
 
 ## Tóm tắt
 - **Sản phẩm:** WALE COOKING — website cá nhân chuyên công thức & hỗ trợ nấu ăn (**Recipe-focused Cooking Assistant**; tiếng Việt, sẵn sàng i18n EN). **Không** mạng xã hội, **không** cộng đồng, **không** tài khoản khách truy cập.
-- **Phase hiện tại:** hoàn thành **P00**, **P00-FIX**, **P01**, **P02**, **P03**, **P04**, **P05**, **P06**, **P07** và **P07.1**; **chưa bắt đầu P08.**
+- **Phase hiện tại:** hoàn thành **P00**, **P00-FIX**, **P01**, **P02**, **P03**, **P04**, **P05**, **P06**, **P07**, **P07.1** và **P08**; **dừng theo yêu cầu — không triển khai P09.**
 - **Đã hoàn thiện P00:** khảo sát thực tế + tài liệu định hướng + đề xuất công nghệ.
 - **Đã hoàn thiện P00-FIX:** đồng bộ thương hiệu sang WALE COOKING, bổ sung đầy đủ 20 nhóm chức năng, chuẩn hóa 7 trục phân loại, cập nhật tài liệu trạng thái.
 - **Đã hoàn thiện P01:** bộ đặc tả sản phẩm có thể triển khai — PRD, Product Constitution, personas, user journeys, đặc tả 20 nhóm chức năng, quy tắc nghiệp vụ, NFR đo lường được, phạm vi MVP và tiêu chí nghiệm thu.
@@ -15,11 +15,12 @@
 - **Đã hoàn thiện P06:** **Database Foundation** — Prisma schema theo P02 (**22 enum / 57 model**; **58 bảng** trong DB), Prisma client singleton, kiểm tra biến môi trường, migration baseline tái lập được (`20261127175936_init`, chạy từ DB sạch), seed hệ thống **idempotent** (9 taxonomy type/83 term, 22 unit, 10 equipment, 40 ingredient, 1 content source), lớp **repository + service + validation + authorization tập trung**. **Kiểm chứng:** `prisma validate/generate` OK · migration áp thành công lên `wale_dev`+`wale_test` · seed chạy 2 lần không trùng · **78/78 unit test** (14 file) · **28/28 integration test** (5 file) · `typecheck` 0 lỗi · `lint` 0 lỗi · `build` 15 route. **Chưa kết nối Neon thật** (dùng PostgreSQL local); Auth.js **chưa nối** → `getCurrentActor()` trả `null` (không giả lập đăng nhập).
 - **Đã hoàn thiện P07:** **Recipe Module** — domain công thức (Recipe/Translation/Ingredient/Step/Nutrition/Allergen/Source/Version) trên nền dữ liệu P06; **CRUD + workflow** (draft → in_review → published → archived, xóa mềm); **API** `/api/v1/recipes*` + `/api/v1/admin/recipes` + `/api/v1/media*` theo contract P02; **media adapter** (R2 mục tiêu + local cho dev/test; magic bytes, khóa do server sinh); **frontend** listing/detail công khai + quản trị create/edit **tái sử dụng component P05**; **authorization tập trung** (RBAC, actor=null ⇒ 401, không hardcode role); **transaction** bảo toàn thứ tự nguyên liệu/bước; JSON-LD schema.org/Recipe. **Kiểm chứng:** **124/124 unit test** (18 file) · **50/50 integration test** (7 file) · `typecheck` 0 lỗi · `lint` 0 lỗi · `build` **29 route**. **Chưa xác minh trên dịch vụ thật**: Auth.js chưa nối (chưa test 401/403 qua HTTP), chưa có credentials R2 (media chạy local provider); nội dung công thức trong test là **fixture**, không tuyên bố có công thức thật đã xuất bản.
 - **Đã hoàn thiện P07.1:** **Integration Verification & Blocker Closure** — audit tích hợp thực tế sau P06/P07 (bảng thành phần, không giả định P07 đã chạy thật); điều chỉnh phạm vi theo mô hình **không tài khoản khách**; **module yêu thích bằng cookie** (HttpOnly `wale_favorites` + Server Actions, có **version**, dedupe, giới hạn **50**, xử lý cookie hỏng/quá lớn/version lạ, chỉ hiển thị công thức còn `published`; **không** ghi DB, **không** dùng localStorage); giữ **Auth.js** chỉ cho quản trị (không tạo hệ auth thứ hai); phân loại bảng DB + **2 ADR** (không drop/xóa bảng, không sửa lịch sử migration). **Kiểm chứng:** `typecheck` 0 lỗi · `lint` 0 lỗi · **153/153 unit test** (19 file, +29 test module cookie) · `build` **28 route** (đặt `DATABASE_URL` placeholder — dự án yêu cầu biến này để build route DB). **Chưa xác minh (External Verification Pending):** Neon PostgreSQL, Cloudflare R2, Auth.js/HTTP 401-403, E2E trình duyệt — sandbox không có credentials/browser/DB. Tài liệu `docs/P07_1/` + `docs/checkpoints/P07_1_CHECKPOINT.md`.
+- **Đã hoàn thiện P08:** **Taxonomy & Recipe Discovery** — (1) **6 trục khám phá** (`food_type`/`cuisine`/`meal_type`/`cooking_method`/`dietary_preference`/`ingredient_category`) tận dụng taxonomy P06, **không** thêm model/cột (D62/D63); metadata trục trong `lib/constants/taxonomy.ts`, **term là dữ liệu DB**; (2) **Recipe Discovery** — bộ lọc khám phá (mealType/cookingMethod/dietary/ingredient/ingredientCategory/maxMinutes) chỉ dựa trên dữ liệu thật, tái dùng `listPublic` (D64/D66); `listPublicForCategory` cho trang danh mục; (3) **trang danh mục công khai** `/danh-muc`, `/danh-muc/{segment}` (SSG 6 trục), `/danh-muc/{segment}/{slug}` — breadcrumb, phân trang, canonical, JSON-LD BreadcrumbList; (4) **quản trị taxonomy** `/admin/danh-muc*` + API `POST/PATCH/DELETE /api/v1/admin/taxonomy*` — chỉ Admin, **xoá có điều kiện** (chặn khi còn công thức/term con, ưu tiên lưu trữ — D65); (5) **Recipe UX foundation** (badge phân loại có liên kết, nút yêu thích/chia sẻ). **Kiểm chứng:** `typecheck` 0 lỗi · `lint` 0 lỗi · **199/199 unit test** (24 file, +46 test P08) · `build` **34 route** (thêm `/danh-muc*`, `/admin/danh-muc*`, `/api/v1/admin/taxonomy*`). **Chưa xác minh:** integration test taxonomy (không có PostgreSQL), E2E/response/a11y (không có browser), Auth.js HTTP. Tài liệu `docs/P08/` + `docs/checkpoints/P08_CHECKPOINT.md`.
 
 ## Git
 | Mục | Giá trị |
 | --- | --- |
-| Branch hiện tại | `trae/agent-8KQLUd` (đồng bộ `origin/main`); nhánh `main` tại `82fd189` |
+| Branch hiện tại | `trae/agent-8KQLUd` (đồng bộ `origin/main`); trước P08, `origin/main` = `4c88ed6` (P07.1) |
 | Remote | `origin` → `https://github.com/walevmn001/WaleCooking` |
 | Commit P00 | `a7c3ee5` — docs(P00): khảo sát dự án, xác lập yêu cầu và checkpoint nền tảng |
 | Commit P00-FIX | `59ca67a` — docs(P00-FIX): đồng bộ thương hiệu WALE COOKING và hoàn thiện phạm vi sản phẩm |
@@ -30,9 +31,10 @@
 | Commit P05 | `e44a62a` — feat(P05): nền tảng ứng dụng WALE COOKING & hệ thống UI dùng chung |
 | Commit P06 | *(commit chứa tài liệu này — xem `git log -1`)* — feat(P06): nền tảng dữ liệu (Prisma + migration + seed + repository) |
 | Commit P07 | `82fd189` — feat(P07): module công thức — domain, API, media, frontend, kiểm thử |
-| Commit P07.1 | *(commit chứa tài liệu này — xem `git log -1`)* — feat(P07.1): điều chỉnh phạm vi không tài khoản khách + yêu thích cookie |
-| Working tree | Sạch sau khi commit P07.1 |
-| `origin/main` | Cập nhật checkpoint P07.1 (xem báo cáo push) |
+| Commit P07.1 | `4c88ed6` — feat(P07.1): điều chỉnh phạm vi không tài khoản khách + yêu thích bằng cookie |
+| Commit P08 | *(commit chứa tài liệu này — xem `git log -1`)* — feat(P08): taxonomy & khám phá công thức (danh mục, bộ lọc, quản trị) |
+| Working tree | Sạch sau khi commit P08 |
+| `origin/main` | Cập nhật checkpoint P08 (xem báo cáo push) |
 
 ## Kiến trúc đã chốt (không thay đổi)
 - Stack lớp rời: **Next.js + Prisma + Neon PostgreSQL + Auth.js + Cloudflare R2**.
@@ -140,6 +142,27 @@
 
 **Kiểm thử:** `tests/lib/favorites.test.ts` — **29 test**. Tổng toàn bộ **153 unit test** (19 file).
 
+## Sản phẩm bàn giao P08 (`docs/P08/` + mã nguồn)
+**Tài liệu (`docs/P08/`):** `TAXONOMY_DISCOVERY.md` · `DISCOVERY_API.md` · `CATEGORY_PAGES.md` · `ADMIN_TAXONOMY.md` · `RECIPE_UX.md` · `TEST_REPORT.md` + checkpoint `docs/checkpoints/P08_CHECKPOINT.md`.
+
+**Taxonomy & khám phá (`lib/`):**
+- `constants/taxonomy.ts` — `DISCOVERY_TAXONOMIES` (6 trục), `RecipeFilterKind`, `getDiscoveryTaxonomyByCode/BySegment`, `isDiscoveryTaxonomy`.
+- `services/taxonomy.service.ts` — `TaxonomyService` (đọc công khai + CRUD quản trị + xoá an toàn).
+- `presentation/category-links.ts` — `CATEGORY_BASE`, `categoryIndexHref`, `categoryTypeHref`, `categoryTermHref`.
+- `validation/taxonomy.ts` — `createTaxonomyTermSchema`/`updateTaxonomyTermSchema`.
+- Repository: `taxonomy.repository.ts` (+ adapter Prisma) — `listTermsWithCounts`, `countRecipeUsage`, `updateTerm`, `setTermActive`, `deleteTermById`; `recipe.repository.ts` (+ adapter) — `taxonomy?`/`ingredientCategorySlug?`/`ingredientSlug?`/`maxTotalMinutes?`.
+- `services/recipe.service.ts` — `buildDiscoveryFilters` + `listPublicForCategory`; `validation/recipe.ts` + `presentation/recipe-links.ts` mở rộng bộ lọc khám phá.
+
+**UI công khai (`app/` + `components/`):**
+- `app/(public)/danh-muc/page.tsx`, `[segment]/page.tsx`, `[segment]/[slug]/page.tsx`.
+- `components/recipe/category-tile.tsx`; mở rộng `components/recipe/recipe-filters.tsx`; badge phân loại có liên kết trong `cong-thuc/[slug]/page.tsx`; `app/layout.tsx` (`metadataBase`).
+
+**Quản trị (`app/` + `components/`):**
+- `app/(admin)/admin/danh-muc/{page,[type]/page}.tsx` + `components/admin/taxonomy-manager.tsx`.
+- API: `app/api/v1/admin/taxonomy/{route,[id]/route}.ts` (`POST`/`PATCH`/`DELETE`, quyền `taxonomy:manage`).
+
+**Kiểm thử:** `tests/lib/{taxonomy.constants(8),category-links(5),taxonomy-validation(9),taxonomy.service(14),recipe-discovery(10)}.test.ts` (**46 unit**) + `tests/integration/taxonomy.service.test.ts` (chưa chạy — thiếu DB). Tổng toàn bộ **199 unit test** (24 file).
+
 ## Việc còn chờ xác minh
 - **B5:** repo là shallow clone (ảnh hưởng thấp).
 - **B6:** chưa có tài khoản/môi trường triển khai (Neon, R2, Vercel/Cloudflare…).
@@ -163,14 +186,18 @@
 - **B-P07_1-02:** chưa xác minh **Cloudflare R2 thật** (External Verification Pending; media chạy local provider).
 - **B-P07_1-03:** chưa xác minh **đăng nhập quản trị (Auth.js)** → chưa kiểm 401/403 qua HTTP phiên thật.
 - **B-P07_1-04:** chưa chạy **E2E trình duyệt thật** (yêu thích cookie, responsive, a11y).
+- **B-P08-01:** chưa chạy **integration test taxonomy** (đã viết, sandbox không có PostgreSQL — External Verification Pending).
+- **B-P08-02:** chưa kiểm **trang danh mục trên trình duyệt thật** (responsive, SEO/canonical/JSON-LD, a11y).
+- **B-P08-03:** chưa xác minh **phân quyền quản trị taxonomy qua HTTP phiên thật** (Auth.js chưa nối).
+- **B-P08-04:** chưa có **ảnh đại diện/SEO cho danh mục** (schema chưa có cột — ghi backlog).
 - Hạn mức gói miễn phí đã ghi theo thời điểm **11/2026** — cần kiểm tra lại trước khi deploy.
 
 ## Phase tiếp theo
-- P07.1 hoàn thành (trong giới hạn môi trường) → **tiếp tục P08 (Taxonomy & Recipe Discovery)** theo yêu cầu người dùng.
-- P08: xây hệ thống phân loại (tận dụng `taxonomy_types`/`taxonomy_terms` P06) + Recipe Discovery API (lọc/tìm/phân trang/sắp xếp dựa trên dữ liệu thực có) + trang danh mục công khai + quản trị taxonomy + Recipe UX foundation.
-- Các hạng mục "External Verification Pending" (Neon/R2/Auth.js/E2E) tiếp tục theo dõi ở `BLOCKERS.md`, không chặn P08.
+- **P08 hoàn thành** (trong giới hạn môi trường). Theo yêu cầu người dùng, **dừng tại đây — không triển khai P09.**
+- Các hạng mục "External Verification Pending" (Neon/R2/Auth.js/E2E, integration test taxonomy) tiếp tục theo dõi ở `BLOCKERS.md`.
+- **Backlog định hướng tương lai** (chưa triển khai): bộ chuyển đổi định lượng theo khẩu phần; checklist nguyên liệu đi chợ; chế độ nấu từng bước; hẹn giờ nấu; quy đổi đơn vị; gợi ý món theo nguyên liệu; thực đơn theo ngày; bộ lọc theo thời gian/độ khó; hướng dẫn sơ chế & bảo quản.
 
 ## Tham chiếu
 - [PHASE_PROGRESS.md](./PHASE_PROGRESS.md) · [DECISIONS.md](./DECISIONS.md) · [BLOCKERS.md](./BLOCKERS.md)
-- Checkpoint: [docs/checkpoints/P07_1_CHECKPOINT.md](./docs/checkpoints/P07_1_CHECKPOINT.md)
-- Tài liệu P00: [docs/P00](./docs/P00/) · P01: [docs/P01](./docs/P01/) · P02: [docs/P02](./docs/P02/) · P03: [docs/P03](./docs/P03/) · P04: [docs/P04](./docs/P04/) · P05: [docs/P05](./docs/P05/) · P06: [docs/P06](./docs/P06/) · P07: [docs/P07](./docs/P07/) · P07.1: [docs/P07_1](./docs/P07_1/)
+- Checkpoint: [docs/checkpoints/P07_1_CHECKPOINT.md](./docs/checkpoints/P07_1_CHECKPOINT.md) · [docs/checkpoints/P08_CHECKPOINT.md](./docs/checkpoints/P08_CHECKPOINT.md)
+- Tài liệu P00: [docs/P00](./docs/P00/) · P01: [docs/P01](./docs/P01/) · P02: [docs/P02](./docs/P02/) · P03: [docs/P03](./docs/P03/) · P04: [docs/P04](./docs/P04/) · P05: [docs/P05](./docs/P05/) · P06: [docs/P06](./docs/P06/) · P07: [docs/P07](./docs/P07/) · P07.1: [docs/P07_1](./docs/P07_1/) · P08: [docs/P08](./docs/P08/)

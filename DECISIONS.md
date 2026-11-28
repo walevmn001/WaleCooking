@@ -1,7 +1,7 @@
 # DECISIONS — WALE COOKING
 
 > Nhật ký các quyết định đã chốt. Không tự thay đổi quyết định đã xác lập nếu chưa có căn cứ.
-> Cập nhật: 2026-11-28 (P07.1).
+> Cập nhật: 2026-11-28 (P08).
 
 | # | Quyết định | Nội dung | Căn cứ | Trạng thái |
 | --- | --- | --- | --- | --- |
@@ -67,6 +67,10 @@
 | D60 | Không drop bảng khi chuyển mô hình | **Không** tạo migration drop/xóa bảng nào; giữ `users`/`accounts`/`sessions`/`verification_tokens` cho quản trị; `favorites` + vai trò `user` chuyển **legacy (không dùng)**, không xóa. Không sửa lịch sử migration | P07.1 (ADR-P07_1-01) | Đã chốt — [DATABASE_CLASSIFICATION.md](./docs/P07_1/DATABASE_CLASSIFICATION.md) |
 | D61 | Yêu thích bằng cookie | Cookie **HttpOnly** `wale_favorites` (JSON có `v:1`, `items` slug) + **Server Actions**; KHÔNG dùng localStorage, KHÔNG ghi DB; giới hạn 50; xử lý cookie hỏng/quá lớn/version lạ; `SameSite=Lax`, `Secure` ở production, `Path=/`, 180 ngày | P07.1 (§7.1.4) | Đã chốt — [COOKIE_FAVORITES.md](./docs/P07_1/COOKIE_FAVORITES.md) |
 | D62 | Taxonomy P08 không thêm cột | P08 quản trị taxonomy chỉ dùng trường **có thật** trong schema (tên, slug, mô tả, icon, cha/con, thứ tự, active); **không** thêm cột SEO/ảnh trong P07.1/P08 (ghi backlog) | P07.1 (ADR-P07_1-02) | Đã chốt — [DATABASE_CLASSIFICATION.md](./docs/P07_1/DATABASE_CLASSIFICATION.md) |
+| D63 | Mô hình taxonomy khám phá P08 | Tận dụng taxonomy P06/P02 (**không** thêm model/cột); **6 trục khám phá** là **metadata trong code** (`DISCOVERY_TAXONOMIES`), term là **dữ liệu DB** — thêm/sửa term trong quản trị không cần sửa frontend | P08 §P08.1, D14/D-P02-04, ADR-P07_1-02 | Đã chốt — [TAXONOMY_DISCOVERY.md](./docs/P08/TAXONOMY_DISCOVERY.md) |
+| D64 | Bộ lọc khám phá chỉ theo dữ liệu thật | **Không** tạo bộ lọc cho dữ liệu chưa có (nhiệt độ lò, chỉ số "phổ biến" theo lượt xem/đánh giá); chỉ dùng trường tồn tại trong schema/công thức | P08 §P08.2 | Đã chốt — [DISCOVERY_API.md](./docs/P08/DISCOVERY_API.md) |
+| D65 | Xoá danh mục có điều kiện | Chặn xoá term khi còn **công thức** hoặc **danh mục con** tham chiếu; ưu tiên **lưu trữ** (`isActive=false`) để giữ liên kết dữ liệu; không cascade mất dữ liệu | P08 §P08.4, P02 D-P02-08 | Đã chốt — [ADMIN_TAXONOMY.md](./docs/P08/ADMIN_TAXONOMY.md) |
+| D66 | Bộ lọc khám phá tái dùng `listPublic` | Bộ lọc khám phá là **tham số truy vấn** của cùng `recipeService.listPublic` (không thêm endpoint trùng); `listPublicForCategory` chỉ là lớp tiện dụng cho trang danh mục | P08 §P08.2/P08.3 | Đã chốt — [DISCOVERY_API.md](./docs/P08/DISCOVERY_API.md) |
 
 > Chi tiết bối cảnh/lý do/đánh đổi/phương án thay thế của **D-P02-01..11** xem [ARCHITECTURE_DECISIONS.md](./docs/P02/ARCHITECTURE_DECISIONS.md).
 > Chi tiết Design System của **D22–D28** xem [DESIGN_SYSTEM.md](./docs/P03/DESIGN_SYSTEM.md), [DESIGN_TOKENS.md](./docs/P03/DESIGN_TOKENS.md), [COLOR_ACCESSIBILITY_AUDIT.md](./docs/P03/COLOR_ACCESSIBILITY_AUDIT.md).
@@ -75,6 +79,7 @@
 > Chi tiết nền tảng dữ liệu của **D42–D50** xem [docs/P06/](./docs/P06/): [DATABASE_IMPLEMENTATION.md](./docs/P06/DATABASE_IMPLEMENTATION.md), [PRISMA_SCHEMA_GUIDE.md](./docs/P06/PRISMA_SCHEMA_GUIDE.md), [MIGRATION_GUIDE.md](./docs/P06/MIGRATION_GUIDE.md), [SEED_GUIDE.md](./docs/P06/SEED_GUIDE.md), [REPOSITORY_ARCHITECTURE.md](./docs/P06/REPOSITORY_ARCHITECTURE.md), [DATABASE_SECURITY.md](./docs/P06/DATABASE_SECURITY.md), [TEST_REPORT.md](./docs/P06/TEST_REPORT.md).
 > Chi tiết module công thức của **D51–D58** xem [docs/P07/](./docs/P07/): [RECIPE_MODULE_ARCHITECTURE.md](./docs/P07/RECIPE_MODULE_ARCHITECTURE.md), [RECIPE_DOMAIN.md](./docs/P07/RECIPE_DOMAIN.md), [RECIPE_API_IMPLEMENTATION.md](./docs/P07/RECIPE_API_IMPLEMENTATION.md), [RECIPE_FRONTEND.md](./docs/P07/RECIPE_FRONTEND.md), [RECIPE_MEDIA.md](./docs/P07/RECIPE_MEDIA.md), [RECIPE_AUTHORIZATION.md](./docs/P07/RECIPE_AUTHORIZATION.md), [RECIPE_CONTENT_POLICY.md](./docs/P07/RECIPE_CONTENT_POLICY.md), [TEST_REPORT.md](./docs/P07/TEST_REPORT.md).
 > Chi tiết P07.1 của **D59–D62** xem [docs/P07_1/](./docs/P07_1/): [INTEGRATION_AUDIT.md](./docs/P07_1/INTEGRATION_AUDIT.md), [AUTHENTICATION_SCOPE.md](./docs/P07_1/AUTHENTICATION_SCOPE.md), [DATABASE_CLASSIFICATION.md](./docs/P07_1/DATABASE_CLASSIFICATION.md), [COOKIE_FAVORITES.md](./docs/P07_1/COOKIE_FAVORITES.md), [EXTERNAL_VERIFICATION.md](./docs/P07_1/EXTERNAL_VERIFICATION.md), [E2E_VERIFICATION.md](./docs/P07_1/E2E_VERIFICATION.md). Checkpoint: [docs/checkpoints/P07_1_CHECKPOINT.md](./docs/checkpoints/P07_1_CHECKPOINT.md).
+> Chi tiết P08 của **D63–D66** xem [docs/P08/](./docs/P08/): [TAXONOMY_DISCOVERY.md](./docs/P08/TAXONOMY_DISCOVERY.md), [DISCOVERY_API.md](./docs/P08/DISCOVERY_API.md), [CATEGORY_PAGES.md](./docs/P08/CATEGORY_PAGES.md), [ADMIN_TAXONOMY.md](./docs/P08/ADMIN_TAXONOMY.md), [RECIPE_UX.md](./docs/P08/RECIPE_UX.md), [TEST_REPORT.md](./docs/P08/TEST_REPORT.md). Checkpoint: [docs/checkpoints/P08_CHECKPOINT.md](./docs/checkpoints/P08_CHECKPOINT.md).
 
 ## Quyết định còn để mở (cần xác minh trước khi áp dụng)
 

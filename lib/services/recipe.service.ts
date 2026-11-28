@@ -1,16 +1,20 @@
 import "server-only";
 
 import { requirePermission, type Actor } from "@/lib/auth/authorization";
+import type { RecipeFilterKind } from "@/lib/constants/taxonomy";
 import { mapPrismaError } from "@/lib/db/prisma-errors";
 import { repositories, type Repositories } from "@/lib/db/repositories";
 import type {
   RecipeAdminSummaryDto,
   RecipeDetailDto,
+  RecipeListFilters,
+  RecipeSort,
   RecipeSummaryDto,
+  RecipeTaxonomyFilter,
   RecipeVersionDto,
 } from "@/lib/db/repositories/recipe.repository";
 import { NotFoundError, ValidationError } from "@/lib/errors/app-error";
-import { parseInput, type Paginated } from "@/lib/validation/common";
+import { paginationSchema, parseInput, type Paginated } from "@/lib/validation/common";
 import {
   createRecipeSchema,
   listRecipesQuerySchema,
@@ -45,7 +49,40 @@ export class RecipeService {
       cuisineSlug: parsed.cuisine,
       difficulty: parsed.difficulty,
       sort: parsed.sort,
+      ...buildDiscoveryFilters(parsed),
     });
+  }
+
+  /**
+   * Danh sách công thức công khai thuộc một danh mục (P08.3 — trang `/danh-muc/{segment}/{slug}`).
+   *
+   * - `direct`: công thức liên kết term trực tiếp (food_type/cuisine/meal_type/…).
+   * - `ingredient_category`: công thức có nguyên liệu thuộc nhóm nguyên liệu đó.
+   */
+  async listPublicForCategory(params: {
+    typeCode: string;
+    slug: string;
+    filterKind: RecipeFilterKind;
+    sort?: RecipeSort;
+    search?: string;
+    page?: number;
+    pageSize?: number;
+  }): Promise<Paginated<RecipeSummaryDto>> {
+    const pagination = parseInput(paginationSchema, {
+      page: params.page ?? 1,
+      pageSize: params.pageSize ?? 12,
+    });
+    const base: RecipeListFilters = {
+      locale: "vi",
+      pagination,
+      sort: params.sort ?? "newest",
+      search: params.search,
+    };
+    const filters: RecipeListFilters =
+      params.filterKind === "ingredient_category"
+        ? { ...base, ingredientCategorySlug: params.slug }
+        : { ...base, taxonomy: [{ typeCode: params.typeCode, slug: params.slug }] };
+    return this.deps.recipe.listPublic(filters);
   }
 
   /**
@@ -82,6 +119,7 @@ export class RecipeService {
       difficulty: parsed.difficulty,
       sort: parsed.sort,
       status: parsed.status,
+      ...buildDiscoveryFilters(parsed),
     });
   }
 
@@ -215,6 +253,31 @@ export class RecipeService {
     if (!detail) throw new NotFoundError("Không tìm thấy công thức.");
     return detail;
   }
+}
+
+/**
+ * Quy đổi tham số bộ lọc khám phá (P08 §P08.2) sang bộ lọc repository.
+ * Chỉ tạo bộ lọc khi có giá trị — không tạo điều kiện rỗng.
+ */
+function buildDiscoveryFilters(parsed: {
+  mealType?: string;
+  cookingMethod?: string;
+  dietary?: string;
+  ingredient?: string;
+  ingredientCategory?: string;
+  maxMinutes?: number;
+}): Partial<RecipeListFilters> {
+  const taxonomy: RecipeTaxonomyFilter[] = [];
+  if (parsed.mealType) taxonomy.push({ typeCode: "meal_type", slug: parsed.mealType });
+  if (parsed.cookingMethod) taxonomy.push({ typeCode: "cooking_method", slug: parsed.cookingMethod });
+  if (parsed.dietary) taxonomy.push({ typeCode: "dietary_preference", slug: parsed.dietary });
+
+  return {
+    ...(taxonomy.length > 0 ? { taxonomy } : {}),
+    ...(parsed.ingredient ? { ingredientSlug: parsed.ingredient } : {}),
+    ...(parsed.ingredientCategory ? { ingredientCategorySlug: parsed.ingredientCategory } : {}),
+    ...(parsed.maxMinutes != null ? { maxTotalMinutes: parsed.maxMinutes } : {}),
+  };
 }
 
 /**

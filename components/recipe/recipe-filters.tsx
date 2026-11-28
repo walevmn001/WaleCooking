@@ -21,6 +21,9 @@ export interface FilterOption {
 export interface RecipeFiltersProps {
   foodTypes: FilterOption[];
   cuisines: FilterOption[];
+  /** Trục khám phá (P08 §P08.2) — tùy chọn, bỏ trống thì ẩn ô lọc tương ứng. */
+  mealTypes?: FilterOption[];
+  cookingMethods?: FilterOption[];
   /** Giá trị lọc hiện tại (từ URL). */
   params: RecipeListParams;
   className?: string;
@@ -38,24 +41,49 @@ const SORT_OPTIONS: FilterOption[] = [
   { value: "popular", label: "Phổ biến" },
 ];
 
+const MAX_MINUTES_OPTIONS: FilterOption[] = [
+  { value: "", label: "Tất cả" },
+  { value: "15", label: "≤ 15 phút" },
+  { value: "30", label: "≤ 30 phút" },
+  { value: "60", label: "≤ 1 giờ" },
+  { value: "120", label: "≤ 2 giờ" },
+];
+
 /**
  * RecipeFilters — thanh tìm kiếm & lọc cho danh sách công thức (P07 §16).
  *
  * Điều hướng phía client (đẩy truy vấn lên URL) để Server Component tải lại dữ liệu.
  * Mọi thao tác đổi bộ lọc đều đưa về trang 1.
  */
-export function RecipeFilters({ foodTypes, cuisines, params, className }: RecipeFiltersProps) {
+export function RecipeFilters({
+  foodTypes,
+  cuisines,
+  mealTypes,
+  cookingMethods,
+  params,
+  className,
+}: RecipeFiltersProps) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
 
   const [q, setQ] = useState(params.q ?? "");
   const [foodType, setFoodType] = useState(params.foodType ?? "");
   const [cuisine, setCuisine] = useState(params.cuisine ?? "");
+  const [mealType, setMealType] = useState(params.mealType ?? "");
+  const [cookingMethod, setCookingMethod] = useState(params.cookingMethod ?? "");
+  const [maxMinutes, setMaxMinutes] = useState(params.maxMinutes ? String(params.maxMinutes) : "");
   const [difficulty, setDifficulty] = useState(params.difficulty ?? "");
   const [sort, setSort] = useState(params.sort ?? "newest");
 
   const hasFilters = Boolean(
-    params.q || params.foodType || params.cuisine || params.difficulty || (params.sort && params.sort !== "newest"),
+    params.q ||
+      params.foodType ||
+      params.cuisine ||
+      params.mealType ||
+      params.cookingMethod ||
+      params.maxMinutes ||
+      params.difficulty ||
+      (params.sort && params.sort !== "newest"),
   );
 
   function go(overrides: Partial<RecipeListParams>) {
@@ -63,6 +91,9 @@ export function RecipeFilters({ foodTypes, cuisines, params, className }: Recipe
       q: q.trim() || undefined,
       foodType: foodType || undefined,
       cuisine: cuisine || undefined,
+      mealType: mealType || undefined,
+      cookingMethod: cookingMethod || undefined,
+      maxMinutes: maxMinutes ? Number.parseInt(maxMinutes, 10) : undefined,
       difficulty: difficulty || undefined,
       sort: sort !== "newest" ? sort : undefined,
       ...overrides,
@@ -74,6 +105,9 @@ export function RecipeFilters({ foodTypes, cuisines, params, className }: Recipe
     setQ("");
     setFoodType("");
     setCuisine("");
+    setMealType("");
+    setCookingMethod("");
+    setMaxMinutes("");
     setDifficulty("");
     setSort("newest");
     startTransition(() => router.push("/cong-thuc"));
@@ -123,6 +157,55 @@ export function RecipeFilters({ foodTypes, cuisines, params, className }: Recipe
               go({ cuisine: value || undefined, page: undefined });
             }}
             options={[{ value: "", label: "Tất cả" }, ...cuisines]}
+            disabled={pending}
+          />
+        </label>
+
+        {mealTypes && mealTypes.length > 0 ? (
+          <label className="flex flex-col gap-1.5">
+            <span className="text-label text-ink">Bữa ăn</span>
+            <Select
+              value={mealType}
+              onChange={(e) => {
+                const value = e.target.value;
+                setMealType(value);
+                go({ mealType: value || undefined, page: undefined });
+              }}
+              options={[{ value: "", label: "Tất cả" }, ...mealTypes]}
+              disabled={pending}
+            />
+          </label>
+        ) : null}
+
+        {cookingMethods && cookingMethods.length > 0 ? (
+          <label className="flex flex-col gap-1.5">
+            <span className="text-label text-ink">Phương pháp</span>
+            <Select
+              value={cookingMethod}
+              onChange={(e) => {
+                const value = e.target.value;
+                setCookingMethod(value);
+                go({ cookingMethod: value || undefined, page: undefined });
+              }}
+              options={[{ value: "", label: "Tất cả" }, ...cookingMethods]}
+              disabled={pending}
+            />
+          </label>
+        ) : null}
+
+        <label className="flex flex-col gap-1.5">
+          <span className="text-label text-ink">Thời gian nấu</span>
+          <Select
+            value={maxMinutes}
+            onChange={(e) => {
+              const value = e.target.value;
+              setMaxMinutes(value);
+              go({
+                maxMinutes: value ? Number.parseInt(value, 10) : undefined,
+                page: undefined,
+              });
+            }}
+            options={MAX_MINUTES_OPTIONS}
             disabled={pending}
           />
         </label>

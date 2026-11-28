@@ -1,7 +1,7 @@
 # BLOCKERS — WALE COOKING
 
 > Các vấn đề còn tồn tại hoặc cần xác minh. Ghi rõ thay vì tự suy đoán.
-> Cập nhật: 2026-11-28 (P07.1).
+> Cập nhật: 2026-11-28 (P08).
 
 | # | Blocker | Mức độ | Trạng thái | Ghi chú |
 | --- | --- | --- | --- | --- |
@@ -33,6 +33,10 @@
 | B-P07_1-02 | **Chưa xác minh Cloudflare R2 thật** (P07.1 kế thừa B-P07-01) | Trung bình | **Còn mở — External Verification Pending** | Không có credentials `R2_*`; media chạy **LocalStorageAdapter**; adapter R2 hoàn thiện về code, chưa kiểm endpoint/SSL/CORS/CDN. Xem [EXTERNAL_VERIFICATION.md](./docs/P07_1/EXTERNAL_VERIFICATION.md) §3 |
 | B-P07_1-03 | **Chưa xác minh đăng nhập quản trị (Auth.js)** | Trung bình | **Còn mở** | Auth.js **chưa nối**; `getCurrentActor()` trả `null` → 401/403 mới kiểm ở tầng service/unit, chưa qua HTTP phiên thật. Không thêm hệ auth thứ hai. Xem [AUTHENTICATION_SCOPE.md](./docs/P07_1/AUTHENTICATION_SCOPE.md) §"Việc chưa xác minh" |
 | B-P07_1-04 | **Chưa chạy E2E trình duyệt thật** (yêu thích, responsive, a11y) | Trung bình | **Còn mở** | Không có trình duyệt headless trong sandbox → luồng khách/quản trị mới kiểm ở mức build/unit/logic. Xem [E2E_VERIFICATION.md](./docs/P07_1/E2E_VERIFICATION.md) §4/§5 |
+| B-P08-01 | **Chưa chạy integration test taxonomy** | Trung bình | **Còn mở — External Verification Pending** | Đã viết `tests/integration/taxonomy.service.test.ts` (CRUD, cha/con, gắn danh mục, chặn xoá) nhưng sandbox **không có PostgreSQL** (`TEST_DATABASE_URL`) → chưa thực thi. Xem [TEST_REPORT.md](./docs/P08/TEST_REPORT.md) §3 |
+| B-P08-02 | **Chưa kiểm trang danh mục trên trình duyệt thật** (responsive, SEO, structured data) | Trung bình | **Còn mở** | Không có browser headless → chưa kiểm responsive thực tế, canonical/JSON-LD render, a11y (axe/Lighthouse). Kế thừa B-P07-04. Xem [CATEGORY_PAGES.md](./docs/P08/CATEGORY_PAGES.md) §7 |
+| B-P08-03 | **Chưa xác minh phân quyền quản trị taxonomy qua HTTP phiên thật** | Trung bình | **Còn mở** | Auth.js chưa nối → 401/403 mới kiểm ở tầng service (unit). Kế thừa B-P07_1-03. Xem [ADMIN_TAXONOMY.md](./docs/P08/ADMIN_TAXONOMY.md) §2 |
+| B-P08-04 | **Chưa có ảnh đại diện/SEO cho danh mục** | Thấp | **Còn mở (backlog)** | Schema taxonomy chưa có cột SEO/ảnh (theo **D62/ADR-P07_1-02**); P08 **không** thêm cột. Ghi backlog cho phase sau |
 
 ## Nội dung còn chờ xác minh (không phải blocker cứng)
 

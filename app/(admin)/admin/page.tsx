@@ -34,6 +34,21 @@ export default function AdminDashboardPage() {
           </Link>
         </CardBody>
       </Card>
+
+      <Card>
+        <CardBody className="flex flex-col items-start gap-3">
+          <CardTitle as="h2" className="text-h3">
+            Danh mục
+          </CardTitle>
+          <p className="text-body-sm text-ink-muted">
+            Quản lý danh mục phân loại: nhóm món, ẩm thực, bữa ăn, phương pháp, đặc điểm món,
+            nguyên liệu chính.
+          </p>
+          <Link href="/admin/danh-muc" appearance="button" variant="outline">
+            Quản lý danh mục
+          </Link>
+        </CardBody>
+      </Card>
     </div>
   );
 }

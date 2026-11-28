@@ -52,13 +52,17 @@ export default async function RecipesPage({ searchParams }: RecipesPageProps) {
     );
   }
 
-  const [foodTypeTerms, cuisineTerms] = await Promise.all([
+  const [foodTypeTerms, cuisineTerms, mealTypeTerms, cookingMethodTerms] = await Promise.all([
     catalogService.listTaxonomyTerms("food_type").catch(() => []),
     catalogService.listTaxonomyTerms("cuisine").catch(() => []),
+    catalogService.listTaxonomyTerms("meal_type").catch(() => []),
+    catalogService.listTaxonomyTerms("cooking_method").catch(() => []),
   ]);
 
   const foodTypes = foodTypeTerms.map((term) => ({ value: term.slug, label: term.name }));
   const cuisines = cuisineTerms.map((term) => ({ value: term.slug, label: term.name }));
+  const mealTypes = mealTypeTerms.map((term) => ({ value: term.slug, label: term.name }));
+  const cookingMethods = cookingMethodTerms.map((term) => ({ value: term.slug, label: term.name }));
 
   // Trạng thái yêu thích (cookie) để tô sáng nút trái tim — không cần đăng nhập.
   const favoriteSlugs = new Set(await readFavorites().catch(() => [] as string[]));
@@ -79,6 +83,8 @@ export default async function RecipesPage({ searchParams }: RecipesPageProps) {
         params={params}
         foodTypes={foodTypes}
         cuisines={cuisines}
+        mealTypes={mealTypes}
+        cookingMethods={cookingMethods}
       />
 
       {data.items.length === 0 ? (

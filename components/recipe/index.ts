@@ -26,6 +26,8 @@ export type {
 } from "./recipe-meta";
 export { CategoryCard } from "./category-card";
 export type { CategoryCardProps } from "./category-card";
+export { CategoryTile } from "./category-tile";
+export type { CategoryTileProps } from "./category-tile";
 export { NutritionSummary } from "./nutrition-summary";
 export type { NutritionSummaryProps } from "./nutrition-summary";
 export { AllergenBadges } from "./allergen-badges";

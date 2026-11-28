@@ -1,7 +1,7 @@
 # PHASE PROGRESS — WALE COOKING
 
 > Theo dõi tiến độ theo phase. Mỗi phase chỉ triển khai đúng phạm vi của nó.
-> Cập nhật: 2026-11-28 (P07.1).
+> Cập nhật: 2026-11-28 (P08).
 
 | Phase | Tên | Phạm vi | Trạng thái |
 | --- | --- | --- | --- |
@@ -15,6 +15,7 @@
 | P06 | Database Foundation | Prisma schema theo P02 (22 enum/57 model, 58 bảng), Prisma client singleton, kiểm tra env, migration baseline tái lập (`20261127175936_init`), seed idempotent (taxonomy/unit/equipment/ingredient), repository + service + validation + authorization; 7 tài liệu `docs/P06/`; 78 unit + 28 integration test | ✅ Hoàn thành |
 | P07 | Recipe Module | Domain công thức + CRUD/workflow (draft→in_review→published→archived, xóa mềm), API `/api/v1/recipes*` + `/api/v1/admin/recipes` + `/api/v1/media*` theo contract P02, media adapter (R2 mục tiêu/local dev), frontend listing/detail + quản trị create/edit tái sử dụng component P05, authorization tập trung, transaction; 8 tài liệu `docs/P07/`; 124 unit + 50 integration test | ✅ Hoàn thành |
 | P07.1 | Integration Verification & Blocker Closure | Audit tích hợp thực tế; điều chỉnh phạm vi theo mô hình **không tài khoản khách** (bỏ `/tai-khoan`); giữ Auth.js chỉ cho admin; **module yêu thích bằng cookie** (HttpOnly + Server Actions, version, giới hạn 50); phân loại bảng DB + ADR (không drop); xác minh Neon/R2 → **External Verification Pending**; 6 tài liệu `docs/P07_1/` + checkpoint; thêm 29 unit test (module cookie) | ✅ Hoàn thành (trong giới hạn môi trường) |
+| P08 | Taxonomy & Recipe Discovery | Hệ thống phân loại & khám phá công thức: **6 trục khám phá** (nhóm món/ẩm thực/bữa ăn/phương pháp/đặc điểm/nguyên liệu) trên taxonomy P06 (không thêm cột/model); **Recipe Discovery** (lọc/tìm/phân trang/sắp xếp chỉ theo dữ liệu thật); **trang danh mục công khai** (`/danh-muc*`, breadcrumb, SEO, JSON-LD); **quản trị taxonomy** (`/admin/danh-muc*` + API `/api/v1/admin/taxonomy*`, xoá có điều kiện); **Recipe UX foundation**; 6 tài liệu `docs/P08/` + checkpoint; thêm 46 unit test | ✅ Hoàn thành (trong giới hạn môi trường) |
 
 ## Sản phẩm bàn giao theo phase
 
@@ -136,6 +137,21 @@
 - Tạo `docs/checkpoints/P07_1_CHECKPOINT.md`
 - Cập nhật `CURRENT_STATUS.md`, `PHASE_PROGRESS.md`, `DECISIONS.md`, `BLOCKERS.md`
 
+### P08
+- Tạo `lib/constants/taxonomy.ts` (6 trục khám phá `DISCOVERY_TAXONOMIES`, `RecipeFilterKind`, hàm tra cứu)
+- Tạo `lib/presentation/category-links.ts`, `lib/validation/taxonomy.ts`
+- Tạo `lib/services/taxonomy.service.ts` (đọc công khai + CRUD quản trị + xoá an toàn) + export trong `lib/services/index.ts`
+- Mở rộng repository: `taxonomy.repository.ts` (+ `prisma-taxonomy.repository.ts`) và `recipe.repository.ts` (+ `prisma-recipe.repository.ts`) — thêm bộ lọc khám phá + truy vấn kèm số liệu
+- Mở rộng `lib/validation/recipe.ts` (bộ lọc khám phá), `lib/services/recipe.service.ts` (`listPublicForCategory`, `buildDiscoveryFilters`), `lib/presentation/recipe-links.ts`
+- Tạo component: `components/recipe/category-tile.tsx`, `components/admin/taxonomy-manager.tsx`; mở rộng `components/recipe/recipe-filters.tsx`
+- Tạo trang công khai: `app/(public)/danh-muc/{page,[segment]/page,[segment]/[slug]/page}.tsx`; sửa `app/(public)/cong-thuc/{page,[slug]/page}.tsx` (badge phân loại có liên kết)
+- Tạo trang quản trị: `app/(admin)/admin/danh-muc/{page,[type]/page}.tsx`; sửa `app/(admin)/admin/page.tsx`; `app/layout.tsx` (`metadataBase`)
+- Tạo API: `app/api/v1/admin/taxonomy/{route,[id]/route}.ts`
+- Tạo test: `tests/lib/{taxonomy.constants,category-links,taxonomy-validation,taxonomy.service,recipe-discovery}.test.ts` (46 unit); `tests/integration/taxonomy.service.test.ts`
+- Tạo `docs/P08/`: `TAXONOMY_DISCOVERY.md`, `DISCOVERY_API.md`, `CATEGORY_PAGES.md`, `ADMIN_TAXONOMY.md`, `RECIPE_UX.md`, `TEST_REPORT.md`
+- Tạo `docs/checkpoints/P08_CHECKPOINT.md`
+- Cập nhật `CURRENT_STATUS.md`, `PHASE_PROGRESS.md`, `DECISIONS.md`, `BLOCKERS.md`
+
 ## Ràng buộc xuyên suốt
 - Chỉ dùng 1 agent, không tạo sub-agent.
 - Không code website / không tạo database / không triển khai backend trong P00, P00-FIX & P01; P02 thiết kế kiến trúc/schema/API nhưng **không viết code ứng dụng**; P03 chỉ xây **Design System + đặc tả giao diện**, P04 chỉ tạo **tài nguyên nhận diện (SVG) + quy chuẩn**, cả hai **không dựng UI/không triển khai website**. **P05 mới dựng UI thật** (Shared UI Components + Application Shell) nhưng **không** kết nối database/Auth/R2, **không** triển khai chức năng module (route chức năng là placeholder).
@@ -143,4 +159,5 @@
 - Giữ nguyên kiến trúc đã chốt (stack lớp rời, gói miễn phí, phi thương mại, Pastel Mint).
 - **P06** chỉ triển khai **nền tảng dữ liệu** (Prisma/migration/seed/repository/service/validation/authorization); **không** triển khai đăng nhập thật (Auth.js) và **không** kết nối Neon/R2 thật khi chưa có credentials; **không** giả lập người dùng đã đăng nhập (`getCurrentActor()` trả `null`); **không** tạo công thức giả như nội dung đã xuất bản.
 - **P07** chỉ triển khai **module Recipe** trên nền dữ liệu P06, **tái sử dụng** component P05 (không viết lại UI dùng chung); UI **không** gọi Prisma trực tiếp; quyền kiểm ở **server** (RBAC tập trung, không hardcode role); Auth.js vẫn **chưa nối** → mọi thao tác ghi trả **401**, **không** giả lập người dùng; media chạy **local provider** khi chưa có credentials R2 (R2 adapter đã hoàn thiện nhưng **chưa** xác minh kết nối thật); nội dung công thức trong test là **fixture**, **không** tuyên bố có công thức thật đã xuất bản; **không** tự chuyển sang P08.
+- **P08** chỉ triển khai **phân loại & khám phá** trên taxonomy P06 + module Recipe P07, **không** thêm model/cột taxonomy (D62/D63), **không** tạo taxonomy trùng, **không** tạo bộ lọc cho dữ liệu chưa có (D64); xoá danh mục **có điều kiện** (ưu tiên lưu trữ — D65); **chỉ** Admin quản trị taxonomy (401 khi Auth.js chưa nối, kiểm quyền ở server); **không** mở rộng sang cộng đồng/tài khoản khách/chatbot; **không** triển khai P09.
 - Chỉ commit file thuộc phạm vi phase. P00/P00-FIX/P01 chỉ commit local; P02 trở đi được phép đưa checkpoint lên `origin/main` một cách an toàn (không force-push, không rewrite lịch sử).

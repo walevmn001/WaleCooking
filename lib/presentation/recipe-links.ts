@@ -1,5 +1,5 @@
 /**
- * Helper đường dẫn cho module Recipe (P07 §16).
+ * Helper đường dẫn cho module Recipe (P07 §16, P08 §P08.2).
  *
  * Hàm THUẦN (pure) — dùng chung cho Server Component (phân trang) và Client Component
  * (bộ lọc). Không phụ thuộc React/DB/`server-only`.
@@ -14,6 +14,13 @@ export interface RecipeListParams {
   cuisine?: string;
   difficulty?: string;
   sort?: string;
+  /** Trục khám phá (P08 §P08.2). */
+  mealType?: string;
+  cookingMethod?: string;
+  dietary?: string;
+  ingredient?: string;
+  ingredientCategory?: string;
+  maxMinutes?: number;
   page?: number;
 }
 
@@ -24,24 +31,33 @@ function firstValue(value: string | string[] | undefined): string | undefined {
   return value;
 }
 
+const TEXT_KEYS = [
+  "q",
+  "foodType",
+  "cuisine",
+  "difficulty",
+  "sort",
+  "mealType",
+  "cookingMethod",
+  "dietary",
+  "ingredient",
+  "ingredientCategory",
+] as const;
+
 /** Chuẩn hoá `searchParams` thô (Next.js) thành tham số đã gọn. */
 export function parseRecipeListParams(searchParams: RawSearchParams = {}): RecipeListParams {
   const params: RecipeListParams = {};
 
-  const q = firstValue(searchParams.q)?.trim();
-  if (q) params.q = q;
+  for (const key of TEXT_KEYS) {
+    const value = firstValue(searchParams[key])?.trim();
+    if (value) params[key] = value;
+  }
 
-  const foodType = firstValue(searchParams.foodType)?.trim();
-  if (foodType) params.foodType = foodType;
-
-  const cuisine = firstValue(searchParams.cuisine)?.trim();
-  if (cuisine) params.cuisine = cuisine;
-
-  const difficulty = firstValue(searchParams.difficulty)?.trim();
-  if (difficulty) params.difficulty = difficulty;
-
-  const sort = firstValue(searchParams.sort)?.trim();
-  if (sort) params.sort = sort;
+  const maxRaw = firstValue(searchParams.maxMinutes);
+  if (maxRaw) {
+    const max = Number.parseInt(maxRaw, 10);
+    if (Number.isInteger(max) && max > 0) params.maxMinutes = max;
+  }
 
   const pageRaw = firstValue(searchParams.page);
   if (pageRaw) {
@@ -63,11 +79,13 @@ export function buildRecipeListHref(
   const merged: RecipeListParams = { ...params, ...overrides };
   const search = new URLSearchParams();
 
-  if (merged.q) search.set("q", merged.q);
-  if (merged.foodType) search.set("foodType", merged.foodType);
-  if (merged.cuisine) search.set("cuisine", merged.cuisine);
-  if (merged.difficulty) search.set("difficulty", merged.difficulty);
-  if (merged.sort && merged.sort !== "newest") search.set("sort", merged.sort);
+  for (const key of TEXT_KEYS) {
+    const value = merged[key];
+    if (!value) continue;
+    if (key === "sort" && value === "newest") continue;
+    search.set(key, value);
+  }
+  if (merged.maxMinutes) search.set("maxMinutes", String(merged.maxMinutes));
   if (merged.page && merged.page > 1) search.set("page", String(merged.page));
 
   const qs = search.toString();

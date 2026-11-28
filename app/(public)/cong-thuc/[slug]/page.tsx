@@ -15,10 +15,13 @@ import {
   ServingsBadge,
 } from "@/components/recipe/recipe-meta";
 import { RecipeImage } from "@/components/recipe/recipe-image";
+import { ShareRecipeButton } from "@/components/recipe/share-recipe-button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardBody, CardTitle } from "@/components/ui/card";
 import { Link } from "@/components/ui/link";
+import { getDiscoveryTaxonomyByCode } from "@/lib/constants/taxonomy";
 import { isFavorite } from "@/lib/favorites/server";
+import { categoryTermHref } from "@/lib/presentation/category-links";
 import { toRecipeDetail, toRecipeJsonLd } from "@/lib/presentation/recipe-view";
 import { NotFoundError } from "@/lib/errors/app-error";
 import { recipeService } from "@/lib/services";
@@ -77,6 +80,15 @@ export default async function RecipeDetailPage({ params }: RecipeDetailPageProps
   const jsonLd = toRecipeJsonLd(recipe, `/cong-thuc/${dto.slug}`);
   const favorited = await isFavorite(dto.slug).catch(() => false);
 
+  // Liên kết tới trang danh mục cho các term phân loại thuộc khu vực khám phá (P08 §P08.5).
+  const categoryLinks = dto.taxonomy.map((term) => {
+    const taxonomy = getDiscoveryTaxonomyByCode(term.typeCode);
+    return {
+      name: term.name,
+      href: taxonomy ? categoryTermHref(taxonomy.segment, term.slug) : null,
+    };
+  });
+
   const totalMinutes =
     recipe.totalMinutes ?? (recipe.prepMinutes != null || recipe.cookMinutes != null
       ? (recipe.prepMinutes ?? 0) + (recipe.cookMinutes ?? 0)
@@ -123,15 +135,24 @@ export default async function RecipeDetailPage({ params }: RecipeDetailPageProps
 
           <div className="flex flex-wrap items-center gap-3">
             <FavoriteButton slug={dto.slug} initialFavorite={favorited} variant="button" />
+            <ShareRecipeButton title={recipe.title} path={`/cong-thuc/${dto.slug}`} />
           </div>
 
-          {recipe.categories.length > 0 ? (
+          {categoryLinks.length > 0 ? (
             <ul className="flex flex-wrap gap-1.5" aria-label="Phân loại">
-              {recipe.categories.map((category) => (
-                <li key={category}>
-                  <Badge variant="brand" size="sm">
-                    {category}
-                  </Badge>
+              {categoryLinks.map((category) => (
+                <li key={`${category.name}-${category.href ?? ""}`}>
+                  {category.href ? (
+                    <Link href={category.href} appearance="unstyled" className="rounded-pill">
+                      <Badge variant="brand" size="sm">
+                        {category.name}
+                      </Badge>
+                    </Link>
+                  ) : (
+                    <Badge variant="brand" size="sm">
+                      {category.name}
+                    </Badge>
+                  )}
                 </li>
               ))}
             </ul>

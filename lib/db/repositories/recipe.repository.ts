@@ -14,6 +14,14 @@ import type { Paginated, Pagination } from "@/lib/validation/common";
 /** Sắp xếp danh sách công thức công khai. */
 export type RecipeSort = "newest" | "az" | "popular";
 
+/** Bộ lọc theo một term phân loại (khớp term qua liên kết công thức ↔ term). */
+export interface RecipeTaxonomyFilter {
+  /** `taxonomy_types.code` — ví dụ `meal_type`, `cooking_method`. */
+  typeCode: string;
+  /** `taxonomy_terms.slug`. */
+  slug: string;
+}
+
 export interface RecipeListFilters {
   locale: string;
   pagination: Pagination;
@@ -22,6 +30,14 @@ export interface RecipeListFilters {
   cuisineSlug?: string;
   difficulty?: Difficulty;
   sort?: RecipeSort;
+  /** Lọc theo nhiều term phân loại (kết hợp AND) — dùng cho bữa ăn/phương pháp/đặc điểm. */
+  taxonomy?: RecipeTaxonomyFilter[];
+  /** Lọc theo nhóm nguyên liệu chính của nguyên liệu trong công thức. */
+  ingredientCategorySlug?: string;
+  /** Lọc theo một nguyên liệu cụ thể trong công thức. */
+  ingredientSlug?: string;
+  /** Tổng thời gian tối đa (phút) — lọc nhanh "món nấu nhanh". */
+  maxTotalMinutes?: number;
 }
 
 export interface RecipeAdminListFilters extends RecipeListFilters {
