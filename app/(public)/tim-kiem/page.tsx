@@ -1,24 +1,23 @@
 import type { Metadata } from "next";
-import { PlaceholderPage } from "@/components/layout/placeholder-page";
+import { redirect } from "next/navigation";
 
-export const metadata: Metadata = { title: "Tìm kiếm" };
+export const metadata: Metadata = {
+  title: "Tìm kiếm",
+  robots: { index: false, follow: true },
+};
 
+/**
+ * `/tim-kiem` — lối vào tìm kiếm cũ.
+ *
+ * Hạ tầng tìm kiếm công thức thực tế nằm ở `/cong-thuc` (dùng truy vấn `q`). Trang này
+ * chỉ chuyển hướng để không còn lối vào chết (P11 — BUG-P11-01).
+ */
 export default async function SearchPage({
   searchParams,
 }: {
   searchParams: Promise<{ q?: string }>;
 }) {
   const { q } = await searchParams;
-
-  return (
-    <PlaceholderPage
-      title="Tìm kiếm"
-      description={
-        q
-          ? `Chức năng tìm kiếm cho từ khoá “${q}” sẽ được triển khai ở phase sau.`
-          : "Chức năng tìm kiếm công thức sẽ được triển khai ở phase sau."
-      }
-      phase="P06"
-    />
-  );
+  const keyword = typeof q === "string" ? q.trim() : "";
+  redirect(keyword ? `/cong-thuc?q=${encodeURIComponent(keyword)}` : "/cong-thuc");
 }

@@ -100,7 +100,7 @@ export function MobileMenu({ open, onClose, items = primaryNav }: MobileMenuProp
           label="Tìm kiếm công thức"
           onSearch={(value) => {
             onClose();
-            router.push(value ? `/tim-kiem?q=${encodeURIComponent(value)}` : "/tim-kiem");
+            router.push(value ? `/cong-thuc?q=${encodeURIComponent(value)}` : "/cong-thuc");
           }}
         />
 

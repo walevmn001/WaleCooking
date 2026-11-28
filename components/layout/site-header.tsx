@@ -42,7 +42,9 @@ export function SiteHeader({ className }: { className?: string }) {
               size="sm"
               label="Tìm kiếm công thức"
               onSearch={(value) =>
-                router.push(value ? `/tim-kiem?q=${encodeURIComponent(value)}` : "/tim-kiem")
+                router.push(
+                  value ? `/cong-thuc?q=${encodeURIComponent(value)}` : "/cong-thuc",
+                )
               }
             />
           </div>
