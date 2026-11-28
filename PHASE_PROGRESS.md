@@ -1,7 +1,7 @@
 # PHASE PROGRESS — WALE COOKING
 
 > Theo dõi tiến độ theo phase. Mỗi phase chỉ triển khai đúng phạm vi của nó.
-> Cập nhật: 2026-11-28 (P11).
+> Cập nhật: 2026-11-28 (P12).
 
 | Phase | Tên | Phạm vi | Trạng thái |
 | --- | --- | --- | --- |
@@ -19,6 +19,7 @@
 | P09 | Cooking Experience | Không gian hỗ trợ nấu trên trang công thức: **Audit dữ liệu** công thức; **Cooking Mode** (chế độ nấu toàn màn hình, focus trap, từng bước); **Portion Scaling** (nhân định lượng theo khẩu phần, không đổi dữ liệu gốc, không quy đổi đơn vị); **Ingredient Checklist** (tick/tiến độ/reset); **lưu tiến độ cục bộ** (`localStorage` có version — không tài khoản khách, không DB); component tái sử dụng; 5 tài liệu `docs/P09/` + checkpoint; thêm 50 unit test | ✅ Hoàn thành (trong giới hạn môi trường) |
 | P10 | Smart Kitchen Tools | Bộ công cụ nhà bếp: **Multi Timer** (nhiều đồng hồ, `deadline` là nguồn sự thật — đúng khi tab ẩn/khoá màn hình, lưu `localStorage` có version); **Unit Converter** (khối lượng/thể tích/nhiệt độ, không quy đổi mass↔volume, logic thuần tách khỏi UI); **Ingredient-Based Recipe Discovery** (tìm món theo nguyên liệu đang có, thuật toán xác định trên dữ liệu thật, không AI); **khu vực `/cong-cu`** + 8 component tái sử dụng; API `/api/v1/kitchen/ingredient-match`; 5 tài liệu `docs/P10/` + checkpoint; thêm 88 unit test | ✅ Hoàn thành (trong giới hạn môi trường) |
 | P11 | Real-World Verification & UX Polish | Phase **ổn định & hoàn thiện** (không thêm tính năng): **Audit** 16 khu vực P00–P10; **xác minh luồng khách & quản trị** (HTTP thật); **xác minh trải nghiệm nấu & công cụ nhà bếp** (bảng ca kiểm thử Portion Scaling + Unit Converter); **audit** mobile/SEO/performance/security; **sửa 3 lỗi Medium**: soft-404 (xóa 3 `loading.tsx`), thêm `sitemap.ts`+`robots.ts`, security headers + ẩn `X-Powered-By`; chạy lại toàn bộ test (**337 unit + 59 integration + build 42 route**); 10 tài liệu `docs/P11/` + checkpoint | ✅ Hoàn thành (trong giới hạn môi trường) |
+| P12 | Production Deployment & Browser Verification | Phase **production-readiness & xác minh trình duyệt** (không thêm tính năng): **Audit** trạng thái thực tế; **DB readiness** — sửa **FIND-04** (Prisma lazy Proxy → build không cần `DATABASE_URL`); **Storage readiness** — sửa **FIND-07** (guard production: thiếu `R2_*` → ném lỗi, không ghi FS tạm); **Playwright E2E** qua CDP (**42/42 PASS** — public/cooking/tools/admin/api/responsive); **Responsive 4 viewport** (375/390/768/1440, **14/14 PASS**); **Vercel deploy verification** (build local **PASS** không cần `DATABASE_URL`); 9 tài liệu `docs/P12/` + checkpoint | ✅ Hoàn thành (trong giới hạn môi trường) |
 
 ## Sản phẩm bàn giao theo phase
 
@@ -184,6 +185,15 @@
 - Chạy lại: `pnpm typecheck` (0 lỗi) · `pnpm lint` (0 lỗi) · `pnpm test` (**337/337**) · `pnpm test:integration` (**59/59**, PostgreSQL thật) · `pnpm build` (**42 route**)
 - Cập nhật `CURRENT_STATUS.md`, `PHASE_PROGRESS.md`, `DECISIONS.md`, `BLOCKERS.md`
 
+### P12
+- Tạo `docs/P12/`: `DEPLOYMENT_AUDIT.md`, `DATABASE_READINESS.md`, `STORAGE_READINESS.md`, `PLAYWRIGHT_SETUP.md`, `E2E_TEST_REPORT.md`, `RESPONSIVE_UX_REPORT.md`, `VERCEL_DEPLOYMENT_REPORT.md`, `MANUAL_VERIFICATION_CHECKLIST.md`, `P12_SUMMARY.md`
+- Tạo `docs/checkpoints/P12_CHECKPOINT.md`
+- Sửa (FIND-04): `lib/db/prisma.ts` → **Proxy lazy** (không khởi tạo Prisma khi import) → build không cần `DATABASE_URL`
+- Sửa (FIND-07): `lib/storage/index.ts` (`getStorage()` guard production) + `lib/services/media.service.ts` (resolve storage lazy)
+- Tạo (P12.4): `playwright.config.ts`; `tests/e2e/{public,cooking,tools,admin,api,responsive}.e2e.ts` + `fixtures.ts` + `seed-e2e.ts`; scripts `e2e`/`e2e:seed` trong `package.json`
+- Chạy lại: `pnpm typecheck` (0 lỗi) · `pnpm lint` (0 lỗi) · `pnpm test` (**337/337**) · `pnpm test:integration` (**59/59**) · `pnpm e2e` (**42/42**) · `pnpm build` (**40 route**, không cần `DATABASE_URL`)
+- Cập nhật `CURRENT_STATUS.md`, `PHASE_PROGRESS.md`, `DECISIONS.md`, `BLOCKERS.md`
+
 ## Ràng buộc xuyên suốt
 - Chỉ dùng 1 agent, không tạo sub-agent.
 - Không code website / không tạo database / không triển khai backend trong P00, P00-FIX & P01; P02 thiết kế kiến trúc/schema/API nhưng **không viết code ứng dụng**; P03 chỉ xây **Design System + đặc tả giao diện**, P04 chỉ tạo **tài nguyên nhận diện (SVG) + quy chuẩn**, cả hai **không dựng UI/không triển khai website**. **P05 mới dựng UI thật** (Shared UI Components + Application Shell) nhưng **không** kết nối database/Auth/R2, **không** triển khai chức năng module (route chức năng là placeholder).
@@ -195,4 +205,5 @@
 - **P09** chỉ triển khai **trải nghiệm nấu** trên trang chi tiết công thức (Cooking Mode/Portion Scaling/Checklist), tận dụng shared UI P05 + view-model P07; **không** thêm schema/migration (D70); **không** dùng `CookingSession`/`CookingProgress` (yêu cầu `userId`) → lưu **cục bộ** `localStorage` có version (D67); Portion Scaling **chỉ nhân số, giữ nguyên đơn vị** — **không** quy đổi khối lượng↔thể tích (D68), **không** sửa dữ liệu công thức gốc; **không** bịa hướng dẫn/định lượng/nhiệt độ/thời gian; **không** tài khoản khách, **không** lưu dữ liệu nhạy cảm; **không** triển khai P10.
 - **P10** chỉ triển khai **công cụ nhà bếp** (nhiều đồng hồ / quy đổi đơn vị / tìm món theo nguyên liệu), tận dụng shared UI P05 + Recipe Discovery P08; **không** thêm schema/migration (D74); đồng hồ **nguồn sự thật là `deadline`** — `setInterval` chỉ re-render (D71); quy đổi **chỉ khi có hệ số xác định** — **không** quy đổi mass↔volume/giữa đơn vị đếm, phân biệt cup US vs metric cup (D72); tìm món bằng **thuật toán xác định trên dữ liệu thật** — **không** AI/dịch vụ trả phí, **không** tự tạo công thức, **không** đoán nguyên liệu khác tên là tương đương (D73); không xin quyền không liên quan (camera/microphone), **không** tự xin quyền/thông báo khi tải trang; **không** tài khoản khách, **không** lưu dữ liệu nhạy cảm; **không** triển khai P11.
 - **P11** là phase **ổn định & hoàn thiện** — **KHÔNG** thêm tính năng mới, **không** làm lại P00–P10, **không** đổi stack/kiến trúc. Chỉ audit + sửa lỗi có căn cứ + hoàn thiện UX. **Không** thêm schema/migration/dependency; **không** mở rộng sang cộng đồng/tài khoản khách/thương mại điện tử; **không** triển khai P12. Sửa 3 lỗi Medium (D75/D76/D77); loại bỏ `loading.tsx` gây soft-404 ưu tiên **mã HTTP đúng**; **không** đặt CSP trong P11; **không** sửa FIND-04 (D78).
+- **P12** là phase **production-readiness & xác minh trình duyệt** — **KHÔNG** thêm tính năng mới, **không** làm lại P00–P11, **không** đổi kiến trúc/framework/database provider/design system; **1 AI Agent** duy nhất, **không** sub-agent/delegation. Chỉ sửa lỗi production-readiness có bằng chứng (FIND-04 lazy Prisma, FIND-07 guard storage) + thiết lập kiểm thử trình duyệt. **Không** giả lập Neon/R2/Vercel đã hoạt động (đánh dấu **BLOCKED**); **không** in/commit `DATABASE_URL`/secret; **không** `db push`/`migrate reset`/lệnh phá hủy dữ liệu; **không** sửa migration đã áp dụng; E2E dùng **DB test riêng** (`wale_e2e`), **không** chạm dữ liệu production. Phân biệt rõ **PASS/FAIL/BLOCKED/PENDING** — **không** đánh dấu PASS chỉ vì code đã viết; **không** tạo screenshot/báo cáo giả.
 - Chỉ commit file thuộc phạm vi phase. P00/P00-FIX/P01 chỉ commit local; P02 trở đi được phép đưa checkpoint lên `origin/main` một cách an toàn (không force-push, không rewrite lịch sử).

@@ -1,10 +1,10 @@
 # CURRENT STATUS — WALE COOKING
 
-> Cập nhật: 2026-11-28 (P11).
+> Cập nhật: 2026-11-28 (P12).
 
 ## Tóm tắt
 - **Sản phẩm:** WALE COOKING — website cá nhân chuyên công thức & hỗ trợ nấu ăn (**Recipe-focused Cooking Assistant**; tiếng Việt, sẵn sàng i18n EN). **Không** mạng xã hội, **không** cộng đồng, **không** tài khoản khách truy cập.
-- **Phase hiện tại:** hoàn thành **P00**, **P00-FIX**, **P01**, **P02**, **P03**, **P04**, **P05**, **P06**, **P07**, **P07.1**, **P08**, **P09**, **P10** và **P11** — **P11 là phase ổn định & hoàn thiện** (không thêm tính năng mới). **Không** triển khai P12.
+- **Phase hiện tại:** hoàn thành **P00**, **P00-FIX**, **P01**, **P02**, **P03**, **P04**, **P05**, **P06**, **P07**, **P07.1**, **P08**, **P09**, **P10**, **P11** và **P12** — **P12 là phase production-readiness & xác minh trình duyệt** (không thêm tính năng mới).
 - **Đã hoàn thiện P00:** khảo sát thực tế + tài liệu định hướng + đề xuất công nghệ.
 - **Đã hoàn thiện P00-FIX:** đồng bộ thương hiệu sang WALE COOKING, bổ sung đầy đủ 20 nhóm chức năng, chuẩn hóa 7 trục phân loại, cập nhật tài liệu trạng thái.
 - **Đã hoàn thiện P01:** bộ đặc tả sản phẩm có thể triển khai — PRD, Product Constitution, personas, user journeys, đặc tả 20 nhóm chức năng, quy tắc nghiệp vụ, NFR đo lường được, phạm vi MVP và tiêu chí nghiệm thu.
@@ -19,11 +19,12 @@
 - **Đã hoàn thiện P09:** **Cooking Experience** — (1) **P09.1 Audit dữ liệu** công thức → quyết định thiết kế (D67–D70); (2) **Cooking Mode** — chế độ nấu toàn màn hình (portal, focus trap, đóng bằng Esc + xác nhận), tập trung từng bước, ảnh/mẹo/thời lượng, xem lại danh sách bước, không sinh/đổi thứ tự bước; (3) **Portion Scaling** — nhân định lượng theo khẩu phần (`định lượng mới = gốc × mới/gốc`), điều khiển tăng/giảm + nhập trực tiếp + khôi phục, **chỉ nhân số — giữ nguyên đơn vị** (không quy đổi mass↔volume — D68), không đổi dữ liệu gốc; (4) **Ingredient Checklist** — tick/tiến độ (chữ + số)/reset, dùng định lượng sau khi đổi khẩu phần; (5) **lưu tiến độ cục bộ** `localStorage` có `version` (không tài khoản khách, không DB — D67), xử lý JSON hỏng/slug khác/kẹp `stepIndex`/lọc id; component tái sử dụng `CookingModeLayout`/`CookingStepCard`(dùng lại)/`CookingProgress`/`IngredientChecklist`/`PortionSelector`/`CookingExitConfirmation`. **Kiểm chứng:** `typecheck` 0 lỗi · `lint` 0 lỗi · **249/249 unit test** (27 file, +50 test P09) · `build` thành công (không thêm route; đặt `DATABASE_URL` placeholder). **Chưa xác minh:** E2E/thiết bị thật, integration (P09 không thêm logic server/schema). Tài liệu `docs/P09/` + `docs/checkpoints/P09_CHECKPOINT.md`.
 - **Đã hoàn thiện P10:** **Smart Kitchen Tools** — (1) **P10.1 Multi Timer** — nhiều đồng hồ cùng lúc (tạo/đặt tên/bắt đầu/tạm dừng/tiếp tục/đặt lại/xoá/cảnh báo hết giờ), **nguồn sự thật là `deadline` (epoch ms)** — `setInterval` chỉ re-render (đúng khi tab ẩn/khoá màn hình), tạm dừng chốt `pausedRemaining`, lưu **cục bộ** `localStorage` (`wale_timers_v1`, có `version`, khôi phục khi tải lại), cảnh báo 4 kênh (banner / Web Audio mở khoá qua tương tác / Notification API xin quyền khi người dùng bấm / rung thiết bị), **không** xin quyền không liên quan; (2) **P10.2 Unit Converter** — khối lượng (SI/avoirdupois), thể tích (US customary + **metric cup** 250 ml), nhiệt độ; **chỉ quy đổi khi có hệ số xác định**, **không** quy đổi mass↔volume/giữa đơn vị đếm, `convertUnit` không ném lỗi, logic **tách khỏi UI**; (3) **P10.3 Ingredient-Based Discovery** — tìm món theo nguyên liệu đang có: chuẩn hoá bỏ dấu + loại trùng + so khớp tên/slug, điểm phù hợp (`matched`/`coverage`/`missingRequired`) trên **dữ liệu thật**, **không** AI, **không** tự tạo công thức; (4) **P10.4 UI** — khu vực `/cong-cu` (hub + 3 công cụ) + **8 component** tái sử dụng (`MultiTimer`/`TimerCard`/`TimerForm`/`UnitConverter`/`IngredientSearch`/`IngredientChip`/`RecipeMatchCard`/`MissingIngredients`), tận dụng P05 + Recipe Discovery P08 (D74). **Kiểm chứng:** `typecheck` 0 lỗi · `lint` 0 lỗi · **337/337 unit test** (31 file, **+88 test P10**) · `build` thành công (thêm `/cong-cu*` + `/api/v1/kitchen/ingredient-match`; `DATABASE_URL` placeholder). **Chưa xác minh:** integration P10.3 (không có PostgreSQL), E2E/thiết bị thật (khoá màn hình/throttle/âm thanh/Notification). Tài liệu `docs/P10/` + `docs/checkpoints/P10_CHECKPOINT.md`.
 - **Đã hoàn thiện P11:** **Real-World Verification & UX Polish** (phase ổn định & hoàn thiện — **không** thêm tính năng mới) — (1) **P11.1 Full Project Audit** 16 khu vực (Foundation/Database/Recipe/Admin/Media/Taxonomy/Discovery/Favorites/Cooking/Portion/Checklist/Multi Timer/Unit Converter/Ingredient Discovery/SEO/Responsive) + phân loại Critical/High/Medium/Low; (2) **P11.2–P11.4** xác minh luồng khách & quản trị (HTTP thật), trải nghiệm nấu & công cụ nhà bếp (bảng ca kiểm thử Portion Scaling + Unit Converter); (3) **P11.5–P11.6** audit mobile/SEO/performance/security; (4) **P11.9 sửa 3 lỗi Medium**: **BUG-01** soft-404 (xóa 3 `loading.tsx` tạo Suspense boundary → route động trả **404** đúng), **BUG-02** thêm `app/sitemap.ts` + `app/robots.ts` (trước đây 404), **BUG-03** thêm security headers + ẩn `X-Powered-By`; (5) **P11.7** chạy lại toàn bộ test. **Kiểm chứng:** `typecheck` 0 lỗi · `lint` 0 lỗi · **337/337 unit test** (31 file) · **59/59 integration test** (9 file — PostgreSQL thật, gồm `kitchen.ingredient-match` **khắc phục B-P10-02**) · `build` thành công **42 route** (có `/sitemap.xml`, `/robots.txt`). **Chưa xác minh (External Verification Pending):** hiển thị thực tế 6 viewport, E2E/axe/Lighthouse/screen reader, timer nền (khóa màn hình/chuyển app), đăng nhập admin thật (Auth.js chưa nối). 10 tài liệu `docs/P11/` + `docs/checkpoints/P11_CHECKPOINT.md`.
+- **Đã hoàn thiện P12:** **Production Deployment & Browser Verification** (tiếp nối P00–P11; **không** thêm tính năng, **không** đổi kiến trúc/framework/DB/design system; **1 AI Agent**, không sub-agent) — (1) **P12.1** audit trạng thái thực tế; (2) **P12.2** DB readiness — sửa **FIND-04**: `lib/db/prisma.ts` chuyển sang **Proxy lazy** → `pnpm build` **không còn cần `DATABASE_URL`**, loại bỏ lỗi Vercel *"Failed to collect configuration for /api/v1/admin/recipes"*; (3) **P12.3** storage readiness — sửa **FIND-07**: `getStorage()` ở `NODE_ENV=production` thiếu `R2_*` → **ném lỗi rõ ràng** (không ghi FS tạm Vercel), `MediaService` resolve storage **lazy**; chấp nhận **FIND-05** (cảnh báo tracing media local); (4) **P12.4** thiết lập **Playwright** kết nối Chrome qua **CDP** (không có Chromium binary) + DB E2E **riêng** (`wale_e2e`, seed idempotent tiền tố `e2e-`) → **28/28 E2E PASS** (public/cooking/tools/admin/api); (5) **P12.5** responsive & UX — **14/14 PASS** (viewport 375/390/768/1440; tràn ngang, nav, menu mobile, console/network, bàn phím/focus); (6) **P12.6** xác minh build production **PASS** khi thiếu `DATABASE_URL` + checklist deploy (ghi rõ `DIRECT_URL` cần cho migration Neon). **Kiểm chứng:** `typecheck` 0 lỗi · `lint` 0 lỗi · **337/337 unit** (31 file) · **59/59 integration** (9 file) · **42/42 E2E** (6 file) · `build` thành công **40 route**. **BLOCKED (thiếu môi trường):** Neon thật, R2 thật, Vercel production, đăng nhập Admin thật/RBAC (Auth.js chưa nối). 9 tài liệu `docs/P12/` + `docs/checkpoints/P12_CHECKPOINT.md`.
 
 ## Git
 | Mục | Giá trị |
 | --- | --- |
-| Branch hiện tại | `trae/agent-1nGkPH` (đồng bộ `origin/main`) |
+| Branch hiện tại | `trae/agent-VkDApw` (đồng bộ `origin/main`) |
 | Remote | `origin` → `https://github.com/walevmn001/WaleCooking` |
 | Commit P00 | `a7c3ee5` — docs(P00): khảo sát dự án, xác lập yêu cầu và checkpoint nền tảng |
 | Commit P00-FIX | `59ca67a` — docs(P00-FIX): đồng bộ thương hiệu WALE COOKING và hoàn thiện phạm vi sản phẩm |
@@ -38,9 +39,16 @@
 | Commit P08 | `ca1b4e9` — feat(P08): taxonomy & khám phá công thức (danh mục, bộ lọc, quản trị) |
 | Commit P09 | `c8f9b91` — feat(P09): cooking experience — chế độ nấu, khẩu phần, checklist |
 | Commit P10 | `be41af1` — feat(P10): công cụ nhà bếp — đồng hồ, quy đổi đơn vị, tìm món theo nguyên liệu |
-| Commit P11 | *(commit chứa tài liệu này — xem `git log -1`)* — fix(P11): kiểm thử thực tế & hoàn thiện — sửa soft-404, bổ sung sitemap/robots, security headers |
-| Working tree | Sạch sau khi commit P11 |
-| `origin/main` | `be41af1` (P10) trước P11; cập nhật checkpoint P11 sau khi push (xem báo cáo push) |
+| Commit P11 | `f19f970` — fix(P11): kiểm thử thực tế & hoàn thiện — sửa soft-404, bổ sung sitemap/robots, security headers |
+| Commit P12.1 | `ce8d4fc` — docs(P12.1): audit trạng thái thực tế & checkpoint P12 |
+| Commit P12.2 | `0c05a8e` — fix(P12.2): lazy Prisma init — build không còn cần DATABASE_URL (sửa FIND-04) |
+| Commit P12.3 | `5fe16be` — fix(P12.3): chặn local storage ở production + giải mã storage lazy (sửa FIND-07) |
+| Commit P12.4 | `63f46f0` — test(P12.4): bộ kiểm thử trình duyệt Playwright E2E (28/28 PASS) |
+| Commit P12.5 | `399eb39` — test(P12.5): kiểm thử responsive & UX trên 4 viewport (14/14 PASS) |
+| Commit P12.6 | `97ec94e` — docs(P12.6): xác minh build production & cấu hình triển khai Vercel |
+| Commit P12.7 | *(commit chứa tài liệu này — xem `git log -1`)* — docs(P12.7): tài liệu bàn giao & checkpoint cuối P12 |
+| Working tree | Sạch sau khi commit P12.7 |
+| `origin/main` | `97ec94e` (P12.6) trước P12.7; cập nhật P12.7 sau khi push (xem báo cáo push) |
 
 ## Kiến trúc đã chốt (không thay đổi)
 - Stack lớp rời: **Next.js + Prisma + Neon PostgreSQL + Auth.js + Cloudflare R2**.
@@ -210,6 +218,23 @@
 
 **Không** thêm schema/migration/dependency; **không** đổi design system/kiến trúc.
 
+## Sản phẩm bàn giao P12 (`docs/P12/` + mã nguồn & kiểm thử)
+**Tài liệu (`docs/P12/`):** `DEPLOYMENT_AUDIT.md` · `DATABASE_READINESS.md` · `STORAGE_READINESS.md` · `PLAYWRIGHT_SETUP.md` · `E2E_TEST_REPORT.md` · `RESPONSIVE_UX_REPORT.md` · `VERCEL_DEPLOYMENT_REPORT.md` · `MANUAL_VERIFICATION_CHECKLIST.md` · `P12_SUMMARY.md` + checkpoint `docs/checkpoints/P12_CHECKPOINT.md`.
+
+**Sửa lỗi (production readiness):**
+- **FIND-04 (P12.2):** `lib/db/prisma.ts` → **Proxy lazy** (không khởi tạo Prisma khi module import) → `pnpm build` không còn cần `DATABASE_URL`; loại bỏ lỗi Vercel *"Failed to collect configuration for /api/v1/admin/recipes"*.
+- **FIND-07 (P12.3):** `lib/storage/index.ts` → `getStorage()` **ném lỗi rõ ràng** ở `NODE_ENV=production` khi thiếu `R2_*` (không ghi filesystem tạm Vercel); `services/media.service.ts` resolve storage **lazy**.
+- **FIND-05 (chấp nhận, known warning):** 3 cảnh báo Turbopack "Dynamic filesystem access" tại `app/api/v1/media/file/[...key]/route.ts` — do local adapter; không bỏ qua bằng `turbopackIgnore` khi chưa có bằng chứng.
+
+**Kiểm thử trình duyệt (Playwright qua CDP — `127.0.0.1:9222`):**
+- `tests/e2e/` — `public.e2e.ts` · `cooking.e2e.ts` · `tools.e2e.ts` · `admin.e2e.ts` · `api.e2e.ts` · `responsive.e2e.ts` + `fixtures.ts` · `seed-e2e.ts`.
+- DB E2E **riêng** (`wale_e2e`), seed idempotent tiền tố `e2e-`; **không** chạm dữ liệu production.
+- `playwright.config.ts` + scripts `pnpm e2e` / `e2e:seed` trong `package.json`.
+
+**Kiểm thử:** `typecheck` 0 lỗi · `lint` 0 lỗi · **337/337 unit** (31 file) · **59/59 integration** (9 file) · **42/42 E2E** (6 file) · `build` **40 route** (không cần `DATABASE_URL`).
+
+**Không** thêm schema/migration/feature; **không** đổi framework/DB/design system.
+
 ## Việc còn chờ xác minh
 - **B5:** repo là shallow clone (ảnh hưởng thấp).
 - **B6:** chưa có tài khoản/môi trường triển khai (Neon, R2, Vercel/Cloudflare…).
@@ -240,17 +265,22 @@
 - **B-P10-01:** chưa kiểm **đồng hồ đếm ngược trên thiết bị thật khi đứng bếp** (tab ẩn/throttle, khoá màn hình, phát âm thanh, Notification API, rung) — External Verification Pending.
 - **B-P10-02:** chưa chạy **integration test P10.3 (tìm món theo nguyên liệu)** → **ĐÃ GIẢI QUYẾT (P11)** — `tests/integration/kitchen.ingredient-match.test.ts` (4 test) đã **chạy thành công trên PostgreSQL thật** trong P11 (59/59 integration test pass).
 - **B-P10-03:** chưa **đối chiếu hệ số quy đổi với dụng cụ đo vật lý** (hệ số theo định nghĩa chuẩn đã ghi nguồn; không áp dụng tỷ trọng nguyên liệu) — chấp nhận theo thiết kế.
-- **B-P11-01:** chưa kiểm **hiển thị thực tế 6 viewport** (320–1920) trên trình duyệt/thiết bị thật (tràn ngang, dialog, kích thước nút) — External Verification Pending.
-- **B-P11-02:** chưa chạy **E2E/axe/Lighthouse/screen reader** (a11y/runtime/perf thực) — không có browser headless.
+- **B-P11-01:** chưa kiểm **hiển thị thực tế 6 viewport** (320–1920) trên trình duyệt/thiết bị thật (tràn ngang, dialog, kích thước nút) — **MỘT PHẦN — ĐÃ CHẠY P12** (responsive E2E 4 viewport 375/390/768/1440, 14/14 PASS); thiết bị thật vẫn Pending.
+- **B-P11-02:** chưa chạy **E2E/axe/Lighthouse/screen reader** (a11y/runtime/perf thực) — **ĐÃ GIẢI QUYẾT MỘT PHẦN (P12)** — Playwright E2E qua CDP đã chạy **42/42 PASS**; axe/Lighthouse/screen reader vẫn Pending.
 - **B-P11-03:** chưa kiểm **timer nền trên thiết bị thật** (khóa màn hình/chuyển app/rung/âm thanh/Notification) — kế thừa B-P10-01.
+- **B-P12-01:** chưa xác minh **Neon PostgreSQL thật** (External Verification Pending) — sandbox không có credentials Neon; đã xác minh gián tiếp qua PostgreSQL 16.15 local + `prisma migrate deploy` chờ chủ dự án chạy.
+- **B-P12-02:** chưa xác minh **Cloudflare R2 thật** (External Verification Pending) — cần cấu hình `R2_*` trên Vercel; thiếu → production **ném lỗi rõ ràng** (guard P12.3), không ghi FS tạm.
+- **B-P12-03:** chưa xác minh **Vercel production deployment** — không có quyền truy cập Vercel; đã xác minh **build local PASS** khi thiếu `DATABASE_URL`.
+- **B-P12-04:** chưa xác minh **đăng nhập Admin thật / RBAC qua HTTP** — Auth.js chưa nối (`getCurrentActor()` → `null`); kế thừa B-P07_1-03.
 - Hạn mức gói miễn phí đã ghi theo thời điểm **11/2026** — cần kiểm tra lại trước khi deploy.
 
 ## Phase tiếp theo
-- **P11 hoàn thành** (trong giới hạn môi trường) — phase ổn định & hoàn thiện: audit P00–P10, sửa 3 lỗi Medium (soft-404, sitemap/robots, security headers), chạy lại toàn bộ test (337 unit + 59 integration + build 42 route). Theo yêu cầu người dùng, **dừng tại đây — không triển khai P12.**
-- Các hạng mục "External Verification Pending" (Neon/R2/Auth.js/E2E, hiển thị đa viewport, timer thiết bị thật) tiếp tục theo dõi ở `BLOCKERS.md`.
+- **P12 hoàn thành** (trong giới hạn môi trường) — phase production-readiness & xác minh trình duyệt: audit P12.1, sửa **FIND-04** (Prisma lazy) + **FIND-07** (guard storage production), thiết lập **Playwright E2E** (42/42 PASS), responsive 4 viewport (14/14 PASS), xác minh build production không cần `DATABASE_URL`, tài liệu `docs/P12/`.
+- **BLOCKED (thiếu môi trường)** — cần chủ dự án thao tác thủ công: chạy `prisma migrate deploy` trên Neon, cấu hình `R2_*` trên Vercel, kiểm tra deployment Vercel, nối Auth.js. Xem [MANUAL_VERIFICATION_CHECKLIST.md](./docs/P12/MANUAL_VERIFICATION_CHECKLIST.md).
+- Các hạng mục "External Verification Pending" (Neon/R2/Auth.js/Vercel, thiết bị thật, a11y chuyên sâu) tiếp tục theo dõi ở `BLOCKERS.md`.
 - **Backlog định hướng tương lai** (chưa triển khai): thực đơn theo ngày; bộ lọc theo thời gian/độ khó; hướng dẫn sơ chế & bảo quản; danh sách đi chợ; đồng bộ tiến độ nấu giữa thiết bị.
 
 ## Tham chiếu
 - [PHASE_PROGRESS.md](./PHASE_PROGRESS.md) · [DECISIONS.md](./DECISIONS.md) · [BLOCKERS.md](./BLOCKERS.md)
-- Checkpoint: [docs/checkpoints/P07_1_CHECKPOINT.md](./docs/checkpoints/P07_1_CHECKPOINT.md) · [docs/checkpoints/P08_CHECKPOINT.md](./docs/checkpoints/P08_CHECKPOINT.md) · [docs/checkpoints/P09_CHECKPOINT.md](./docs/checkpoints/P09_CHECKPOINT.md) · [docs/checkpoints/P10_CHECKPOINT.md](./docs/checkpoints/P10_CHECKPOINT.md) · [docs/checkpoints/P11_CHECKPOINT.md](./docs/checkpoints/P11_CHECKPOINT.md)
-- Tài liệu P00: [docs/P00](./docs/P00/) · P01: [docs/P01](./docs/P01/) · P02: [docs/P02](./docs/P02/) · P03: [docs/P03](./docs/P03/) · P04: [docs/P04](./docs/P04/) · P05: [docs/P05](./docs/P05/) · P06: [docs/P06](./docs/P06/) · P07: [docs/P07](./docs/P07/) · P07.1: [docs/P07_1](./docs/P07_1/) · P08: [docs/P08](./docs/P08/) · P09: [docs/P09](./docs/P09/) · P10: [docs/P10](./docs/P10/) · P11: [docs/P11](./docs/P11/)
+- Checkpoint: [docs/checkpoints/P07_1_CHECKPOINT.md](./docs/checkpoints/P07_1_CHECKPOINT.md) · [docs/checkpoints/P08_CHECKPOINT.md](./docs/checkpoints/P08_CHECKPOINT.md) · [docs/checkpoints/P09_CHECKPOINT.md](./docs/checkpoints/P09_CHECKPOINT.md) · [docs/checkpoints/P10_CHECKPOINT.md](./docs/checkpoints/P10_CHECKPOINT.md) · [docs/checkpoints/P11_CHECKPOINT.md](./docs/checkpoints/P11_CHECKPOINT.md) · [docs/checkpoints/P12_CHECKPOINT.md](./docs/checkpoints/P12_CHECKPOINT.md)
+- Tài liệu P00: [docs/P00](./docs/P00/) · P01: [docs/P01](./docs/P01/) · P02: [docs/P02](./docs/P02/) · P03: [docs/P03](./docs/P03/) · P04: [docs/P04](./docs/P04/) · P05: [docs/P05](./docs/P05/) · P06: [docs/P06](./docs/P06/) · P07: [docs/P07](./docs/P07/) · P07.1: [docs/P07_1](./docs/P07_1/) · P08: [docs/P08](./docs/P08/) · P09: [docs/P09](./docs/P09/) · P10: [docs/P10](./docs/P10/) · P11: [docs/P11](./docs/P11/) · P12: [docs/P12](./docs/P12/)

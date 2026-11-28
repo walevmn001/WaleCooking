@@ -1,7 +1,7 @@
 # DECISIONS — WALE COOKING
 
 > Nhật ký các quyết định đã chốt. Không tự thay đổi quyết định đã xác lập nếu chưa có căn cứ.
-> Cập nhật: 2026-11-28 (P11).
+> Cập nhật: 2026-11-28 (P12).
 
 | # | Quyết định | Nội dung | Căn cứ | Trạng thái |
 | --- | --- | --- | --- | --- |
@@ -82,7 +82,10 @@
 | D75 | Loại `loading.tsx` gây soft-404 | Xóa `app/loading.tsx`, `app/(public)/cong-thuc/loading.tsx`, `app/(public)/cong-thuc/[slug]/loading.tsx`: chúng tạo **Suspense boundary** cấp segment khiến `notFound()` ở route động trả **HTTP 200** thay vì **404**. Ưu tiên **mã trạng thái HTTP đúng**; tái giới thiệu loading UI **có phạm vi** (inline `<Suspense>`) ở Backlog; **không** mất dữ liệu/chức năng | P11 §II/§IX | Đã chốt — [BUG_FIX_REPORT.md](./docs/P11/BUG_FIX_REPORT.md) BUG-01 |
 | D76 | Thêm sitemap/robots chỉ nội dung công khai | Bổ sung `app/sitemap.ts` (`force-dynamic`, chỉ công thức `published` + danh mục + trang tĩnh, **không** có draft; try/catch quanh DB) + `app/robots.ts` (chặn `/admin`,`/api/`,`/dev/`); trước P11 cả hai trả 404 | P11 §VI.1 | Đã chốt — [SEO_PERFORMANCE_AUDIT.md](./docs/P11/SEO_PERFORMANCE_AUDIT.md) |
 | D77 | Thêm security headers, chưa dùng CSP | Trong `next.config.ts`: `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, `X-DNS-Prefetch-Control`, `Permissions-Policy` + `poweredByHeader: false`. **Không** đặt CSP trong P11 (Next.js cần inline style/script → cần nonce-based ở phase sau) để tránh hỏng UI | P11 §VI.3 | Đã chốt — [SECURITY_AUDIT.md](./docs/P11/SECURITY_AUDIT.md) |
-| D78 | Không sửa eager Prisma init trong P11 | Giữ nguyên khởi tạo `PrismaClient` ở module scope (`lib/db/prisma.ts`) khiến `pnpm build` cần `DATABASE_URL`; **không** refactor sang lazy-init (rủi ro hạ tầng lõi > lợi ích trong phase ổn định). Workaround: đặt `DATABASE_URL` khi build; ghi Backlog (FIND-04) | P11 §II/§IX | Ghi nhận — [BUG_FIX_REPORT.md](./docs/P11/BUG_FIX_REPORT.md) FIND-04 |
+| D78 | Không sửa eager Prisma init trong P11 | Giữ nguyên khởi tạo `PrismaClient` ở module scope (`lib/db/prisma.ts`) khiến `pnpm build` cần `DATABASE_URL`; **không** refactor sang lazy-init (rủi ro hạ tầng lõi > lợi ích trong phase ổn định). Workaround: đặt `DATABASE_URL` khi build; ghi Backlog (FIND-04) | P11 §II/§IX | **SIÊU HÀNH bởi D79 (P12)** — [BUG_FIX_REPORT.md](./docs/P11/BUG_FIX_REPORT.md) FIND-04 |
+| D79 | **Prisma lazy-init (sửa FIND-04)** — đảo D78 | `lib/db/prisma.ts` dùng **Proxy lazy**: `PrismaClient` chỉ được tạo ở lần truy cập đầu tiên, không tạo ở module scope. Nhờ đó `pnpm build` **không cần** `DATABASE_URL` cho route/module không truy vấn DB; lỗi Vercel *"Failed to collect configuration for /api/v1/admin/recipes"* được loại bỏ. Kiểm tra `serverEnv()` vẫn giữ (đúng thời điểm), **không** bỏ validation | P12.2 — [DATABASE_READINESS.md](./docs/P12/DATABASE_READINESS.md) | Đã chốt |
+| D80 | **Guard storage ở production (sửa FIND-07)** | `getStorage()` khi `NODE_ENV=production` mà thiếu `R2_*` → **ném lỗi rõ ràng** (nêu tên biến, không lộ giá trị), **không** fallback local (tránh ghi media vào FS tạm Vercel). `MediaService` resolve storage **lazy** qua getter. Dev/test vẫn dùng local adapter | P12.3 — [STORAGE_READINESS.md](./docs/P12/STORAGE_READINESS.md) | Đã chốt |
+| D81 | **Kiểm thử E2E bằng Playwright qua CDP** | Dùng `@playwright/test` kết nối Chrome có sẵn qua CDP (`chromium.connectOverCDP`, mặc định `127.0.0.1:9222`) thay vì `launch()` (sandbox không có Chromium binary). Fixture `browser` override ở scope `worker`. DB E2E **riêng** (`wale_e2e`) + seed idempotent tiền tố `e2e-`; **không** dùng credentials production | P12.4 — [PLAYWRIGHT_SETUP.md](./docs/P12/PLAYWRIGHT_SETUP.md) | Đã chốt |
 
 > Chi tiết bối cảnh/lý do/đánh đổi/phương án thay thế của **D-P02-01..11** xem [ARCHITECTURE_DECISIONS.md](./docs/P02/ARCHITECTURE_DECISIONS.md).
 > Chi tiết Design System của **D22–D28** xem [DESIGN_SYSTEM.md](./docs/P03/DESIGN_SYSTEM.md), [DESIGN_TOKENS.md](./docs/P03/DESIGN_TOKENS.md), [COLOR_ACCESSIBILITY_AUDIT.md](./docs/P03/COLOR_ACCESSIBILITY_AUDIT.md).
@@ -95,6 +98,7 @@
 > Chi tiết P09 của **D67–D70** xem [docs/P09/](./docs/P09/): [RECIPE_DATA_AUDIT.md](./docs/P09/RECIPE_DATA_AUDIT.md), [COOKING_MODE.md](./docs/P09/COOKING_MODE.md), [PORTION_SCALING.md](./docs/P09/PORTION_SCALING.md), [INGREDIENT_CHECKLIST.md](./docs/P09/INGREDIENT_CHECKLIST.md), [TEST_REPORT.md](./docs/P09/TEST_REPORT.md). Checkpoint: [docs/checkpoints/P09_CHECKPOINT.md](./docs/checkpoints/P09_CHECKPOINT.md).
 > Chi tiết P10 của **D71–D74** xem [docs/P10/](./docs/P10/): [MULTI_TIMER.md](./docs/P10/MULTI_TIMER.md), [UNIT_CONVERTER.md](./docs/P10/UNIT_CONVERTER.md), [INGREDIENT_DISCOVERY.md](./docs/P10/INGREDIENT_DISCOVERY.md), [SMART_KITCHEN_UI.md](./docs/P10/SMART_KITCHEN_UI.md), [TEST_REPORT.md](./docs/P10/TEST_REPORT.md). Checkpoint: [docs/checkpoints/P10_CHECKPOINT.md](./docs/checkpoints/P10_CHECKPOINT.md).
 > Chi tiết P11 của **D75–D78** xem [docs/P11/](./docs/P11/): [FULL_PROJECT_AUDIT.md](./docs/P11/FULL_PROJECT_AUDIT.md), [BUG_FIX_REPORT.md](./docs/P11/BUG_FIX_REPORT.md), [SEO_PERFORMANCE_AUDIT.md](./docs/P11/SEO_PERFORMANCE_AUDIT.md), [SECURITY_AUDIT.md](./docs/P11/SECURITY_AUDIT.md), [TEST_REPORT.md](./docs/P11/TEST_REPORT.md). Checkpoint: [docs/checkpoints/P11_CHECKPOINT.md](./docs/checkpoints/P11_CHECKPOINT.md).
+> Chi tiết P12 của **D79–D81** xem [docs/P12/](./docs/P12/): [DATABASE_READINESS.md](./docs/P12/DATABASE_READINESS.md), [STORAGE_READINESS.md](./docs/P12/STORAGE_READINESS.md), [PLAYWRIGHT_SETUP.md](./docs/P12/PLAYWRIGHT_SETUP.md), [E2E_TEST_REPORT.md](./docs/P12/E2E_TEST_REPORT.md), [P12_SUMMARY.md](./docs/P12/P12_SUMMARY.md). Checkpoint: [docs/checkpoints/P12_CHECKPOINT.md](./docs/checkpoints/P12_CHECKPOINT.md).
 
 ## Quyết định còn để mở (cần xác minh trước khi áp dụng)
 
