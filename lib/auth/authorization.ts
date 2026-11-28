@@ -31,7 +31,13 @@ export type Permission =
   | "recipe:delete"
   | "media:upload"
   | "taxonomy:manage"
-  | "user:manage";
+  | "user:manage"
+  // Recipe Importer (P16 — I1). Chỉ admin theo P16.8 §3 (SECURITY §67).
+  | "import:read"
+  | "import:manage"
+  | "import:approve"
+  | "import:publish"
+  | "source:manage";
 
 const PERMISSIONS_BY_ROLE: Record<Role, readonly Permission[]> = {
   user: ["favorite:manage"],
@@ -57,6 +63,11 @@ const PERMISSIONS_BY_ROLE: Record<Role, readonly Permission[]> = {
     "media:upload",
     "taxonomy:manage",
     "user:manage",
+    "import:read",
+    "import:manage",
+    "import:approve",
+    "import:publish",
+    "source:manage",
   ],
 };
 

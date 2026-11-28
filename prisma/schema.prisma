@@ -204,6 +204,114 @@ enum RecipeImageRole {
   @@map("recipe_image_role")
 }
 
+// --- Recipe Importer (P16.7 / I1) -------------------------------------------
+
+enum ImportSourceStatus {
+  disabled
+  url_import_only
+  auto_enabled
+  paused_blocked
+  manual_only
+  disallowed
+
+  @@map("import_source_status")
+}
+
+enum ContentReusePolicy {
+  facts_only
+  rewrite_required
+  licensed_reuse
+  manual_only
+
+  @@map("content_reuse_policy")
+}
+
+enum ImageReusePolicy {
+  do_not_copy
+  allowed_with_license
+  manual_review
+
+  @@map("image_reuse_policy")
+}
+
+enum ImportSourceLastStatus {
+  ok
+  blocked
+  rate_limited
+  parse_failed
+  unknown
+
+  @@map("import_source_last_status")
+}
+
+enum ImportJobMode {
+  url_import
+  auto_discovery
+
+  @@map("import_job_mode")
+}
+
+enum ImportJobStatus {
+  created
+  running
+  paused
+  cancelled
+  partial
+  done
+
+  @@map("import_job_status")
+}
+
+enum ImportJobItemStatus {
+  discovered
+  queued
+  processing
+  needs_review
+  duplicate
+  failed
+  approved
+  rejected
+  published
+
+  @@map("import_job_item_status")
+}
+
+enum TranslationStatus {
+  pending
+  in_progress
+  done
+  failed
+  needs_human
+
+  @@map("translation_status")
+}
+
+enum HumanReviewStatus {
+  not_reviewed
+  in_review
+  approved
+  rejected
+
+  @@map("human_review_status")
+}
+
+enum DuplicateClassification {
+  exact
+  likely
+  similar
+  different
+
+  @@map("duplicate_classification")
+}
+
+enum DuplicateStatus {
+  open
+  merged
+  dismissed
+
+  @@map("duplicate_status")
+}
+
 // =============================================================================
 // 5.1 IDENTITY & USER (tương thích Auth.js Prisma Adapter)
 // =============================================================================
@@ -241,6 +349,10 @@ model User {
   reviewRecords      ContentReviewRecord[]
   contentReviews     ContentReview[]
   auditLogs          AuditLog[]
+
+  importJobsCreated           ImportJob[]              @relation("ImportJobCreatedBy")
+  translationDraftsReviewed   RecipeTranslationDraft[] @relation("TranslationDraftReviewedBy")
+  duplicateCandidatesResolved DuplicateCandidate[]     @relation("DuplicateCandidateResolvedBy")
 
   @@map("users")
 }
@@ -333,8 +445,8 @@ model UserDietaryPreference {
 }
 
 model UserAllergen {
-  userId          String @map("user_id") @db.Uuid
-  allergenTermId  String @map("allergen_term_id") @db.Uuid
+  userId         String @map("user_id") @db.Uuid
+  allergenTermId String @map("allergen_term_id") @db.Uuid
 
   user User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   term TaxonomyTerm @relation("UserAllergenTerm", fields: [allergenTermId], references: [id], onDelete: Restrict)
@@ -349,13 +461,13 @@ model UserAllergen {
 // =============================================================================
 
 model TaxonomyType {
-  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  code          String   @unique
+  id             String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code           String  @unique
   isHierarchical Boolean @default(false) @map("is_hierarchical")
-  isMultiSelect Boolean  @default(false) @map("is_multi_select")
-  isRequired    Boolean  @default(false) @map("is_required")
-  isActive      Boolean  @default(true) @map("is_active")
-  sortOrder     Int      @default(0) @map("sort_order")
+  isMultiSelect  Boolean @default(false) @map("is_multi_select")
+  isRequired     Boolean @default(false) @map("is_required")
+  isActive       Boolean @default(true) @map("is_active")
+  sortOrder      Int     @default(0) @map("sort_order")
 
   terms TaxonomyTerm[]
 
@@ -363,28 +475,28 @@ model TaxonomyType {
 }
 
 model TaxonomyTerm {
-  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  taxonomyTypeId String   @map("taxonomy_type_id") @db.Uuid
-  parentId       String?  @map("parent_id") @db.Uuid
+  id             String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  taxonomyTypeId String  @map("taxonomy_type_id") @db.Uuid
+  parentId       String? @map("parent_id") @db.Uuid
   slug           String
   icon           String?
-  isActive       Boolean  @default(true) @map("is_active")
-  sortOrder      Int      @default(0) @map("sort_order")
+  isActive       Boolean @default(true) @map("is_active")
+  sortOrder      Int     @default(0) @map("sort_order")
 
-  type         TaxonomyType             @relation(fields: [taxonomyTypeId], references: [id], onDelete: Restrict)
-  parent       TaxonomyTerm?            @relation("TaxonomyParent", fields: [parentId], references: [id], onDelete: SetNull)
-  children     TaxonomyTerm[]           @relation("TaxonomyParent")
+  type         TaxonomyType              @relation(fields: [taxonomyTypeId], references: [id], onDelete: Restrict)
+  parent       TaxonomyTerm?             @relation("TaxonomyParent", fields: [parentId], references: [id], onDelete: SetNull)
+  children     TaxonomyTerm[]            @relation("TaxonomyParent")
   translations TaxonomyTermTranslation[]
   aliases      TaxonomyTermAlias[]
 
-  ingredients        Ingredient[]             @relation("IngredientCategory")
-  recipesFoodType    Recipe[]                 @relation("RecipeFoodType")
-  recipesCuisine     Recipe[]                 @relation("RecipeCuisine")
-  recipeTaxonomy     RecipeTaxonomyTerm[]
-  recipeAllergens    RecipeAllergen[]
-  ingredientAllergens IngredientAllergen[]     @relation("IngredientAllergenTerm")
-  userDietaryPrefs   UserDietaryPreference[]  @relation("DietaryPreferenceTerm")
-  userAllergens      UserAllergen[]           @relation("UserAllergenTerm")
+  ingredients         Ingredient[]            @relation("IngredientCategory")
+  recipesFoodType     Recipe[]                @relation("RecipeFoodType")
+  recipesCuisine      Recipe[]                @relation("RecipeCuisine")
+  recipeTaxonomy      RecipeTaxonomyTerm[]
+  recipeAllergens     RecipeAllergen[]
+  ingredientAllergens IngredientAllergen[]    @relation("IngredientAllergenTerm")
+  userDietaryPrefs    UserDietaryPreference[] @relation("DietaryPreferenceTerm")
+  userAllergens       UserAllergen[]          @relation("UserAllergenTerm")
 
   @@unique([taxonomyTypeId, slug])
   @@index([taxonomyTypeId])
@@ -428,21 +540,21 @@ model Unit {
   isBase    Boolean       @default(false) @map("is_base")
   sortOrder Int           @default(0) @map("sort_order")
 
-  translations      UnitTranslation[]
-  conversionsFrom   UnitConversion[]    @relation("UnitConversionFrom")
-  conversionsTo     UnitConversion[]    @relation("UnitConversionTo")
-  ingredientDefaults Ingredient[]       @relation("IngredientDefaultUnit")
+  translations        UnitTranslation[]
+  conversionsFrom     UnitConversion[]    @relation("UnitConversionFrom")
+  conversionsTo       UnitConversion[]    @relation("UnitConversionTo")
+  ingredientDefaults  Ingredient[]        @relation("IngredientDefaultUnit")
   ingredientDensities IngredientDensity[] @relation("DensityVolumeUnit")
-  ingredientUnits   IngredientUnit[]
-  recipeIngredients RecipeIngredient[]
-  shoppingListItems ShoppingListItem[]
+  ingredientUnits     IngredientUnit[]
+  recipeIngredients   RecipeIngredient[]
+  shoppingListItems   ShoppingListItem[]
 
   @@map("units")
 }
 
 model UnitTranslation {
-  id     String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  unitId String @map("unit_id") @db.Uuid
+  id     String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  unitId String  @map("unit_id") @db.Uuid
   locale String
   name   String
   symbol String?
@@ -471,28 +583,28 @@ model UnitConversion {
 // =============================================================================
 
 model Ingredient {
-  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  slug            String   @unique
-  originalName    String?  @map("original_name")
-  categoryTermId  String?  @map("category_term_id") @db.Uuid
-  defaultUnitId   String?  @map("default_unit_id") @db.Uuid
-  isCommon        Boolean  @default(false) @map("is_common")
-  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt       DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  slug           String   @unique
+  originalName   String?  @map("original_name")
+  categoryTermId String?  @map("category_term_id") @db.Uuid
+  defaultUnitId  String?  @map("default_unit_id") @db.Uuid
+  isCommon       Boolean  @default(false) @map("is_common")
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   category    TaxonomyTerm? @relation("IngredientCategory", fields: [categoryTermId], references: [id], onDelete: Restrict)
   defaultUnit Unit?         @relation("IngredientDefaultUnit", fields: [defaultUnitId], references: [id], onDelete: SetNull)
 
-  translations    IngredientTranslation[]
-  aliases         IngredientAlias[]
-  substitutionsAs IngredientSubstitution[] @relation("SubstitutionIngredient")
-  substitutionsTo IngredientSubstitution[] @relation("SubstitutionSubstitute")
-  allergens       IngredientAllergen[]
-  densities       IngredientDensity[]
-  units           IngredientUnit[]
-  recipeIngredients RecipeIngredient[]
+  translations                IngredientTranslation[]
+  aliases                     IngredientAlias[]
+  substitutionsAs             IngredientSubstitution[]     @relation("SubstitutionIngredient")
+  substitutionsTo             IngredientSubstitution[]     @relation("SubstitutionSubstitute")
+  allergens                   IngredientAllergen[]
+  densities                   IngredientDensity[]
+  units                       IngredientUnit[]
+  recipeIngredients           RecipeIngredient[]
   recipeIngredientSubstitutes RecipeIngredientSubstitute[] @relation("IngredientSubstituteOption")
-  shoppingListItems ShoppingListItem[]
+  shoppingListItems           ShoppingListItem[]
 
   @@index([categoryTermId])
   @@index([defaultUnitId])
@@ -500,8 +612,8 @@ model Ingredient {
 }
 
 model IngredientTranslation {
-  id           String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  ingredientId String @map("ingredient_id") @db.Uuid
+  id           String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  ingredientId String  @map("ingredient_id") @db.Uuid
   locale       String
   name         String
   notes        String?
@@ -526,13 +638,13 @@ model IngredientAlias {
 }
 
 model IngredientSubstitution {
-  id            String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  ingredientId  String              @map("ingredient_id") @db.Uuid
-  substituteId  String              @map("substitute_id") @db.Uuid
-  quality       SubstitutionQuality
-  ratioNumeric  Decimal?            @map("ratio_numeric") @db.Decimal(8, 4)
-  ratioNote     String?             @map("ratio_note")
-  note          String?
+  id           String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  ingredientId String              @map("ingredient_id") @db.Uuid
+  substituteId String              @map("substitute_id") @db.Uuid
+  quality      SubstitutionQuality
+  ratioNumeric Decimal?            @map("ratio_numeric") @db.Decimal(8, 4)
+  ratioNote    String?             @map("ratio_note")
+  note         String?
 
   ingredient Ingredient @relation("SubstitutionIngredient", fields: [ingredientId], references: [id], onDelete: Restrict)
   substitute Ingredient @relation("SubstitutionSubstitute", fields: [substituteId], references: [id], onDelete: Restrict)
@@ -547,8 +659,8 @@ model IngredientAllergen {
   allergenTermId String           @map("allergen_term_id") @db.Uuid
   presence       AllergenPresence
 
-  ingredient Ingredient     @relation(fields: [ingredientId], references: [id], onDelete: Restrict)
-  term       TaxonomyTerm   @relation("IngredientAllergenTerm", fields: [allergenTermId], references: [id], onDelete: Restrict)
+  ingredient Ingredient   @relation(fields: [ingredientId], references: [id], onDelete: Restrict)
+  term       TaxonomyTerm @relation("IngredientAllergenTerm", fields: [allergenTermId], references: [id], onDelete: Restrict)
 
   @@id([ingredientId, allergenTermId])
   @@index([allergenTermId])
@@ -556,12 +668,12 @@ model IngredientAllergen {
 }
 
 model IngredientDensity {
-  id            String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  ingredientId  String            @map("ingredient_id") @db.Uuid
-  volumeUnitId  String            @map("volume_unit_id") @db.Uuid
-  gramsPerUnit  Decimal           @map("grams_per_unit") @db.Decimal(10, 4)
-  source        String?
-  confidence    DensityConfidence
+  id           String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  ingredientId String            @map("ingredient_id") @db.Uuid
+  volumeUnitId String            @map("volume_unit_id") @db.Uuid
+  gramsPerUnit Decimal           @map("grams_per_unit") @db.Decimal(10, 4)
+  source       String?
+  confidence   DensityConfidence
 
   ingredient Ingredient @relation(fields: [ingredientId], references: [id], onDelete: Cascade)
   volumeUnit Unit       @relation("DensityVolumeUnit", fields: [volumeUnitId], references: [id], onDelete: Restrict)
@@ -572,11 +684,11 @@ model IngredientDensity {
 }
 
 model IngredientUnit {
-  id           String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  ingredientId String  @map("ingredient_id") @db.Uuid
-  unitId       String  @map("unit_id") @db.Uuid
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  ingredientId String   @map("ingredient_id") @db.Uuid
+  unitId       String   @map("unit_id") @db.Uuid
   gramsPerUnit Decimal? @map("grams_per_unit") @db.Decimal(10, 4)
-  isDefault    Boolean @default(false) @map("is_default")
+  isDefault    Boolean  @default(false) @map("is_default")
 
   ingredient Ingredient @relation(fields: [ingredientId], references: [id], onDelete: Cascade)
   unit       Unit       @relation(fields: [unitId], references: [id], onDelete: Restrict)
@@ -591,23 +703,23 @@ model IngredientUnit {
 // =============================================================================
 
 model MediaAsset {
-  id              String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  storageKey      String      @unique @map("storage_key")
-  publicUrl       String?     @map("public_url")
-  mimeType        String      @map("mime_type")
-  sizeBytes       Int         @map("size_bytes")
-  width           Int?
-  height          Int?
-  checksum        String?
-  altTextDefault  String?     @map("alt_text_default")
-  status          MediaStatus @default(active)
-  createdById     String?     @map("created_by") @db.Uuid
-  createdAt       DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  id             String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  storageKey     String      @unique @map("storage_key")
+  publicUrl      String?     @map("public_url")
+  mimeType       String      @map("mime_type")
+  sizeBytes      Int         @map("size_bytes")
+  width          Int?
+  height         Int?
+  checksum       String?
+  altTextDefault String?     @map("alt_text_default")
+  status         MediaStatus @default(active)
+  createdById    String?     @map("created_by") @db.Uuid
+  createdAt      DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
 
-  createdBy        User?         @relation("MediaCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
-  recipeImages     RecipeImage[]
-  primaryImageOf   Recipe[]      @relation("RecipePrimaryImage")
-  profileAvatars   UserProfile[] @relation("ProfileAvatar")
+  createdBy      User?         @relation("MediaCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  recipeImages   RecipeImage[]
+  primaryImageOf Recipe[]      @relation("RecipePrimaryImage")
+  profileAvatars UserProfile[] @relation("ProfileAvatar")
 
   @@index([createdById])
   @@map("media_assets")
@@ -639,11 +751,11 @@ model Recipe {
   createdAt          DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt          DateTime           @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  author       User         @relation("RecipeAuthor", fields: [authorId], references: [id], onDelete: Restrict)
-  editor       User?        @relation("RecipeEditor", fields: [editorId], references: [id], onDelete: SetNull)
+  author       User          @relation("RecipeAuthor", fields: [authorId], references: [id], onDelete: Restrict)
+  editor       User?         @relation("RecipeEditor", fields: [editorId], references: [id], onDelete: SetNull)
   foodTypeTerm TaxonomyTerm? @relation("RecipeFoodType", fields: [foodTypeTermId], references: [id], onDelete: Restrict)
   cuisineTerm  TaxonomyTerm? @relation("RecipeCuisine", fields: [cuisineTermId], references: [id], onDelete: Restrict)
-  primaryImage MediaAsset?  @relation("RecipePrimaryImage", fields: [primaryImageId], references: [id], onDelete: SetNull)
+  primaryImage MediaAsset?   @relation("RecipePrimaryImage", fields: [primaryImageId], references: [id], onDelete: SetNull)
 
   translations      RecipeTranslation[]
   steps             RecipeStep[]
@@ -664,6 +776,9 @@ model Recipe {
   mealPlanItems     MealPlanItem[]
   contentReviews    ContentReview[]
   attributions      SourceAttribution[]
+
+  importItems         ImportJobItem[]
+  duplicateCandidates DuplicateCandidate[]
 
   @@index([status])
   @@index([cuisineTermId])
@@ -694,15 +809,15 @@ model RecipeTranslation {
 }
 
 model RecipeStep {
-  id       String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  recipeId String @map("recipe_id") @db.Uuid
-  stepNo   Int    @map("step_no")
-  sortOrder Int   @default(0) @map("sort_order")
+  id        String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  recipeId  String @map("recipe_id") @db.Uuid
+  stepNo    Int    @map("step_no")
+  sortOrder Int    @default(0) @map("sort_order")
 
-  recipe       Recipe                   @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  recipe       Recipe                  @relation(fields: [recipeId], references: [id], onDelete: Cascade)
   translations RecipeStepTranslation[]
   timers       RecipeStepTimer[]
-  images       RecipeImage[]            @relation("StepImage")
+  images       RecipeImage[]           @relation("StepImage")
   progress     CookingProgress[]
 
   @@unique([recipeId, stepNo])
@@ -711,8 +826,8 @@ model RecipeStep {
 }
 
 model RecipeStepTranslation {
-  id          String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  stepId      String @map("step_id") @db.Uuid
+  id          String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  stepId      String  @map("step_id") @db.Uuid
   locale      String
   instruction String
   tip         String?
@@ -858,24 +973,24 @@ model RecipeSlugRedirect {
 // =============================================================================
 
 model RecipeIngredient {
-  id                  String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  recipeId            String       @map("recipe_id") @db.Uuid
-  ingredientId        String?      @map("ingredient_id") @db.Uuid
-  displayName         String       @map("display_name")
-  quantityType        QuantityType @default(decimal) @map("quantity_type")
-  quantityNumeric     Decimal?     @map("quantity_numeric") @db.Decimal(10, 3)
-  quantityNumericMax  Decimal?     @map("quantity_numeric_max") @db.Decimal(10, 3)
-  quantityText        String?      @map("quantity_text")
-  unitId              String?      @map("unit_id") @db.Uuid
-  isRequired          Boolean      @default(true) @map("is_required")
-  isScalable          Boolean      @default(true) @map("is_scalable")
-  preparationNote     String?      @map("preparation_note")
-  groupLabel          String?      @map("group_label")
-  sortOrder           Int          @default(0) @map("sort_order")
+  id                 String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  recipeId           String       @map("recipe_id") @db.Uuid
+  ingredientId       String?      @map("ingredient_id") @db.Uuid
+  displayName        String       @map("display_name")
+  quantityType       QuantityType @default(decimal) @map("quantity_type")
+  quantityNumeric    Decimal?     @map("quantity_numeric") @db.Decimal(10, 3)
+  quantityNumericMax Decimal?     @map("quantity_numeric_max") @db.Decimal(10, 3)
+  quantityText       String?      @map("quantity_text")
+  unitId             String?      @map("unit_id") @db.Uuid
+  isRequired         Boolean      @default(true) @map("is_required")
+  isScalable         Boolean      @default(true) @map("is_scalable")
+  preparationNote    String?      @map("preparation_note")
+  groupLabel         String?      @map("group_label")
+  sortOrder          Int          @default(0) @map("sort_order")
 
-  recipe     Recipe              @relation(fields: [recipeId], references: [id], onDelete: Cascade)
-  ingredient Ingredient?         @relation(fields: [ingredientId], references: [id], onDelete: Restrict)
-  unit       Unit?               @relation(fields: [unitId], references: [id], onDelete: SetNull)
+  recipe      Recipe                       @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  ingredient  Ingredient?                  @relation(fields: [ingredientId], references: [id], onDelete: Restrict)
+  unit        Unit?                        @relation(fields: [unitId], references: [id], onDelete: SetNull)
   substitutes RecipeIngredientSubstitute[]
 
   @@index([recipeId, sortOrder])
@@ -885,10 +1000,10 @@ model RecipeIngredient {
 }
 
 model RecipeIngredientSubstitute {
-  recipeIngredientId       String  @map("recipe_ingredient_id") @db.Uuid
-  substituteIngredientId   String  @map("substitute_ingredient_id") @db.Uuid
-  note                     String?
-  ratioNumeric             Decimal? @map("ratio_numeric") @db.Decimal(8, 4)
+  recipeIngredientId     String   @map("recipe_ingredient_id") @db.Uuid
+  substituteIngredientId String   @map("substitute_ingredient_id") @db.Uuid
+  note                   String?
+  ratioNumeric           Decimal? @map("ratio_numeric") @db.Decimal(8, 4)
 
   recipeIngredient RecipeIngredient @relation(fields: [recipeIngredientId], references: [id], onDelete: Cascade)
   substitute       Ingredient       @relation("IngredientSubstituteOption", fields: [substituteIngredientId], references: [id], onDelete: Restrict)
@@ -903,19 +1018,19 @@ model RecipeIngredientSubstitute {
 // =============================================================================
 
 model RecipeNutrition {
-  id             String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  recipeId       String                 @map("recipe_id") @db.Uuid
+  id             String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  recipeId       String                  @map("recipe_id") @db.Uuid
   basis          NutritionBasis
-  calories       Decimal?               @db.Decimal(8, 2)
-  proteinG       Decimal?               @map("protein_g") @db.Decimal(8, 2)
-  carbsG         Decimal?               @map("carbs_g") @db.Decimal(8, 2)
-  fatG           Decimal?               @map("fat_g") @db.Decimal(8, 2)
-  fiberG         Decimal?               @map("fiber_g") @db.Decimal(8, 2)
-  sugarG         Decimal?               @map("sugar_g") @db.Decimal(8, 2)
-  sodiumMg       Decimal?               @map("sodium_mg") @db.Decimal(8, 2)
-  dataSourceType NutritionDataSourceType @map("data_source_type") @default(unknown)
-  sourceNote     String?                @map("source_note")
-  createdAt      DateTime               @default(now()) @map("created_at") @db.Timestamptz(6)
+  calories       Decimal?                @db.Decimal(8, 2)
+  proteinG       Decimal?                @map("protein_g") @db.Decimal(8, 2)
+  carbsG         Decimal?                @map("carbs_g") @db.Decimal(8, 2)
+  fatG           Decimal?                @map("fat_g") @db.Decimal(8, 2)
+  fiberG         Decimal?                @map("fiber_g") @db.Decimal(8, 2)
+  sugarG         Decimal?                @map("sugar_g") @db.Decimal(8, 2)
+  sodiumMg       Decimal?                @map("sodium_mg") @db.Decimal(8, 2)
+  dataSourceType NutritionDataSourceType @default(unknown) @map("data_source_type")
+  sourceNote     String?                 @map("source_note")
+  createdAt      DateTime                @default(now()) @map("created_at") @db.Timestamptz(6)
 
   recipe Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
 
@@ -1006,12 +1121,12 @@ model RecipeNote {
 }
 
 model CookedHistory {
-  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  userId          String   @map("user_id") @db.Uuid
-  recipeId        String   @map("recipe_id") @db.Uuid
-  servingsMade    Decimal? @map("servings_made") @db.Decimal(6, 2)
-  note            String?
-  cookedAt        DateTime @default(now()) @map("cooked_at") @db.Timestamptz(6)
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId       String   @map("user_id") @db.Uuid
+  recipeId     String   @map("recipe_id") @db.Uuid
+  servingsMade Decimal? @map("servings_made") @db.Decimal(6, 2)
+  note         String?
+  cookedAt     DateTime @default(now()) @map("cooked_at") @db.Timestamptz(6)
 
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   recipe Recipe @relation(fields: [recipeId], references: [id], onDelete: Restrict)
@@ -1030,8 +1145,8 @@ model CookingSession {
   startedAt  DateTime             @default(now()) @map("started_at") @db.Timestamptz(6)
   finishedAt DateTime?            @map("finished_at") @db.Timestamptz(6)
 
-  user     User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  recipe   Recipe           @relation(fields: [recipeId], references: [id], onDelete: Restrict)
+  user     User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  recipe   Recipe            @relation(fields: [recipeId], references: [id], onDelete: Restrict)
   progress CookingProgress[]
 
   @@index([userId])
@@ -1123,17 +1238,17 @@ model ShoppingList {
 }
 
 model ShoppingListItem {
-  id              String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  listId          String  @map("list_id") @db.Uuid
-  ingredientId    String? @map("ingredient_id") @db.Uuid
-  displayName     String  @map("display_name")
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  listId          String   @map("list_id") @db.Uuid
+  ingredientId    String?  @map("ingredient_id") @db.Uuid
+  displayName     String   @map("display_name")
   quantityNumeric Decimal? @map("quantity_numeric") @db.Decimal(10, 3)
-  unitId          String? @map("unit_id") @db.Uuid
-  groupLabel      String? @map("group_label")
-  isChecked       Boolean @default(false) @map("is_checked")
-  isManual        Boolean @default(false) @map("is_manual")
+  unitId          String?  @map("unit_id") @db.Uuid
+  groupLabel      String?  @map("group_label")
+  isChecked       Boolean  @default(false) @map("is_checked")
+  isManual        Boolean  @default(false) @map("is_manual")
   note            String?
-  sortOrder       Int     @default(0) @map("sort_order")
+  sortOrder       Int      @default(0) @map("sort_order")
 
   list       ShoppingList @relation(fields: [listId], references: [id], onDelete: Cascade)
   ingredient Ingredient?  @relation(fields: [ingredientId], references: [id], onDelete: SetNull)
@@ -1164,7 +1279,7 @@ model ContentSource {
   createdAt       DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt       DateTime             @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  verifiedBy   User?              @relation("SourceVerifiedBy", fields: [verifiedById], references: [id], onDelete: SetNull)
+  verifiedBy   User?               @relation("SourceVerifiedBy", fields: [verifiedById], references: [id], onDelete: SetNull)
   recipeLinks  RecipeSource[]
   attributions SourceAttribution[]
 
@@ -1188,13 +1303,13 @@ model SourceAttribution {
 }
 
 model ContentReviewRecord {
-  id          String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  entityType  String         @map("entity_type")
-  entityId    String         @map("entity_id") @db.Uuid
-  reviewerId  String?        @map("reviewer_id") @db.Uuid
-  decision    ReviewDecision
-  notes       String?
-  createdAt   DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  id         String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  entityType String         @map("entity_type")
+  entityId   String         @map("entity_id") @db.Uuid
+  reviewerId String?        @map("reviewer_id") @db.Uuid
+  decision   ReviewDecision
+  notes      String?
+  createdAt  DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
 
   reviewer User? @relation(fields: [reviewerId], references: [id], onDelete: SetNull)
 
@@ -1240,4 +1355,171 @@ model AuditLog {
   @@index([entityType, entityId])
   @@index([actorId, createdAt(sort: Desc)])
   @@map("audit_logs")
+}
+
+// =============================================================================
+// 5.10 RECIPE IMPORTER (P16.7 — I1)
+// =============================================================================
+
+model ImportSource {
+  id               String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name             String
+  domain           String
+  homepageUrl      String?                @map("homepage_url")
+  sourceUrls       Json?                  @map("source_urls") @db.JsonB
+  discoveryMethods Json?                  @map("discovery_methods") @db.JsonB
+  supportStatus    ImportSourceStatus     @default(disabled) @map("support_status")
+  robotsPolicy     Json?                  @map("robots_policy") @db.JsonB
+  tosPolicy        Json?                  @map("tos_policy") @db.JsonB
+  contentPolicy    ContentReusePolicy     @default(manual_only) @map("content_policy")
+  imagePolicy      ImageReusePolicy       @default(do_not_copy) @map("image_policy")
+  extractorConfig  Json?                  @map("extractor_config") @db.JsonB
+  rateLimit        Json?                  @map("rate_limit") @db.JsonB
+  lastCrawledAt    DateTime?              @map("last_crawled_at") @db.Timestamptz(6)
+  lastStatus       ImportSourceLastStatus @default(unknown) @map("last_status")
+  lastError        String?                @map("last_error")
+  enabled          Boolean                @default(false)
+  createdAt        DateTime               @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime               @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  jobs  ImportJob[]
+  items ImportJobItem[]
+
+  @@unique([domain])
+  @@index([supportStatus, enabled])
+  @@index([lastStatus])
+  @@map("import_sources")
+}
+
+model ImportJob {
+  id          String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  mode        ImportJobMode
+  status      ImportJobStatus @default(created)
+  createdById String          @map("created_by_id") @db.Uuid
+  sourceId    String?         @map("source_id") @db.Uuid
+  maxItems    Int             @default(500) @map("max_items")
+  notes       String?
+  createdAt   DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime        @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  createdBy User            @relation("ImportJobCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  source    ImportSource?   @relation(fields: [sourceId], references: [id], onDelete: SetNull)
+  items     ImportJobItem[]
+
+  @@index([status, createdAt(sort: Desc)])
+  @@index([createdById])
+  @@index([sourceId])
+  @@map("import_jobs")
+}
+
+model ImportJobItem {
+  id                String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  jobId             String              @map("job_id") @db.Uuid
+  sourceId          String?             @map("source_id") @db.Uuid
+  sourceUrl         String              @map("source_url")
+  normalizedUrl     String              @map("normalized_url")
+  idempotencyKey    String              @map("idempotency_key")
+  status            ImportJobItemStatus @default(queued)
+  processingStage   String?             @map("processing_stage")
+  attempts          Int                 @default(0)
+  maxAttempts       Int                 @default(3) @map("max_attempts")
+  leaseExpiresAt    DateTime?           @map("lease_expires_at") @db.Timestamptz(6)
+  workerId          String?             @map("worker_id")
+  lastError         String?             @map("last_error")
+  extractionId      String?             @map("extraction_id") @db.Uuid
+  duplicateOfItemId String?             @map("duplicate_of_item_id") @db.Uuid
+  recipeId          String?             @map("recipe_id") @db.Uuid
+  createdAt         DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime            @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  job             ImportJob          @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  source          ImportSource?      @relation(fields: [sourceId], references: [id], onDelete: SetNull)
+  extraction      RecipeExtraction?  @relation("ItemPrimaryExtraction", fields: [extractionId], references: [id], onDelete: SetNull)
+  extractions     RecipeExtraction[] @relation("ExtractionJobItem")
+  duplicateOfItem ImportJobItem?     @relation("ImportItemDuplicate", fields: [duplicateOfItemId], references: [id], onDelete: SetNull)
+  duplicates      ImportJobItem[]    @relation("ImportItemDuplicate")
+  recipe          Recipe?            @relation(fields: [recipeId], references: [id], onDelete: SetNull)
+
+  @@unique([jobId, idempotencyKey])
+  @@index([jobId, status])
+  @@index([status, leaseExpiresAt])
+  @@index([sourceId])
+  @@index([recipeId])
+  @@map("import_job_items")
+}
+
+model RecipeExtraction {
+  id               String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  jobItemId        String?  @map("job_item_id") @db.Uuid
+  sourceUrl        String   @map("source_url")
+  canonicalUrl     String?  @map("canonical_url")
+  contentHash      String   @map("content_hash")
+  tiersUsed        Json?    @map("tiers_used") @db.JsonB
+  extractorVersion String   @map("extractor_version")
+  rawExtraction    Json     @map("raw_extraction") @db.JsonB
+  rawContentRef    String?  @map("raw_content_ref")
+  httpStatus       Int?     @map("http_status")
+  warnings         Json?    @db.JsonB
+  extractedAt      DateTime @map("extracted_at") @db.Timestamptz(6)
+
+  jobItem           ImportJobItem?           @relation("ExtractionJobItem", fields: [jobItemId], references: [id], onDelete: SetNull)
+  items             ImportJobItem[]          @relation("ItemPrimaryExtraction")
+  translationDrafts RecipeTranslationDraft[]
+
+  duplicateCandidatesAsSource   DuplicateCandidate[] @relation("DuplicateSourceExtraction")
+  duplicateCandidatesAsCompared DuplicateCandidate[] @relation("DuplicateComparedExtraction")
+
+  @@unique([contentHash])
+  @@index([jobItemId])
+  @@index([sourceUrl])
+  @@index([extractedAt])
+  @@map("recipe_extractions")
+}
+
+model RecipeTranslationDraft {
+  id                 String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  extractionId       String            @map("extraction_id") @db.Uuid
+  locale             String            @default("vi")
+  originalContent    Json              @map("original_content") @db.JsonB
+  localizedContent   Json              @map("localized_content") @db.JsonB
+  translationStatus  TranslationStatus @default(pending) @map("translation_status")
+  translationVersion Int               @default(1) @map("translation_version")
+  aiMetadata         Json?             @map("ai_metadata") @db.JsonB
+  validationResult   Json?             @map("validation_result") @db.JsonB
+  humanReviewStatus  HumanReviewStatus @default(not_reviewed) @map("human_review_status")
+  reviewedById       String?           @map("reviewed_by_id") @db.Uuid
+  reviewedAt         DateTime?         @map("reviewed_at") @db.Timestamptz(6)
+  createdAt          DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime          @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  extraction RecipeExtraction @relation(fields: [extractionId], references: [id], onDelete: Cascade)
+  reviewedBy User?            @relation("TranslationDraftReviewedBy", fields: [reviewedById], references: [id], onDelete: SetNull)
+
+  @@unique([extractionId, locale])
+  @@index([translationStatus])
+  @@index([humanReviewStatus])
+  @@map("recipe_translation_drafts")
+}
+
+model DuplicateCandidate {
+  id                   String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  extractionId         String                  @map("extraction_id") @db.Uuid
+  comparedRecipeId     String?                 @map("compared_recipe_id") @db.Uuid
+  comparedExtractionId String?                 @map("compared_extraction_id") @db.Uuid
+  classification       DuplicateClassification
+  scores               Json                    @db.JsonB
+  status               DuplicateStatus         @default(open)
+  resolvedById         String?                 @map("resolved_by_id") @db.Uuid
+  resolvedAt           DateTime?               @map("resolved_at") @db.Timestamptz(6)
+  createdAt            DateTime                @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  extraction         RecipeExtraction  @relation("DuplicateSourceExtraction", fields: [extractionId], references: [id], onDelete: Cascade)
+  comparedRecipe     Recipe?           @relation(fields: [comparedRecipeId], references: [id], onDelete: SetNull)
+  comparedExtraction RecipeExtraction? @relation("DuplicateComparedExtraction", fields: [comparedExtractionId], references: [id], onDelete: SetNull)
+  resolvedBy         User?             @relation("DuplicateCandidateResolvedBy", fields: [resolvedById], references: [id], onDelete: SetNull)
+
+  @@unique([extractionId, comparedRecipeId, comparedExtractionId])
+  @@index([classification, status])
+  @@index([comparedRecipeId])
+  @@map("duplicate_candidates")
 }

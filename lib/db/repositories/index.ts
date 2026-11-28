@@ -63,3 +63,11 @@ export type {
   SlugLookup,
 } from "./recipe.repository";
 export type { MediaAssetDto, CreateMediaAssetInput, MediaRepository } from "./media.repository";
+export type {
+  ImportSourceDto,
+  ImportJobDto,
+  ImportJobItemDto,
+  CreateImportJobInput,
+  CreateImportJobItemInput,
+  ImportRepository,
+} from "./import.repository";
