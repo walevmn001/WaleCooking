@@ -1,7 +1,7 @@
 # BLOCKERS — WALE COOKING
 
 > Các vấn đề còn tồn tại hoặc cần xác minh. Ghi rõ thay vì tự suy đoán.
-> Cập nhật: 2026-11-28 (P18 — Auth.js Integration).
+> Cập nhật: 2026-11-28 (I2.1 — URL Import Preflight & Security Design).
 
 | # | Blocker | Mức độ | Trạng thái | Ghi chú |
 | --- | --- | --- | --- | --- |
@@ -54,6 +54,10 @@
 | B-P13-02 | **Chưa chạy `migrate deploy` trên Neon** (P13.1.4) | Cao | **BLOCKED — chờ chủ dự án xác nhận DB đích** | `prisma migrate status`/`deploy` đã PASS trên **DB trống local** (`wale_p13`, 58 bảng). **Không** chạy trên Neon khi chưa xác minh DB đích + chưa có sự cho phép rõ ràng. **Không** dùng `db push`/`migrate reset`. Xem [P13.1_NEON_INTEGRATION_REPORT.md](./docs/P13/P13.1_NEON_INTEGRATION_REPORT.md) §5 |
 | B-P13-03 | **Chưa chạy seed trên Neon** (P13.1.4/§7) | Trung bình | **BLOCKED — chờ cấu hình Neon** | Seed hệ thống idempotent (`pnpm db:seed`) chưa chạy trên Neon (chưa có credentials). Seed dev chỉ chạy khi `SEED_DEV=1` (không dùng cho production) |
 | B-P13-04 | **Chưa xác minh CRUD trên Neon thật** (P13.1.5) | Trung bình | **BLOCKED — chờ cấu hình Neon** | Bộ **59/59 integration test** (Recipe/Category/Ingredient/Kitchen CRUD) đã PASS trên **PostgreSQL local**; **chưa** chạy trên Neon (chưa có `TEST_DATABASE_URL` Neon). Xem [P13.1_NEON_INTEGRATION_REPORT.md](./docs/P13/P13.1_NEON_INTEGRATION_REPORT.md) §3 |
+| B-I2-01 | **Chưa chứng minh "pin IP" của SSRF guard trên runtime Node** (undici `connect.lookup` / socket thủ công) | Cao | **MỞ — cần spike ở I2 (M1)** | Phát hiện ở I2.1: đây là điểm **có điều kiện** của Vercel Hobby; nếu không pin được IP → **fail-closed** (từ chối fetch) + cân nhắc worker/VPS. Xem [SSRF_SECURITY_DESIGN.md](./docs/P18/I2.1/SSRF_SECURITY_DESIGN.md) §3.2/§3.4 |
+| B-I2-02 | **Vercel Hobby không cho cấu hình firewall egress** → chỉ kiểm IP ở tầng ứng dụng | Cao | **MỞ (rủi ro còn lại của nền tảng)** | Không thể bảo đảm chặn private IP ở tầng mạng trên Hobby; phụ thuộc kiểm IP ứng dụng + pin IP. Phương án mạnh hơn cần VPS/Cloudflare Workers (phương án C/D). Xem [SSRF_SECURITY_DESIGN.md](./docs/P18/I2.1/SSRF_SECURITY_DESIGN.md) §3.3/§3.4 |
+| B-I2-03 | **Trần thời gian function Hobby chưa đo** + **`nextAttemptAt` (lịch retry) chưa có trong schema** | Trung bình | **MỞ — cần chốt ở I2** | I2 phải chia ngân sách thời gian nhỏ + luôn có nhánh `queued`; nếu cần schedule chính xác → **đề xuất** thêm cột ở phase riêng (**không** sửa schema ở I2.1). Xem [VERCEL_COMPATIBILITY.md](./docs/P18/I2.1/VERCEL_COMPATIBILITY.md), [IMPLEMENTATION_PLAN.md](./docs/P18/I2.1/IMPLEMENTATION_PLAN.md) §5 (B6) |
+| B-I2-04 | **Cơ chế CSRF chưa chốt** (Origin/Sec-Fetch-Site vs double-submit token) và **429 `TOO_MANY_REQUESTS` chưa có trong `AppErrorCode`** | Thấp | **MỞ — chốt trước M4/M5 của I2** | I2.1 không triển khai; ghi quyết định mở ở [API_AUTH_DESIGN.md](./docs/P18/I2.1/API_AUTH_DESIGN.md) §3/§5 |
 
 **Ghi chú P11:** 3 lỗi Medium phát hiện & **đã sửa** trong P11 — soft-404 (BUG-01), thiếu sitemap/robots (BUG-02), thiếu security headers + lộ `X-Powered-By` (BUG-03). Chi tiết: [BUG_FIX_REPORT.md](./docs/P11/BUG_FIX_REPORT.md).
 **Ghi chú P12:** sửa **FIND-04** (Prisma lazy-init → build không cần `DATABASE_URL`) và **FIND-07** (production thiếu R2 → báo lỗi rõ ràng, không ghi FS tạm); thêm **42 E2E test** (Playwright/CDP) + kiểm responsive 4 viewport. Chấp nhận **FIND-05** (cảnh báo tracing media local). Chi tiết: [P12_SUMMARY.md](./docs/P12/P12_SUMMARY.md).
