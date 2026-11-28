@@ -16,7 +16,8 @@ export default defineConfig({
     setupFiles: ['./vitest.setup.ts'],
     include: ['tests/**/*.test.{ts,tsx}'],
     // Test tích hợp (cần database) chạy bằng `vitest.integration.config.ts`.
-    exclude: ['node_modules/**', 'tests/integration/**'],
+    // Test an ninh SSRF (cần socket thật, node env) chạy bằng `vitest.security.config.ts`.
+    exclude: ['node_modules/**', 'tests/integration/**', 'tests/security/**'],
     css: false,
   },
 });
